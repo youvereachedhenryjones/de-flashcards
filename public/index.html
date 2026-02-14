@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DE Flashcards — Spaced Repetition</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0F0F1A;--card:#1A1A2E;--teal:#0D9488;--teal-light:#14B8A6;--text:#F5F0EB;--slate:#94A3B8;--slate-dark:#64748B;--green:#059669;--yellow:#D97706;--red:#DC2626;--blue:#3B82F6}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:640px;margin:0 auto;padding:20px}
+
+/* Header */
+header{text-align:center;padding:24px 0;border-bottom:1px solid rgba(100,116,139,.15);margin-bottom:24px}
+header h1{font-size:24px;font-weight:700;letter-spacing:1px}
+header h1 span{color:var(--teal)}
+.stats-bar{display:flex;justify-content:center;gap:24px;margin-top:12px}
+.stat{text-align:center}
+.stat .num{font-size:24px;font-weight:700;color:var(--teal)}
+.stat .lbl{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:1px}
+
+/* Nav tabs */
+.tabs{display:flex;gap:8px;margin-bottom:24px;justify-content:center}
+.tab{background:var(--card);border:1px solid rgba(100,116,139,.15);color:var(--slate);padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;transition:.2s}
+.tab:hover,.tab.active{color:var(--text);border-color:var(--teal);background:rgba(13,148,136,.1)}
+
+/* Card */
+.card-container{perspective:1000px;margin-bottom:24px;min-height:280px}
+.card{position:relative;width:100%;min-height:280px;cursor:pointer;transform-style:preserve-3d;transition:transform .5s}
+.card.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border:1px solid rgba(100,116,139,.15);border-radius:12px;padding:32px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.card-back{transform:rotateY(180deg)}
+.card-category{font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;font-weight:600}
+.card-text{font-size:18px;line-height:1.6;font-weight:400}
+.card-back .card-text{font-size:16px;color:var(--slate)}
+.card-hint{font-size:13px;color:var(--slate-dark);margin-top:16px}
+
+/* Rating buttons */
+.ratings{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px}
+.rate-btn{padding:14px 8px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;color:var(--text)}
+.rate-btn:hover{transform:translateY(-2px)}
+.rate-btn.again{background:var(--red)}
+.rate-btn.hard{background:var(--yellow)}
+.rate-btn.good{background:var(--teal)}
+.rate-btn.easy{background:var(--blue)}
+.rate-btn .interval{display:block;font-size:10px;font-weight:400;opacity:.8;margin-top:2px}
+
+/* Empty state */
+.empty{text-align:center;padding:48px 24px;color:var(--slate)}
+.empty h2{font-size:20px;margin-bottom:8px;color:var(--text)}
+
+/* Manage view */
+.manage-section{margin-bottom:24px}
+.manage-section h3{font-size:14px;color:var(--slate);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.deck-list{display:flex;flex-direction:column;gap:8px}
+.deck-item{background:var(--card);border:1px solid rgba(100,116,139,.15);border-radius:8px;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.deck-item .info .title{font-weight:600;font-size:15px}
+.deck-item .info .meta{font-size:12px;color:var(--slate);margin-top:2px}
+.deck-item .actions{display:flex;gap:8px}
+
+/* Add card form */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;color:var(--slate);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--card);border:1px solid rgba(100,116,139,.2);border-radius:6px;color:var(--text);padding:12px;font-size:14px;font-family:inherit;outline:none;transition:border .2s}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--teal)}
+textarea{min-height:80px;resize:vertical}
+.btn{background:var(--teal);color:var(--text);border:none;padding:12px 24px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;width:100%}
+.btn:hover{background:var(--teal-light)}
+.btn-sm{padding:6px 12px;font-size:12px;width:auto}
+.btn-outline{background:transparent;border:1px solid rgba(100,116,139,.2);color:var(--slate)}
+.btn-outline:hover{border-color:var(--teal);color:var(--text)}
+.btn-danger{background:var(--red)}
+
+/* Import/Export */
+.io-buttons{display:flex;gap:8px;margin-bottom:16px}
+.io-buttons .btn{flex:1}
+
+/* Hide sections */
+.hidden{display:none}
+
+@media(max-width:480px){
+  .container{padding:12px}
+  .card-text{font-size:16px}
+  .ratings{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>DE <span>Flashcards</span></h1>
+    <div class="stats-bar">
+      <div class="stat"><div class="num" id="due-count">0</div><div class="lbl">Due Today</div></div>
+      <div class="stat"><div class="num" id="total-count">0</div><div class="lbl">Total Cards</div></div>
+      <div class="stat"><div class="num" id="streak-count">0</div><div class="lbl">Day Streak</div></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showView('study')">Study</div>
+    <div class="tab" onclick="showView('manage')">Manage</div>
+    <div class="tab" onclick="showView('add')">+ Add</div>
+  </div>
+
+  <!-- Study View -->
+  <div id="study-view">
+    <div class="card-container" id="card-container">
+      <div class="card" id="flashcard" onclick="flipCard()">
+        <div class="card-face card-front">
+          <div class="card-category" id="card-cat"></div>
+          <div class="card-text" id="card-q"></div>
+          <div class="card-hint">Tap to reveal answer</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-category" id="card-cat2"></div>
+          <div class="card-text" id="card-a"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ratings hidden" id="ratings">
+      <button class="rate-btn again" onclick="rate(0)">Again<span class="interval" id="int-again"></span></button>
+      <button class="rate-btn hard" onclick="rate(3)">Hard<span class="interval" id="int-hard"></span></button>
+      <button class="rate-btn good" onclick="rate(4)">Good<span class="interval" id="int-good"></span></button>
+      <button class="rate-btn easy" onclick="rate(5)">Easy<span class="interval" id="int-easy"></span></button>
+    </div>
+    <div class="empty hidden" id="empty-state">
+      <h2>🎉 All caught up!</h2>
+      <p>No cards due for review. Come back later or add new cards.</p>
+    </div>
+  </div>
+
+  <!-- Manage View -->
+  <div id="manage-view" class="hidden">
+    <div class="io-buttons">
+      <button class="btn btn-outline" onclick="exportCards()">📤 Export JSON</button>
+      <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">📥 Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importCards(event)">
+    </div>
+    <div class="manage-section">
+      <h3>All Cards (<span id="manage-total">0</span>)</h3>
+      <div class="deck-list" id="deck-list"></div>
+    </div>
+  </div>
+
+  <!-- Add View -->
+  <div id="add-view" class="hidden">
+    <div class="form-group">
+      <label>Category</label>
+      <select id="new-cat">
+        <option value="SQL">SQL</option>
+        <option value="Python">Python Data Stack</option>
+        <option value="dbt">dbt</option>
+        <option value="Airflow">Airflow</option>
+        <option value="Kafka">Kafka</option>
+        <option value="Data Modeling">Data Modeling</option>
+        <option value="Spark">Spark</option>
+        <option value="Cloud">Cloud Platforms</option>
+        <option value="General">General DE</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Question (Front)</label>
+      <textarea id="new-q" placeholder="What is a window function in SQL?"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Answer (Back)</label>
+      <textarea id="new-a" placeholder="A function that performs calculations across a set of rows related to the current row..."></textarea>
+    </div>
+    <button class="btn" onclick="addCard()">Add Card</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='de-flashcards';
+const STREAK_KEY='de-fc-streak';
+const DEFAULT_CARDS=[
+// SQL (10)
+{cat:"SQL",q:"What is a CTE (Common Table Expression)?",a:"A temporary named result set defined with WITH clause, scoped to a single query. Improves readability and allows recursive queries."},
+{cat:"SQL",q:"Explain the difference between RANK(), DENSE_RANK(), and ROW_NUMBER()",a:"ROW_NUMBER: unique sequential integers. RANK: same rank for ties, skips next. DENSE_RANK: same rank for ties, no gaps."},
+{cat:"SQL",q:"What is a window function?",a:"A function that performs calculations across a set of rows related to the current row, using OVER() clause. Unlike GROUP BY, rows retain their identity."},
+{cat:"SQL",q:"What is the difference between DELETE, TRUNCATE, and DROP?",a:"DELETE: removes rows (can use WHERE, logged, slow). TRUNCATE: removes all rows (DDL, fast, resets identity). DROP: removes entire table structure."},
+{cat:"SQL",q:"Explain ACID properties",a:"Atomicity (all or nothing), Consistency (valid state), Isolation (concurrent txns don't interfere), Durability (committed data persists)."},
+{cat:"SQL",q:"What is a materialized view vs a regular view?",a:"Regular view: stored query, executed each time. Materialized view: stores query results physically, must be refreshed. MV trades storage for speed."},
+{cat:"SQL",q:"What is query optimization? Name 3 techniques.",a:"Process of improving query performance. Techniques: indexing, query rewriting, partitioning, denormalization, avoiding SELECT *, using EXPLAIN plans."},
+{cat:"SQL",q:"What is a LEFT ANTI JOIN pattern?",a:"Returns rows from left table with NO match in right table. SQL: LEFT JOIN ... WHERE right.key IS NULL. Useful for finding missing/unmatched records."},
+{cat:"SQL",q:"Explain slowly changing dimensions (SCD) Type 1 vs Type 2",a:"Type 1: overwrite old value (no history). Type 2: add new row with version/date columns (preserves history). Type 2 is standard for data warehouses."},
+{cat:"SQL",q:"What is a recursive CTE? Give a use case.",a:"A CTE that references itself. Use cases: hierarchical data (org charts), graph traversal, generating sequences. Uses WITH RECURSIVE (or just WITH in some DBs)."},
+// Python (5)
+{cat:"Python",q:"What is the difference between Pandas and Polars?",a:"Pandas: single-threaded, eager execution, mature ecosystem. Polars: multi-threaded (Rust), lazy evaluation, faster for large datasets. Polars is the modern alternative."},
+{cat:"Python",q:"What is a Python generator and why use it for data processing?",a:"A function using yield that produces values lazily. Memory-efficient for large datasets — processes one item at a time instead of loading all into memory."},
+{cat:"Python",q:"Explain the difference between list, tuple, set, and dict in Python",a:"List: ordered, mutable, duplicates OK. Tuple: ordered, immutable. Set: unordered, unique values. Dict: key-value pairs, keys unique."},
+{cat:"Python",q:"What is virtual environment in Python and why use it?",a:"An isolated Python environment with its own packages. Prevents dependency conflicts between projects. Tools: venv, conda, poetry, uv."},
+{cat:"Python",q:"What is PySpark and when would you use it over Pandas?",a:"Python API for Apache Spark. Use over Pandas when data exceeds single-machine memory (>10GB+), need distributed processing, or need to integrate with Spark ecosystem."},
+// dbt (5)
+{cat:"dbt",q:"What is dbt and what problem does it solve?",a:"Data Build Tool — transforms data in the warehouse using SQL SELECT statements. Brings software engineering practices (version control, testing, docs) to analytics engineering."},
+{cat:"dbt",q:"What are dbt models, sources, and seeds?",a:"Models: SQL SELECT files that create tables/views. Sources: declarations of raw data tables. Seeds: CSV files loaded into the warehouse. Models transform sources into analytics-ready tables."},
+{cat:"dbt",q:"Explain dbt tests — schema vs data tests",a:"Schema tests: built-in (unique, not_null, accepted_values, relationships) declared in YAML. Data tests: custom SQL queries in tests/ folder that should return 0 rows to pass."},
+{cat:"dbt",q:"What is ref() in dbt and why is it important?",a:"Function to reference other models: {{ ref('model_name') }}. Creates a DAG of dependencies, enables dbt to build models in correct order, and handles environment-specific schema names."},
+{cat:"dbt",q:"What are dbt materializations?",a:"How dbt persists models: table (full rebuild), view (virtual), incremental (append/merge new data), ephemeral (CTE, no persistence). Choose based on data size and freshness needs."},
+// Airflow (5)
+{cat:"Airflow",q:"What is Apache Airflow?",a:"A platform to programmatically author, schedule, and monitor workflows (DAGs). Written in Python. Used for orchestrating data pipelines, ETL jobs, and ML workflows."},
+{cat:"Airflow",q:"What is a DAG in Airflow?",a:"Directed Acyclic Graph — defines the workflow structure. A collection of tasks with dependencies. Acyclic = no circular dependencies. Defined in Python files."},
+{cat:"Airflow",q:"Explain Airflow operators: BashOperator, PythonOperator, and sensors",a:"BashOperator: runs bash commands. PythonOperator: runs Python functions. Sensors: wait for a condition (file exists, API responds, time passes) before proceeding."},
+{cat:"Airflow",q:"What is the Airflow executor? Name the main types.",a:"Component that runs tasks. Types: SequentialExecutor (dev, one at a time), LocalExecutor (parallel, single machine), CeleryExecutor (distributed), KubernetesExecutor (pods per task)."},
+{cat:"Airflow",q:"What is an Airflow XCom?",a:"Cross-communication — mechanism for tasks to exchange small data. Tasks push/pull XCom values. Not for large data (use external storage). Useful for passing metadata between tasks."},
+// Data Modeling (5)
+{cat:"Data Modeling",q:"Explain star schema vs snowflake schema",a:"Star: fact table surrounded by denormalized dimension tables (simple, fast queries). Snowflake: dimensions are normalized into sub-dimensions (saves space, more complex joins)."},
+{cat:"Data Modeling",q:"What is a fact table vs a dimension table?",a:"Fact: stores measurable events/metrics (sales amount, click count). Dimension: stores descriptive attributes (customer name, product category, date). Facts reference dimensions via foreign keys."},
+{cat:"Data Modeling",q:"What is data normalization? Explain 1NF, 2NF, 3NF.",a:"Reducing redundancy. 1NF: atomic values, no repeating groups. 2NF: 1NF + no partial dependencies. 3NF: 2NF + no transitive dependencies. Warehouses often denormalize for performance."},
+{cat:"Data Modeling",q:"What is the Kimball vs Inmon approach?",a:"Kimball: bottom-up, star schemas per business process, dimensional modeling. Inmon: top-down, enterprise data warehouse (3NF), then data marts. Kimball is more common in modern data stacks."},
+{cat:"Data Modeling",q:"What is a data vault model?",a:"Modeling approach with Hubs (business keys), Links (relationships), and Satellites (descriptive data + history). Designed for agility, auditability, and handling changes in source systems."}
+];
+
+let cards=[], currentCard=null, currentIdx=-1;
+
+function loadCards(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(raw){cards=JSON.parse(raw)}
+  else{cards=DEFAULT_CARDS.map((c,i)=>({id:i+1,...c,ef:2.5,interval:0,reps:0,due:Date.now()}));saveCards()}
+}
+function saveCards(){localStorage.setItem(STORAGE_KEY,JSON.stringify(cards))}
+
+function getDueCards(){
+  const now=Date.now();
+  return cards.filter(c=>c.due<=now).sort((a,b)=>a.due-b.due);
+}
+
+// SM-2 algorithm
+function sm2(card,quality){
+  let{ef,interval,reps}=card;
+  if(quality<3){reps=0;interval=0}
+  else{
+    if(reps===0)interval=1;
+    else if(reps===1)interval=6;
+    else interval=Math.round(interval*ef);
+    reps++;
+  }
+  ef=ef+(0.1-(5-quality)*(0.08+(5-quality)*0.02));
+  if(ef<1.3)ef=1.3;
+  const due=Date.now()+interval*86400000;
+  return{...card,ef:Math.round(ef*100)/100,interval,reps,due};
+}
+
+function previewInterval(card,q){
+  const r=sm2(card,q);
+  if(r.interval===0)return'<1m';
+  if(r.interval===1)return'1d';
+  if(r.interval<30)return r.interval+'d';
+  return Math.round(r.interval/30)+'mo';
+}
+
+// Streak
+function getStreak(){
+  const raw=localStorage.getItem(STREAK_KEY);
+  if(!raw)return{count:0,lastDate:null};
+  return JSON.parse(raw);
+}
+function updateStreak(){
+  const today=new Date().toDateString();
+  let s=getStreak();
+  if(s.lastDate===today)return;
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  if(s.lastDate===yesterday)s.count++;
+  else if(s.lastDate!==today)s.count=1;
+  s.lastDate=today;
+  localStorage.setItem(STREAK_KEY,JSON.stringify(s));
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('due-count').textContent=getDueCards().length;
+  document.getElementById('total-count').textContent=cards.length;
+  document.getElementById('streak-count').textContent=getStreak().count;
+}
+
+function showCard(){
+  const due=getDueCards();
+  const fc=document.getElementById('flashcard');
+  const ratings=document.getElementById('ratings');
+  const empty=document.getElementById('empty-state');
+  const container=document.getElementById('card-container');
+
+  fc.classList.remove('flipped');
+  ratings.classList.add('hidden');
+
+  if(due.length===0){
+    container.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+  container.classList.remove('hidden');
+  empty.classList.add('hidden');
+
+  currentCard=due[0];
+  currentIdx=cards.findIndex(c=>c.id===currentCard.id);
+  document.getElementById('card-cat').textContent=currentCard.cat;
+  document.getElementById('card-cat2').textContent=currentCard.cat;
+  document.getElementById('card-q').textContent=currentCard.q;
+  document.getElementById('card-a').textContent=currentCard.a;
+
+  document.getElementById('int-again').textContent=previewInterval(currentCard,0);
+  document.getElementById('int-hard').textContent=previewInterval(currentCard,3);
+  document.getElementById('int-good').textContent=previewInterval(currentCard,4);
+  document.getElementById('int-easy').textContent=previewInterval(currentCard,5);
+}
+
+function flipCard(){
+  const fc=document.getElementById('flashcard');
+  if(!fc.classList.contains('flipped')){
+    fc.classList.add('flipped');
+    document.getElementById('ratings').classList.remove('hidden');
+  }
+}
+
+function rate(quality){
+  if(currentIdx<0)return;
+  cards[currentIdx]=sm2(cards[currentIdx],quality);
+  saveCards();
+  updateStreak();
+  updateStats();
+  showCard();
+}
+
+// Views
+function showView(v){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['study','manage','add'][i]===v));
+  document.getElementById('study-view').classList.toggle('hidden',v!=='study');
+  document.getElementById('manage-view').classList.toggle('hidden',v!=='manage');
+  document.getElementById('add-view').classList.toggle('hidden',v!=='add');
+  if(v==='study')showCard();
+  if(v==='manage')renderManage();
+}
+
+function renderManage(){
+  document.getElementById('manage-total').textContent=cards.length;
+  const list=document.getElementById('deck-list');
+  const cats={};
+  cards.forEach(c=>{if(!cats[c.cat])cats[c.cat]=0;cats[c.cat]++});
+  list.innerHTML=Object.entries(cats).map(([cat,count])=>`
+    <div class="deck-item">
+      <div class="info"><div class="title">${cat}</div><div class="meta">${count} cards</div></div>
+    </div>`).join('');
+}
+
+function addCard(){
+  const cat=document.getElementById('new-cat').value;
+  const q=document.getElementById('new-q').value.trim();
+  const a=document.getElementById('new-a').value.trim();
+  if(!q||!a){alert('Both fields required');return}
+  const id=Math.max(0,...cards.map(c=>c.id))+1;
+  cards.push({id,cat,q,a,ef:2.5,interval:0,reps:0,due:Date.now()});
+  saveCards();updateStats();
+  document.getElementById('new-q').value='';
+  document.getElementById('new-a').value='';
+  alert('Card added!');
+}
+
+function exportCards(){
+  const blob=new Blob([JSON.stringify(cards,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='de-flashcards-export.json';
+  a.click();
+}
+function importCards(e){
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)){alert('Invalid format');return}
+      cards=imported;saveCards();updateStats();showCard();
+      alert(`Imported ${imported.length} cards`);
+    }catch(err){alert('Invalid JSON')}
+  };
+  reader.readAsText(f);
+}
+
+// Init
+loadCards();updateStats();showCard();
+</script>
+</body>
+</html>
