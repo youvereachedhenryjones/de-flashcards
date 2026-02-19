@@ -1,0 +1,107 @@
+[
+  {
+    "id": "dm-001",
+    "category": "data-modeling",
+    "question": "What is a star schema?",
+    "answer": "A star schema organizes a data warehouse into a central fact table surrounded by denormalized dimension tables, connected by foreign keys. The name comes from the star-like diagram shape. It prioritizes query performance and simplicity for BI tools over storage efficiency, making it the most common pattern in dimensional data warehouses.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dm-002",
+    "category": "data-modeling",
+    "question": "How does a snowflake schema differ from a star schema?",
+    "answer": "A snowflake schema normalizes dimension tables by splitting them into multiple related tables (e.g., a Customer dimension might split into Customer, City, and Country tables). This reduces data redundancy and storage but requires more joins to answer queries, increasing complexity for BI users. Star schemas are generally preferred in analytical workloads for their query simplicity.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dm-003",
+    "category": "data-modeling",
+    "question": "What is the difference between a fact table and a dimension table?",
+    "answer": "A fact table stores quantitative, measurable business events (sales, clicks, transactions) with numeric measures and foreign keys to dimensions. A dimension table stores descriptive context about those events (who, what, where, when) such as customer name, product category, or date attributes. Facts answer 'how much or how many'; dimensions answer 'who, what, or where'.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dm-004",
+    "category": "data-modeling",
+    "question": "What is the grain of a fact table and why must it be defined first?",
+    "answer": "The grain is the precise definition of what one row in the fact table represents (e.g., one line item on a sales order, or one daily snapshot of an account balance). Defining the grain first is critical because every fact and dimension in the table must be consistent with that level of detail. Mixing grains in a single fact table is one of the most common and damaging data modeling mistakes.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-005",
+    "category": "data-modeling",
+    "question": "What are SCD Type 1, Type 2, and Type 3?",
+    "answer": "SCD Type 1 overwrites old data with new values, preserving no history. SCD Type 2 adds a new row for each change with valid_from/valid_to date columns, fully preserving history (the most common approach). SCD Type 3 adds a new column for the previous value, preserving only one historical version. Type 2 is the default choice when full history matters; Type 1 is used for corrections.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-006",
+    "category": "data-modeling",
+    "question": "What is a surrogate key and how does it differ from a natural key?",
+    "answer": "A surrogate key is a system-generated, meaningless integer or UUID used as the primary key in a dimension table. A natural key is the business identifier from the source system (e.g., customer_email or product_sku). Surrogate keys are preferred in dimensional models because they are stable across SCD changes, are compact for joins, and insulate the warehouse from source system changes.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-007",
+    "category": "data-modeling",
+    "question": "What is the Kimball methodology and how does it approach data warehouse design?",
+    "answer": "Kimball (dimensional modeling) advocates building the warehouse as a collection of integrated star schemas organized around business processes, assembled incrementally in a 'bottom-up' approach. It prioritizes query performance and accessibility for business users. The Kimball Bus Matrix aligns fact tables with conformed dimensions to ensure consistent metrics across subject areas.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-008",
+    "category": "data-modeling",
+    "question": "What is the Inmon methodology and how does it differ from Kimball?",
+    "answer": "Inmon (Corporate Information Factory) advocates building a single, normalized, enterprise-wide data warehouse (3NF) first, then creating department-specific data marts on top in a 'top-down' approach. It prioritizes data consistency and avoids redundancy but requires more upfront design effort and produces more complex queries. Kimball is bottom-up and denormalized; Inmon is top-down and normalized.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-009",
+    "category": "data-modeling",
+    "question": "What is a Data Vault and what problem does it solve?",
+    "answer": "Data Vault is a modeling methodology designed for agility, auditability, and scalability in enterprise data warehouses. It uses three types of tables: Hubs (unique business keys), Links (relationships between hubs), and Satellites (descriptive attributes with full history). It solves the problem of rigid models that break when source systems change, enabling parallel loading and full audit trails.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm-010",
+    "category": "data-modeling",
+    "question": "What is a conformed dimension?",
+    "answer": "A conformed dimension is a dimension table shared and used consistently across multiple fact tables and subject areas (e.g., a Date dimension used by both Sales facts and Inventory facts). Conformed dimensions enable 'drilling across' multiple fact tables and ensure that business terms like 'customer' or 'product' mean the same thing everywhere in the warehouse. They are a cornerstone of the Kimball Bus Matrix.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-011",
+    "category": "data-modeling",
+    "question": "What is a degenerate dimension?",
+    "answer": "A degenerate dimension is a dimension attribute stored directly in the fact table rather than in a separate dimension table, typically because it has no descriptive attributes of its own. A classic example is an order_number on a sales line item fact table: it is a dimensional identifier (used for grouping and filtering) but there is nothing else to say about it. No separate dimension table is created.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-012",
+    "category": "data-modeling",
+    "question": "What is a junk dimension?",
+    "answer": "A junk dimension consolidates a collection of low-cardinality, miscellaneous flags and indicators (e.g., is_promotional, is_returned, payment_method_flag) that do not belong to any natural dimension into a single dimension table. This cleans up the fact table by removing many small Boolean columns and replacing them with a single foreign key. The junk dimension typically contains every combination of the flag values.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm-013",
+    "category": "data-modeling",
+    "question": "What is a bridge table and when is it used?",
+    "answer": "A bridge table (also called an associative table) resolves many-to-many relationships between a fact table and a dimension, such as a customer belonging to multiple segments or a transaction having multiple products. It sits between the fact and dimension tables, containing foreign keys to both. Without a bridge table, many-to-many relationships would either require row duplication or comma-separated values, both of which break analytical queries.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm-014",
+    "category": "data-modeling",
+    "question": "What is the difference between normalized and denormalized data models in an analytical context?",
+    "answer": "Normalized models (3NF) eliminate redundancy by splitting data into many related tables, reducing storage and update anomalies but requiring many joins for queries. Denormalized models (like star schemas) intentionally duplicate data across fewer, wider tables to minimize joins and maximize query speed for BI workloads. Modern columnar warehouses (BigQuery, Snowflake, Redshift) handle wide denormalized tables very efficiently.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm-015",
+    "category": "data-modeling",
+    "question": "What is a slowly changing dimension (SCD) and which type is most commonly implemented in modern data warehouses?",
+    "answer": "A slowly changing dimension (SCD) is a dimension whose attribute values change over time but not frequently (e.g., a customer's address or a product's category). SCD Type 2 is the most commonly implemented: it adds a new row for each change with effective date ranges, preserving the full history of attribute values. Modern tools like dbt snapshots automate SCD Type 2 implementation. The right choice depends on whether history matters for reporting.",
+    "difficulty": "intermediate"
+  }
+]

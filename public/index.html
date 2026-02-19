@@ -25,16 +25,29 @@ header h1 span{color:var(--teal)}
 .tab{background:var(--card);border:1px solid rgba(100,116,139,.15);color:var(--slate);padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;transition:.2s}
 .tab:hover,.tab.active{color:var(--text);border-color:var(--teal);background:rgba(13,148,136,.1)}
 
+/* Category filters */
+.filters{display:flex;gap:8px;margin:-8px 0 16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}
+.filters::-webkit-scrollbar{display:none}
+.filter-btn{background:var(--card);border:1px solid rgba(100,116,139,.15);color:var(--slate);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;white-space:nowrap}
+.filter-btn:hover,.filter-btn.active{color:var(--text);border-color:var(--teal);background:rgba(13,148,136,.1)}
+
 /* Card */
 .card-container{perspective:1000px;margin-bottom:24px;min-height:280px}
 .card{position:relative;width:100%;min-height:280px;cursor:pointer;transform-style:preserve-3d;transition:transform .5s}
 .card.flipped{transform:rotateY(180deg)}
 .card-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border:1px solid rgba(100,116,139,.15);border-radius:12px;padding:32px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
 .card-back{transform:rotateY(180deg)}
-.card-category{font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;font-weight:600}
+.card-category{font-size:11px;color:var(--text);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(13,148,136,.2);border:1px solid rgba(13,148,136,.5)}
+.card-category[data-cat="dbt"]{background:rgba(14,116,144,.25);border-color:rgba(14,116,144,.7)}
+.card-category[data-cat="Airflow"]{background:rgba(217,119,6,.2);border-color:rgba(217,119,6,.6)}
+.card-category[data-cat="Spark"]{background:rgba(234,88,12,.2);border-color:rgba(234,88,12,.6)}
+.card-category[data-cat="Data Modeling"]{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.6)}
+.card-category[data-cat="SQL"]{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.6)}
+.card-category[data-cat="Python"]{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.6)}
 .card-text{font-size:18px;line-height:1.6;font-weight:400}
 .card-back .card-text{font-size:16px;color:var(--slate)}
 .card-hint{font-size:13px;color:var(--slate-dark);margin-top:16px}
+.card-count{text-align:center;font-size:12px;color:var(--slate);margin:-10px 0 18px}
 
 /* Rating buttons */
 .ratings{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px}
@@ -105,6 +118,7 @@ textarea{min-height:80px;resize:vertical}
 
   <!-- Study View -->
   <div id="study-view">
+    <div class="filters" id="category-filters"></div>
     <div class="card-container" id="card-container">
       <div class="card" id="flashcard" onclick="flipCard()">
         <div class="card-face card-front">
@@ -118,6 +132,7 @@ textarea{min-height:80px;resize:vertical}
         </div>
       </div>
     </div>
+    <div class="card-count" id="card-count"></div>
     <div class="ratings hidden" id="ratings">
       <button class="rate-btn again" onclick="rate(0)">Again<span class="interval" id="int-again"></span></button>
       <button class="rate-btn hard" onclick="rate(3)">Hard<span class="interval" id="int-hard"></span></button>
@@ -212,7 +227,11 @@ const DEFAULT_CARDS=[
 {cat:"Data Modeling",q:"What is a data vault model?",a:"Modeling approach with Hubs (business keys), Links (relationships), and Satellites (descriptive data + history). Designed for agility, auditability, and handling changes in source systems."}
 ];
 
-let cards=[], currentCard=null, currentIdx=-1;
+function normalizeQuestion(q){return(q||'').trim();}
+const DEFAULT_QUESTIONS=new Set(DEFAULT_CARDS.map(c=>normalizeQuestion(c.q)));
+const FILTERS=['All','Original','dbt','Airflow','Spark','Data Modeling'];
+let activeFilter='All';
+let cards=[], currentCard=null, currentIdx=-1, currentDueIdx=0;
 
 function loadCards(){
   const raw=localStorage.getItem(STORAGE_KEY);
@@ -224,6 +243,34 @@ function saveCards(){localStorage.setItem(STORAGE_KEY,JSON.stringify(cards))}
 function getDueCards(){
   const now=Date.now();
   return cards.filter(c=>c.due<=now).sort((a,b)=>a.due-b.due);
+}
+
+function getFilteredDueCards(){
+  const due=getDueCards();
+  if(activeFilter==='All')return due;
+  if(activeFilter==='Original')return due.filter(c=>DEFAULT_QUESTIONS.has(normalizeQuestion(c.q)));
+  return due.filter(c=>c.cat===activeFilter);
+}
+
+function renderFilters(){
+  const wrap=document.getElementById('category-filters');
+  wrap.innerHTML=FILTERS.map(f=>`<button class="filter-btn${f===activeFilter?' active':''}" data-filter="${f}">${f}</button>`).join('');
+  wrap.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      activeFilter=btn.dataset.filter;
+      renderFilters();
+      showCard();
+    });
+  });
+}
+
+function applyCategoryBadge(cat){
+  const front=document.getElementById('card-cat');
+  const back=document.getElementById('card-cat2');
+  front.textContent=cat;
+  back.textContent=cat;
+  front.setAttribute('data-cat',cat);
+  back.setAttribute('data-cat',cat);
 }
 
 // SM-2 algorithm
@@ -275,11 +322,12 @@ function updateStats(){
 }
 
 function showCard(){
-  const due=getDueCards();
+  const due=getFilteredDueCards();
   const fc=document.getElementById('flashcard');
   const ratings=document.getElementById('ratings');
   const empty=document.getElementById('empty-state');
   const container=document.getElementById('card-container');
+  const counter=document.getElementById('card-count');
 
   fc.classList.remove('flipped');
   ratings.classList.add('hidden');
@@ -287,17 +335,19 @@ function showCard(){
   if(due.length===0){
     container.classList.add('hidden');
     empty.classList.remove('hidden');
+    counter.textContent='';
     return;
   }
   container.classList.remove('hidden');
   empty.classList.add('hidden');
 
   currentCard=due[0];
+  currentDueIdx=1;
   currentIdx=cards.findIndex(c=>c.id===currentCard.id);
-  document.getElementById('card-cat').textContent=currentCard.cat;
-  document.getElementById('card-cat2').textContent=currentCard.cat;
+  applyCategoryBadge(currentCard.cat);
   document.getElementById('card-q').textContent=currentCard.q;
   document.getElementById('card-a').textContent=currentCard.a;
+  counter.textContent=`Card ${currentDueIdx} of ${due.length}`;
 
   document.getElementById('int-again').textContent=previewInterval(currentCard,0);
   document.getElementById('int-hard').textContent=previewInterval(currentCard,3);
@@ -377,8 +427,53 @@ function importCards(e){
   reader.readAsText(f);
 }
 
+async function mergePackCards(){
+  const files=[
+    'cards/dbt-cards.json',
+    'cards/airflow-cards.json',
+    'cards/spark-cards.json',
+    'cards/data-modeling-cards.json'
+  ];
+  const existingQuestions=new Set(cards.map(c=>normalizeQuestion(c.q)));
+  try{
+    const res=await Promise.all(files.map(f=>fetch(f)));
+    const jsons=await Promise.all(res.map(r=>r.json()));
+    const toAdd=[];
+    jsons.flat().forEach(c=>{
+      const q=normalizeQuestion(c.question);
+      if(!q||existingQuestions.has(q))return;
+      existingQuestions.add(q);
+      toAdd.push({
+        id:0,
+        cat:c.category,
+        q,
+        a:c.answer,
+        ef:2.5,
+        interval:0,
+        reps:0,
+        due:Date.now()
+      });
+    });
+    if(toAdd.length){
+      let nextId=Math.max(0,...cards.map(c=>c.id))+1;
+      toAdd.forEach(c=>{c.id=nextId++;cards.push(c)});
+      saveCards();
+    }
+  }catch(err){
+    console.warn('Failed to load card packs',err);
+  }
+}
+
+async function initApp(){
+  loadCards();
+  await mergePackCards();
+  renderFilters();
+  updateStats();
+  showCard();
+}
+
 // Init
-loadCards();updateStats();showCard();
+initApp();
 </script>
 </body>
 </html>

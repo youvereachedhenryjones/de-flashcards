@@ -1,0 +1,72 @@
+[
+  {
+    "id": "spark-001",
+    "category": "spark",
+    "question": "What is the difference between an RDD and a DataFrame in Spark?",
+    "answer": "An RDD (Resilient Distributed Dataset) is Spark's low-level, type-safe, Java/Python object-based distributed collection with no schema. A DataFrame is a higher-level abstraction with a named column schema, similar to a database table, that allows Spark's Catalyst optimizer to optimize execution plans. DataFrames are almost always preferred for performance and expressiveness; RDDs are only needed for unstructured data or low-level control.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "spark-002",
+    "category": "spark",
+    "question": "What is the difference between a transformation and an action in Spark?",
+    "answer": "Transformations (e.g., filter, map, join, groupBy) are lazy: they build a logical execution plan but do not execute immediately. Actions (e.g., collect, count, write, show) trigger the actual computation by submitting a job to the cluster. This lazy evaluation allows Spark's optimizer to combine and reorder transformations before any data is moved.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "spark-003",
+    "category": "spark",
+    "question": "What causes shuffle in Spark and why is it expensive?",
+    "answer": "Shuffle happens when data must be redistributed across partitions and executor nodes, triggered by wide transformations like groupBy, join, distinct, and repartition. It is expensive because it requires serializing data, writing it to disk, and transferring it over the network. Minimizing shuffle (via broadcast joins, partition pruning, and proper data bucketing) is one of the most impactful Spark performance optimizations.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-004",
+    "category": "spark",
+    "question": "What is the Spark Catalyst optimizer?",
+    "answer": "Catalyst is Spark SQL's query optimizer that transforms a logical plan (what you asked for) into an optimized physical plan (how to execute it efficiently). It applies rule-based and cost-based optimizations such as predicate pushdown, constant folding, and join reordering. This is why DataFrame/SQL code often outperforms equivalent RDD code written by hand.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-005",
+    "category": "spark",
+    "question": "What is a broadcast variable in Spark and when should you use one?",
+    "answer": "A broadcast variable is a read-only variable cached on each executor node rather than sent with each task, created via SparkContext.broadcast(). The most common use is a broadcast join: if one DataFrame is small enough to fit in memory (typically under a few GB), broadcasting it avoids shuffle entirely during a join. This can turn a multi-minute shuffle join into a seconds-long local lookup.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-006",
+    "category": "spark",
+    "question": "What is a Spark accumulator?",
+    "answer": "An accumulator is a write-only (from executors) shared variable used to aggregate values across tasks back to the driver, such as counting errors or events during a transformation. Unlike broadcast variables, executors can only add to accumulators, not read them; only the driver can read the final value. They are useful for lightweight monitoring and debugging inside transformations.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-007",
+    "category": "spark",
+    "question": "How does Spark partitioning affect performance?",
+    "answer": "Partitioning determines how data is split across executor tasks; too few partitions underutilizes the cluster, while too many creates overhead from task scheduling and small files. A common rule of thumb is 2-4 partitions per CPU core. After a shuffle, Spark defaults to spark.sql.shuffle.partitions (default 200), which is often too high for small data or too low for very large data and should be tuned.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-008",
+    "category": "spark",
+    "question": "What is Spark Structured Streaming and how does it differ from DStream-based streaming?",
+    "answer": "Structured Streaming is a high-level streaming API built on the DataFrame/Dataset API that processes streaming data as an unbounded table, allowing you to write batch-like SQL or DataFrame code that runs incrementally. The older DStream API (Spark Streaming) operated at the RDD level with micro-batches and lacked the optimizer benefits. Structured Streaming also supports event-time windowing and exactly-once semantics with supported sinks.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-009",
+    "category": "spark",
+    "question": "What is the difference between narrow and wide transformations in Spark?",
+    "answer": "Narrow transformations (map, filter, union) require data only from a single partition and do not cause shuffle; they are pipelined within a single stage. Wide transformations (groupBy, join, repartition) require data from multiple partitions and cause a shuffle, creating a new stage boundary. Minimizing wide transformations and ordering them carefully is key to reducing job execution time.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-010",
+    "category": "spark",
+    "question": "What is Spark SQL and how does it relate to DataFrames?",
+    "answer": "Spark SQL is the module that enables querying structured data using SQL syntax alongside the DataFrame API; both compile to the same underlying execution plan via Catalyst. You can register a DataFrame as a temporary view and query it with spark.sql('SELECT ...'), or mix SQL and DataFrame operations freely. Spark SQL also provides the JDBC/ODBC interface for BI tools to connect to Spark clusters.",
+    "difficulty": "beginner"
+  }
+]

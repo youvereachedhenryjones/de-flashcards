@@ -1,0 +1,107 @@
+[
+  {
+    "id": "airflow-001",
+    "category": "airflow",
+    "question": "What is an Airflow DAG?",
+    "answer": "A DAG (Directed Acyclic Graph) is a Python file that defines a workflow as a collection of tasks and the dependencies between them. 'Directed' means edges have a direction (A runs before B), and 'Acyclic' means there are no cycles (a task cannot depend on itself). Airflow schedules and executes DAGs based on the configured schedule interval.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "airflow-002",
+    "category": "airflow",
+    "question": "What is the difference between an Airflow Operator, Sensor, and Hook?",
+    "answer": "An Operator defines a single unit of work (e.g., BashOperator runs a shell command, PythonOperator calls a function). A Sensor is a special Operator that pokes an external system repeatedly until a condition is met (e.g., S3KeySensor waits for a file). A Hook is a reusable interface to an external system (e.g., PostgresHook) that operators and sensors use under the hood.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "airflow-003",
+    "category": "airflow",
+    "question": "What is XCom in Airflow and what are its limitations?",
+    "answer": "XCom (cross-communication) allows tasks to share small amounts of data by pushing values to the metadata DB with xcom_push() and pulling them with xcom_pull(). The main limitation is that XCom is stored in Airflow's metadata database, so it is not suitable for large data payloads (keep it under a few MB). For large datasets, pass file paths or S3 URIs via XCom instead of the data itself.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-004",
+    "category": "airflow",
+    "question": "How do task dependencies work in Airflow?",
+    "answer": "Dependencies are set using the bitshift operators >> (downstream) and << (upstream), or explicitly with set_downstream() / set_upstream(). For example, task_a >> task_b >> task_c creates a linear chain. You can also fan out (task_a >> [task_b, task_c]) or fan in ([task_b, task_c] >> task_d) to express parallel and join patterns.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "airflow-005",
+    "category": "airflow",
+    "question": "What is the Airflow scheduler's role and what is the concept of a DAG run?",
+    "answer": "The scheduler continuously parses DAG files, determines which DAG runs are due based on schedule intervals, creates TaskInstances, and queues them for the executor. A DAG run is one specific execution of a DAG for a logical date (data_interval_start). Multiple DAG runs for the same DAG can exist simultaneously if max_active_runs allows it.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-006",
+    "category": "airflow",
+    "question": "What are Airflow Pools and why are they used?",
+    "answer": "Pools are a resource management mechanism that limit the number of concurrently running task instances competing for a shared resource (e.g., a database connection limit). Tasks are assigned to a pool, and only 'pool_size' tasks from that pool run simultaneously regardless of overall executor capacity. They prevent overloading external systems during parallel DAG runs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-007",
+    "category": "airflow",
+    "question": "What is the difference between Airflow Connections and Variables?",
+    "answer": "Connections store credentials and connection parameters for external systems (host, port, login, password, schema) and are referenced by a conn_id string in Hooks and Operators. Variables are simple key-value pairs for storing arbitrary configuration that tasks can retrieve at runtime. Both are stored in the metadata DB but Connections are structured and encrypted.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "airflow-008",
+    "category": "airflow",
+    "question": "What is an Airflow SLA and what happens when it is missed?",
+    "answer": "An SLA (Service Level Agreement) is a time limit set on a task or DAG, defining the maximum time allowed for completion relative to the DAG run's execution date. When an SLA is missed, Airflow logs the miss in the SLA miss table, can send email alerts to configured recipients, and calls any registered sla_miss_callback function. It does not stop or fail the task.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-009",
+    "category": "airflow",
+    "question": "How does the BranchPythonOperator work in Airflow?",
+    "answer": "BranchPythonOperator calls a Python function that returns the task_id (or list of task_ids) of the next task(s) to execute. All other downstream branches are skipped. It is used to implement conditional logic in a DAG, such as choosing different processing paths based on runtime data or date conditions.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-010",
+    "category": "airflow",
+    "question": "What are Airflow trigger rules and what is the default?",
+    "answer": "Trigger rules define when a task should run based on the states of its upstream tasks. The default is 'all_success' (run only if all upstream tasks succeeded). Other options include 'all_done' (run regardless of upstream state), 'one_failed' (run if at least one upstream failed), and 'none_failed_min_one_success'. Trigger rules are critical for error handling and conditional workflows.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-011",
+    "category": "airflow",
+    "question": "What is the difference between SubDAGs and TaskGroups in Airflow?",
+    "answer": "SubDAGs are an older pattern that encapsulate a sub-workflow as a separate DAG object, but they have serious drawbacks: deadlocks with SequentialExecutor, extra scheduler overhead, and confusing UI. TaskGroups (introduced in Airflow 2.0) are the recommended replacement: they visually group tasks in the UI without creating a separate DAG or executor overhead. Always use TaskGroups for new DAGs.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "airflow-012",
+    "category": "airflow",
+    "question": "How do you create dynamic DAGs in Airflow?",
+    "answer": "Dynamic DAGs are generated programmatically in Python at parse time, typically by iterating over a config list, database query, or file. A common pattern is looping over a list of table names and creating tasks or even full DAG objects per item. The key constraint is that DAG structure must be deterministic at parse time; runtime data cannot alter the DAG graph after it is loaded.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "airflow-013",
+    "category": "airflow",
+    "question": "What is the Airflow executor and how do the LocalExecutor and CeleryExecutor differ?",
+    "answer": "The executor determines how task instances are run. LocalExecutor runs tasks as subprocesses on the scheduler machine, suitable for small or dev deployments (supports parallelism). CeleryExecutor distributes tasks to a pool of worker machines via a message broker (Redis or RabbitMQ), enabling horizontal scaling for production. KubernetesExecutor is another option that launches each task in its own pod.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "airflow-014",
+    "category": "airflow",
+    "question": "What is the Airflow TaskFlow API and how does it simplify DAG authoring?",
+    "answer": "The TaskFlow API (Airflow 2.0+) uses Python decorators (@dag, @task) to define DAGs and tasks as plain Python functions, automatically handling XCom passing via function return values and arguments. It eliminates boilerplate PythonOperator code and makes data flow between tasks explicit and readable. Dependencies are inferred from function call order.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "airflow-015",
+    "category": "airflow",
+    "question": "What is 'data_interval_start' vs 'execution_date' in Airflow, and why does the distinction matter?",
+    "answer": "In Airflow 2.2+, execution_date was replaced conceptually by data_interval_start and data_interval_end, which explicitly represent the time window of data the DAG run processes. A DAG scheduled at midnight processes data from the previous day, so data_interval_start is yesterday midnight and data_interval_end is today midnight. Understanding this prevents off-by-one errors when filtering source data in tasks.",
+    "difficulty": "advanced"
+  }
+]

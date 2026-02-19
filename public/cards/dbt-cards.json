@@ -1,0 +1,107 @@
+[
+  {
+    "id": "dbt-001",
+    "category": "dbt",
+    "question": "What is a dbt model?",
+    "answer": "A dbt model is a SQL SELECT statement stored as a .sql file in the models/ directory. dbt compiles and runs these against your data warehouse, materializing them as tables or views depending on the configured materialization strategy.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-002",
+    "category": "dbt",
+    "question": "What are the four built-in dbt materializations and when would you use each?",
+    "answer": "View (lightweight, always fresh, no storage cost), Table (fast reads, rebuilt each run), Incremental (append or merge new rows only, best for large tables), and Ephemeral (a CTE injected into downstream models, no object created in the warehouse). Choose based on query frequency, data volume, and acceptable latency.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-003",
+    "category": "dbt",
+    "question": "What is a dbt source and how does it differ from a model?",
+    "answer": "A source is a declaration of raw data that already exists in your warehouse (loaded by ELT tools like Fivetran or Airbyte), defined in a YAML file using the 'sources:' key. A model is SQL dbt itself creates. Sources let you reference raw tables with source(), apply freshness checks, and keep lineage visible in the DAG.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-004",
+    "category": "dbt",
+    "question": "What is the difference between dbt's generic tests and singular tests?",
+    "answer": "Generic tests (not_null, unique, accepted_values, relationships) are reusable and applied to columns via YAML config. Singular tests are one-off SQL files in the tests/ directory that return rows when the test fails. Use generic tests for common data quality rules and singular tests for complex business logic assertions.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-005",
+    "category": "dbt",
+    "question": "What is a dbt snapshot and what problem does it solve?",
+    "answer": "A dbt snapshot tracks changes to mutable source tables over time by recording historical state using a strategy (timestamp or check). It implements Slowly Changing Dimension Type 2 automatically, adding dbt_valid_from and dbt_valid_to columns. This solves the problem of source data being overwritten with no history preserved.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-006",
+    "category": "dbt",
+    "question": "What is a dbt macro and how does it use Jinja?",
+    "answer": "A macro is a reusable Jinja function defined in the macros/ directory that generates SQL dynamically. Jinja templating allows loops, conditionals, and variable interpolation inside SQL files. Macros let you DRY up repeated SQL patterns and are called with {{ macro_name(args) }} syntax inside models.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-007",
+    "category": "dbt",
+    "question": "How do incremental models work in dbt, and what is the 'is_incremental()' macro used for?",
+    "answer": "Incremental models only process new or changed rows rather than rebuilding the full table each run, dramatically reducing warehouse compute costs. The is_incremental() macro returns true when the model already exists in the warehouse, allowing you to add a WHERE clause that filters to only recent data. On the first run, dbt builds the full table; subsequent runs merge or append only.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-008",
+    "category": "dbt",
+    "question": "What are dbt seeds and when should you use them?",
+    "answer": "Seeds are CSV files in the seeds/ directory that dbt loads into your warehouse as tables via 'dbt seed'. They are best for small, static reference data like country codes, cost centers, or mapping tables that change infrequently. Avoid seeds for large or frequently changing datasets; use a proper data pipeline instead.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-009",
+    "category": "dbt",
+    "question": "What is a dbt package and how do you install one?",
+    "answer": "A dbt package is a collection of reusable models, macros, and tests shared via the dbt Hub or a Git repo. You declare packages in packages.yml and install them with 'dbt deps'. Popular packages include dbt_utils (helper macros), dbt_expectations (Great Expectations-style tests), and audit_helper (for model comparison).",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-010",
+    "category": "dbt",
+    "question": "What is a dbt exposure and why is it useful?",
+    "answer": "An exposure is a YAML declaration of a downstream artifact that consumes dbt models, such as a dashboard, ML model, or application. Exposures make lineage end-to-end visible: you can see which BI reports depend on which dbt models. This helps assess the blast radius of changes and communicate dependencies to stakeholders.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-011",
+    "category": "dbt",
+    "question": "How does source freshness work in dbt?",
+    "answer": "Source freshness is configured in YAML using 'freshness:' under a source, specifying warn_after and error_after thresholds based on a loaded_at_field timestamp column. Running 'dbt source freshness' queries the warehouse and fails if the most recent row is older than the threshold. It surfaces stale upstream data before it silently corrupts downstream models.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-012",
+    "category": "dbt",
+    "question": "What is the ref() function in dbt and why is it critical?",
+    "answer": "ref() is used to reference another dbt model (e.g., {{ ref('stg_orders') }}) instead of hardcoding schema and table names. It resolves to the correct schema per environment (dev vs. prod), builds the DAG dependency graph automatically, and ensures models run in the correct order. It is the backbone of dbt's lineage and environment separation.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-013",
+    "category": "dbt",
+    "question": "What are dbt tags and how are they used in practice?",
+    "answer": "Tags are labels applied to models, sources, or tests in YAML or model config blocks to group and filter runs. For example, tagging models with 'hourly' or 'nightly' lets you run 'dbt run --select tag:hourly' to execute only that subset. They are useful for orchestrating partial runs and organizing large dbt projects.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-014",
+    "category": "dbt",
+    "question": "How do you document models in dbt and where does that documentation live?",
+    "answer": "Documentation is written in YAML schema files (schema.yml) as 'description:' fields on models, columns, and sources, or in separate .md doc blocks referenced with the doc() function. Running 'dbt docs generate' compiles a data catalog site, and 'dbt docs serve' hosts it locally. This keeps data documentation version-controlled alongside the code.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-015",
+    "category": "dbt",
+    "question": "What is the dbt project layering convention (staging, intermediate, marts) and why does it matter?",
+    "answer": "The convention separates models into staging (1:1 raw source cleaning, renaming, casting), intermediate (business logic joins and transformations), and marts (final wide tables for consumption by BI or ML). This layering keeps transformation logic modular, testable, and reusable. It also makes onboarding easier because developers know exactly where to look for each type of logic.",
+    "difficulty": "advanced"
+  }
+]
