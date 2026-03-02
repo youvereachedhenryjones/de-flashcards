@@ -44,6 +44,8 @@ header h1 span{color:var(--teal)}
 .card-category[data-cat="Data Modeling"]{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.6)}
 .card-category[data-cat="SQL"]{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.6)}
 .card-category[data-cat="Python"]{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.6)}
+.card-category[data-cat="kafka"]{background:rgba(220,38,38,.2);border-color:rgba(220,38,38,.6)}
+.card-category[data-cat="dagster"]{background:rgba(124,58,237,.2);border-color:rgba(124,58,237,.6)}
 .card-text{font-size:18px;line-height:1.6;font-weight:400}
 .card-back .card-text{font-size:16px;color:var(--slate)}
 .card-hint{font-size:13px;color:var(--slate-dark);margin-top:16px}
@@ -177,7 +179,8 @@ textarea{min-height:80px;resize:vertical}
         <option value="Python">Python Data Stack</option>
         <option value="dbt">dbt</option>
         <option value="Airflow">Airflow</option>
-        <option value="Kafka">Kafka</option>
+        <option value="kafka">Kafka</option>
+        <option value="dagster">Dagster</option>
         <option value="Data Modeling">Data Modeling</option>
         <option value="Spark">Spark</option>
         <option value="Cloud">Cloud Platforms</option>
@@ -244,7 +247,7 @@ const DEFAULT_CARDS=[
 
 function normalizeQuestion(q){return(q||'').trim();}
 const DEFAULT_QUESTIONS=new Set(DEFAULT_CARDS.map(c=>normalizeQuestion(c.q)));
-const FILTERS=['All','Original','dbt','Airflow','Spark','Data Modeling'];
+const FILTERS=['All','Original','dbt','Airflow','Spark','Data Modeling','kafka','dagster'];
 let activeFilter='All';
 let cards=[], currentCard=null, currentIdx=-1, currentDueIdx=0;
 
@@ -449,7 +452,9 @@ async function mergePackCards(){
     'cards/dbt-cards.json',
     'cards/airflow-cards.json',
     'cards/spark-cards.json',
-    'cards/data-modeling-cards.json'
+    'cards/data-modeling-cards.json',
+    'cards/kafka-cards.json',
+    'cards/dagster-cards.json'
   ];
   const existingQuestions=new Set(cards.map(c=>normalizeQuestion(c.q)));
   try{

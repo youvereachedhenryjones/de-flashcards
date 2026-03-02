@@ -1,0 +1,177 @@
+[
+  {
+    "id": "dagster-001",
+    "category": "dagster",
+    "question": "What is Dagster and how does its philosophy differ from traditional workflow orchestrators?",
+    "answer": "Dagster is a data orchestration platform built around the concept of software-defined assets — data artifacts (tables, files, models) are first-class citizens, not just steps in a workflow. Unlike Airflow, which models pipelines as task DAGs with no awareness of what data those tasks produce, Dagster's asset-centric paradigm means the orchestrator knows about your data — its lineage, freshness, and materialization status. This makes it easier to understand what data exists, why it exists, and whether it's stale, without reading job code.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-002",
+    "category": "dagster",
+    "question": "What is a Software-Defined Asset (SDA) in Dagster?",
+    "answer": "A software-defined asset is a Python function decorated with @asset that declares both the computation and the persistent data object it produces — a database table, a file, an ML model, etc. Dagster tracks the asset's materialization history, lineage (upstream dependencies), and freshness automatically. The key shift from ops: instead of thinking 'run this task,' you think 'produce this data object,' and Dagster figures out the execution plan from the asset dependency graph.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-003",
+    "category": "dagster",
+    "question": "What is the difference between a Dagster job and an op?",
+    "answer": "An op is the atomic unit of computation in Dagster — a decorated Python function (@op) that takes inputs and produces outputs. A job is a graph of ops wired together into an executable pipeline with a defined execution order. In Dagster 1.x, the preferred pattern is to use @asset instead of @op/@job for most pipelines, since assets give you materialization tracking and lineage for free. Jobs remain useful when you need compute that doesn't map cleanly to a persistent data artifact — like sending notifications or triggering external APIs.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-004",
+    "category": "dagster",
+    "question": "What is the Dagster Launchpad and what can you do with it?",
+    "answer": "The Launchpad is the UI panel in Dagster's web interface where you can launch a job or asset materialization with custom run configuration. You can override resource configs, op configs, and partition selections before kicking off a run — no code change required. It's particularly useful for one-off re-materializations, testing configuration changes before committing them, and triggering backfills for specific time ranges.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-005",
+    "category": "dagster",
+    "question": "How do Dagster schedules work?",
+    "answer": "A schedule in Dagster triggers a job or asset materialization on a recurring cron expression. You define it with @schedule (for jobs) or build_schedule_from_partitioned_job / define_asset_job with a PartitionsDefinition (for partitioned assets), then include it in your Definitions object. Schedules are executed by the Dagster daemon process — it's the daemon's job to wake up and launch runs at the right time. Unlike Airflow's scheduler, Dagster's schedule evaluation is fully declarative and version-controlled alongside your pipeline code.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-006",
+    "category": "dagster",
+    "question": "What is a Dagster sensor and how does it differ from a schedule?",
+    "answer": "A sensor is an event-driven trigger: it polls an external condition (a new file in S3, a new row in a database, a completed upstream run) and launches a run when the condition is met. Sensors run on the daemon's polling loop (default: every 30 seconds) and call a Python function that returns RunRequest objects or skips. Unlike schedules (time-based), sensors are data-driven — the canonical use case is triggering a downstream pipeline as soon as an upstream asset is materialized, replacing the need for manual dependencies between jobs.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-007",
+    "category": "dagster",
+    "question": "What is run configuration in Dagster and how is it passed to jobs?",
+    "answer": "Run configuration is a nested dictionary (or YAML) that parameterizes a job at runtime — controlling op configs, resource configs, loggers, and executors without changing code. It's structured around the config schema declared on each @op or @resource using Dagster's ConfigSchema or Pydantic models. You can pass run config via the Launchpad UI, the Python RunRequest API (in sensors/schedules), or the CLI with --config flag. The key best practice: declare config schemas explicitly so Dagster can validate and document them.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-008",
+    "category": "dagster",
+    "question": "What is asset materialization in Dagster?",
+    "answer": "Asset materialization is the act of executing the computation for an @asset and storing the result to its target data store (a database table, a file in S3, etc.). Dagster records each materialization in the event log with metadata — row counts, file sizes, custom metrics you emit via context.add_output_metadata() — so you can see materialization history in the UI. A key concept: Dagster separates 'knowing an asset exists' from 'having materialized it recently' — you can declare assets without materializing them and observe their status over time.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dagster-009",
+    "category": "dagster",
+    "question": "How do asset dependencies work in Dagster and how does Dagster infer the execution graph?",
+    "answer": "Asset dependencies are declared by passing an upstream asset as a function parameter — the parameter name matches the upstream asset's key. Dagster infers the full DAG from these function signatures and builds an asset graph visible in the UI. When you materialize a downstream asset, Dagster knows which upstream assets must exist first and can optionally materialize them too. You can also use AssetIn() for explicit control over dependency keys when the function parameter name can't match the asset name (e.g., cross-repository dependencies or name conflicts).",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-010",
+    "category": "dagster",
+    "question": "What are partitioned assets in Dagster and when should you use them?",
+    "answer": "Partitioned assets let you slice an asset's computation by a dimension — typically time (daily, hourly) or a categorical key (region, customer). Each partition is a separate, independently materializable slice of the data. You define partitions with DailyPartitionsDefinition, StaticPartitionsDefinition, or custom ranges, and Dagster tracks materialization status per partition. Use partitioned assets when your data is naturally segmented, you need incremental processing (only run today's partition), or you need to backfill historical data without rerunning everything.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-011",
+    "category": "dagster",
+    "question": "What is a Dagster backfill and how does it work for partitioned assets?",
+    "answer": "A backfill is the process of materializing a range of partition keys in bulk — typically used to populate historical data or re-process partitions after a bug fix. You can trigger backfills from the UI (select a partition range and launch), from the CLI, or programmatically via the Python API. Dagster submits one run per partition (or in bulk if the asset supports it), tracks each individually, and shows progress in the backfill UI. For dbt+Dagster integrations, backfills propagate through the whole asset graph — Dagster re-materializes all downstream assets for each partition.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-012",
+    "category": "dagster",
+    "question": "What are Dagster resources and I/O managers, and how do they differ?",
+    "answer": "A resource is any external dependency your assets need — a database connection, an S3 client, an API key — declared with @resource or as a class inheriting ConfigurableResource and injected into assets via context.resources. An I/O manager is a special resource that handles reading inputs and writing outputs for assets and ops — it abstracts the storage layer so your computation logic doesn't need to know whether data lives in Snowflake, Parquet, or memory. The distinction: resources are for arbitrary external interactions; I/O managers specifically own the serialize/deserialize lifecycle for asset outputs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-013",
+    "category": "dagster",
+    "question": "What is a Dagster run launcher and what are the built-in options?",
+    "answer": "The run launcher determines where and how Dagster executes a run. DefaultRunLauncher spawns runs as subprocesses on the same machine — fine for development. DockerRunLauncher runs each job in an isolated Docker container. K8sRunLauncher (for Helm/Kubernetes deployments) submits runs as Kubernetes Jobs, enabling autoscaling and resource isolation per run. CeleryK8sRunLauncher adds Celery for step-level distribution across K8s pods. In production on AWS/GCP, the K8s launcher is the standard choice — it gives you per-run isolation and native cloud scaling.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-014",
+    "category": "dagster",
+    "question": "What is workspace.yaml in Dagster and what does it configure?",
+    "answer": "workspace.yaml is the entry-point configuration file that tells the Dagster webserver and daemon where to find code locations (Python modules or gRPC servers that serve your assets and jobs). Each entry in load_from specifies either a python_file, python_module, or grpc_server. In multi-team deployments, you have multiple code locations in one workspace — each is isolated (separate Python env, separate failures) but visible in the same UI. This is how Dagster achieves team-level isolation without running separate Dagster instances.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-015",
+    "category": "dagster",
+    "question": "What is the difference between Dagster Cloud and Dagster OSS, and when would you choose Cloud?",
+    "answer": "Dagster OSS is the open-source version you host yourself — you manage the webserver, daemon, PostgreSQL metadata store, and run infrastructure. Dagster Cloud (Serverless or Hybrid) offloads the control plane to Dagster's managed service: UI, metadata storage, and scheduling are hosted, while your code runs in your own infrastructure (Hybrid) or Dagster's (Serverless). Choose Cloud when you want to avoid the operational burden of running Dagster itself — particularly appealing for small teams or early-stage companies. OSS is the right call when you need full control, air-gapped environments, or cost predictability at scale.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-016",
+    "category": "dagster",
+    "question": "How does Dagster integrate with dbt, and what does the dagster-dbt library provide?",
+    "answer": "The dagster-dbt library (v0.20+/1.x) loads your dbt project and automatically generates Dagster software-defined assets for every dbt model, seed, snapshot, and test — preserving lineage so your dbt models appear as nodes in the Dagster asset graph. You use DbtCliResource and @dbt_assets to configure this. The key benefit: you can trigger dbt model refreshes as part of a broader Dagster pipeline (e.g., after Fivetran ingestion, before downstream ML training), with full visibility into which models failed and why. Asset checks map to dbt tests natively in Dagster 1.4+.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-017",
+    "category": "dagster",
+    "question": "What are Dagster asset checks and how do they differ from asset tests in dbt?",
+    "answer": "Asset checks (introduced in Dagster 1.4) are Python functions decorated with @asset_check that run assertions against a materialized asset — checking row counts, null rates, referential integrity, freshness, etc. — and report pass/fail/warn results in the UI. Unlike dbt tests (which run as part of dbt build and fail the whole job), Dagster asset checks are decoupled: you can run them separately, block downstream materializations on failure, or surface warnings without halting the pipeline. They're the right place for data quality checks that go beyond dbt's column-level tests — cross-table assertions, statistical checks, or checks that require external data.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-018",
+    "category": "dagster",
+    "question": "What is an asset observation in Dagster and when would you use it instead of a materialization?",
+    "answer": "An asset observation records metadata about an asset without re-running the computation that produces it — you're saying 'I checked this asset and here's what I found' rather than 'I just created/updated this asset.' Use observations for assets Dagster doesn't own (e.g., a Fivetran-managed table or an external data source), for freshness checks (polling S3 and reporting the last modified time), or for monitoring quality metrics without triggering expensive recomputation. Observations appear in the asset's materialization timeline and can feed freshness policies.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dagster-019",
+    "category": "dagster",
+    "question": "What is dynamic partitioning in Dagster and how does it differ from static partitioning?",
+    "answer": "Dynamic partitions (DynamicPartitionsDefinition) allow partition keys to be added at runtime rather than defined statically upfront. This is essential for entity-keyed data where the set of keys grows over time — new customers, new tenants, new experiments. You add partition keys programmatically (context.instance.add_dynamic_partitions()) from a sensor or job when a new entity appears, and Dagster starts tracking materializations for that key. Static partitions (DailyPartitionsDefinition, StaticPartitionsDefinition) are appropriate when the key space is fixed or time-bounded; dynamic partitions handle unbounded, entity-driven key spaces.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dagster-020",
+    "category": "dagster",
+    "question": "How do you model branching pipelines in Dagster — where different downstream logic applies based on runtime conditions?",
+    "answer": "In the op/job model, Dagster supports dynamic outputs: an op can yield DynamicOutput items (one per branch), and downstream ops are automatically fanned out and mapped over each output — then fanned back in with collect(). For asset-based branching, the pattern is to use separate assets per branch with a shared upstream, and conditionally materialize them via sensors or run configs. For true runtime branching (process only records matching condition X), the recommended pattern is to handle branching inside a single asset's Python logic rather than modeling it as graph-level control flow — Dagster's asset graph is a dependency graph, not a control flow graph.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dagster-021",
+    "category": "dagster",
+    "question": "How do you build a custom I/O manager in Dagster and what methods must you implement?",
+    "answer": "A custom I/O manager extends IOManager and implements two methods: handle_output(context, obj) (called after an op/asset produces an output — serialize and store it) and load_input(context, input_context) (called before a downstream op/asset runs — load and return the data). You access metadata like the asset key, partition key, and output name via context to build dynamic storage paths. Register it as a resource in your Definitions and bind it to assets with io_manager_key. Custom I/O managers are the right pattern when you need special serialization (e.g., writing Arrow IPC format), routing to different stores per asset, or partition-aware storage paths (s3://bucket/{asset}/{partition}.parquet).",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dagster-022",
+    "category": "dagster",
+    "question": "What is a multi-asset factory in Dagster and when is it the right abstraction?",
+    "answer": "A multi-asset factory is a pattern (not a built-in API) where you use @multi_asset or a loop with @asset to programmatically generate many assets from a configuration spec — e.g., one asset per database table, per API endpoint, or per dbt model. The dagster-dbt library is itself a multi-asset factory: it reads your dbt project manifest and generates one Dagster asset per dbt node. Use this pattern when you have a uniform computation pattern applied to many inputs — writing boilerplate @asset definitions for each would be repetitive and unmaintainable. The factory keeps asset generation DRY and config-driven.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dagster-023",
+    "category": "dagster",
+    "question": "What is a Dagster code location and how does it enable multi-team deployments?",
+    "answer": "A code location is an isolated Python environment (process or gRPC server) that serves a set of Dagster definitions (assets, jobs, sensors, schedules) to the Dagster webserver. Each code location has its own Python interpreter, dependency set, and failure domain — a crash in one code location doesn't affect others. In workspace.yaml, you define multiple code locations, each pointing to a different Python module or gRPC endpoint. This is the standard pattern for large teams: each squad owns a code location, deploys independently, and their assets are visible in a shared UI with cross-location lineage.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dagster-024",
+    "category": "dagster",
+    "question": "What does the Dagster daemon do and what breaks if it's not running?",
+    "answer": "The Dagster daemon is a long-running background process responsible for: evaluating schedules and launching runs at the right time, polling sensors and submitting RunRequests, managing run queue concurrency limits, and executing backfills. If the daemon is down, schedules silently miss their windows, sensors stop firing, and backfills stall — the webserver and run workers continue unaffected. In production, the daemon must be deployed as a persistent service (systemd unit, K8s Deployment, or ECS service) with health monitoring. In Dagster Cloud, the daemon is managed for you.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dagster-025",
+    "category": "dagster",
+    "question": "Dagster vs Airflow: how do you decide which to use, and what's the honest tradeoff?",
+    "answer": "Airflow is the entrenched standard with a massive ecosystem, extensive operator library, and a workforce who knows it — it's the right choice when joining a team that already runs it or when you need operators for obscure systems with no Dagster equivalent. Dagster wins on developer experience, asset-centric lineage, type-safe configs, better testing (dagster dev, unit-testable assets), and first-class dbt integration. The honest tradeoff: Airflow has more production mileage and community knowledge; Dagster has a cleaner model for data-aware orchestration. For greenfield DE platforms in 2024–2025, Dagster (or Prefect) is the modern choice — but migrating an existing Airflow deployment is a significant investment that needs clear ROI justification.",
+    "difficulty": "advanced"
+  }
+]
