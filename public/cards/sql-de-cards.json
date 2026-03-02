@@ -1,0 +1,177 @@
+[
+  {
+    "id": "sql-de-001",
+    "category": "SQL for DE",
+    "question": "What is the difference between ROW_NUMBER(), RANK(), and DENSE_RANK() window functions?",
+    "answer": "All three assign a number to each row within a partition, but they handle ties differently. ROW_NUMBER() assigns a unique sequential integer — no ties, always 1,2,3,4. RANK() assigns the same rank to tied rows and then skips: two rows tied at rank 2 means the next rank is 4 (no rank 3). DENSE_RANK() also ties but never skips: two rows tied at rank 2 means the next rank is 3. Use ROW_NUMBER() when you need exactly one row (deduplication); RANK/DENSE_RANK when you care about true ordering with ties.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql-de-002",
+    "category": "SQL for DE",
+    "question": "How do LAG() and LEAD() window functions work, and what are common DE use cases?",
+    "answer": "LAG(col, n, default) returns the value of col from n rows before the current row in the partition; LEAD(col, n, default) returns n rows ahead. Both use PARTITION BY and ORDER BY to define the window. Common DE uses: computing period-over-period change (revenue today minus LAG(revenue, 1)), detecting gaps in sequences, calculating session duration (LEAD(event_time) - event_time), and identifying state changes (when status != LAG(status)). The optional default argument handles NULL at partition boundaries.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql-de-003",
+    "category": "SQL for DE",
+    "question": "What is PARTITION BY in a window function and how does it differ from GROUP BY?",
+    "answer": "PARTITION BY divides rows into groups for window function calculation but does NOT collapse rows — every input row still appears in the output with the window result appended. GROUP BY collapses rows into one row per group and requires aggregate expressions. You can use both together: GROUP BY first to aggregate, then window functions over the aggregated result. A classic pattern: SELECT user_id, order_date, revenue, SUM(revenue) OVER (PARTITION BY user_id ORDER BY order_date) AS running_total — every order row is retained with its cumulative sum.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql-de-004",
+    "category": "SQL for DE",
+    "question": "What is a CTE (Common Table Expression) and why do data engineers prefer them over subqueries?",
+    "answer": "A CTE is a named temporary result set defined with WITH clause_name AS (SELECT ...) that can be referenced in the main query and subsequent CTEs. Advantages over subqueries: readability (logic is named and sequential rather than nested), reusability (a CTE can be referenced multiple times in the query without duplication), debuggability (you can comment out downstream CTEs and SELECT * from an intermediate one), and optimizer clarity. Most modern query engines (BigQuery, Snowflake, Redshift, DuckDB) materialize CTEs only once when referenced multiple times. CTEs are the foundation of dbt models.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql-de-005",
+    "category": "SQL for DE",
+    "question": "What is a recursive CTE and when would you use it in data engineering?",
+    "answer": "A recursive CTE is a CTE that references itself, enabling iteration over hierarchical or graph-structured data. Structure: WITH RECURSIVE cte AS (SELECT ... [anchor/base case] UNION ALL SELECT ... FROM cte WHERE [termination condition]). The anchor runs once; the recursive term runs repeatedly joining against the previous iteration's output until it returns no rows. DE use cases: flattening org hierarchies (manager → report chains), traversing bill-of-materials trees, generating date sequences without a calendar table (anchor = start_date, recursive = date + 1), and computing graph shortest paths. Always include a termination condition or depth limit to prevent infinite loops.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-006",
+    "category": "SQL for DE",
+    "question": "How do you use EXPLAIN / EXPLAIN ANALYZE to diagnose a slow query?",
+    "answer": "EXPLAIN shows the query plan the optimizer chose (scans, joins, sorts, estimated rows and cost). EXPLAIN ANALYZE actually executes the query and shows actual vs. estimated rows and timing per node — critical for catching optimizer misjudgments. Key things to look for: Seq Scan on a large table (needs an index), Nested Loop with large outer relation (consider Hash Join), sort operations on unsorted data (could be eliminated with an index), and rows where actual >> estimated (stale statistics — run ANALYZE). In columnar warehouses (Redshift, Snowflake), EXPLAIN shows distribution warnings and broadcast joins, which indicate data skew or missing distribution keys.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-007",
+    "category": "SQL for DE",
+    "question": "What is partition pruning and how does it improve query performance in a data warehouse?",
+    "answer": "Partition pruning is the optimizer's ability to skip scanning entire partitions of a table when the query's WHERE clause can eliminate them using the partition key. For example, a table partitioned by event_date with WHERE event_date = '2026-01-15' only scans one partition instead of all. Requirements: the filter must be on the partition column, and the value must be a literal or constant (not a subquery or non-deterministic function). In practice, always partition large fact tables by date and always filter on that column in pipelines. Pushdown predicates extend this to distributed systems — the filter is pushed down to the storage layer before data is shuffled.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-008",
+    "category": "SQL for DE",
+    "question": "What is a self-join and when would you use one in DE work?",
+    "answer": "A self-join joins a table to itself by aliasing it twice, treating it as two logical tables. The classic use case is hierarchical data: SELECT e.name AS employee, m.name AS manager FROM employees e JOIN employees m ON e.manager_id = m.employee_id. DE use cases: comparing a row to other rows in the same partition (find all sessions within 30 minutes of each other), generating combinations, and finding duplicates by joining on non-key columns. Self-joins on large tables are expensive — ensure the join column is indexed. For deep hierarchies, prefer recursive CTEs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-009",
+    "category": "SQL for DE",
+    "question": "What is a LATERAL JOIN (or CROSS APPLY in SQL Server) and when is it more powerful than a regular JOIN?",
+    "answer": "A LATERAL JOIN (or CROSS APPLY) allows the right-hand subquery to reference columns from the left-hand table — making it a correlated subquery that executes once per left row, but expressed as a join rather than a nested subquery. This enables: running a table-returning function per row (e.g., unnest an array), getting the top-N rows per group efficiently, or applying complex per-row logic. Example: SELECT u.id, t.* FROM users u, LATERAL (SELECT * FROM events WHERE user_id = u.id ORDER BY ts DESC LIMIT 3) t. Much more readable than correlated subqueries and often better optimized.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "sql-de-010",
+    "category": "SQL for DE",
+    "question": "How do you compute a running total, moving average, and cumulative distinct count using window functions?",
+    "answer": "Running total: SUM(amount) OVER (PARTITION BY user_id ORDER BY event_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW). Moving 7-day average: AVG(daily_revenue) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW). Cumulative distinct count is tricky — COUNT(DISTINCT) is not a valid window function in most engines. Workaround: use a CTE to rank each value's first appearance with ROW_NUMBER() OVER (PARTITION BY user_id, product ORDER BY date) and count rows with rank=1 in a cumulative SUM. The ROWS vs RANGE frame distinction matters: RANGE uses ORDER BY value matching; ROWS uses physical row position.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-011",
+    "category": "SQL for DE",
+    "question": "What is PERCENTILE_CONT vs PERCENTILE_DISC and how does NTILE() work?",
+    "answer": "PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) computes a continuous (interpolated) median — if two middle values exist, it returns their average. PERCENTILE_DISC(0.5) returns the discrete value that corresponds to the percentile — always an actual data point. NTILE(n) OVER (ORDER BY col) divides rows into n equal-sized buckets and assigns a bucket number (1 through n) — useful for creating quartile or decile labels for distribution analysis. Example: SELECT NTILE(4) OVER (ORDER BY revenue DESC) AS quartile to tag customers as top 25%, etc.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-012",
+    "category": "SQL for DE",
+    "question": "What is LISTAGG / STRING_AGG and how do you handle duplicates and ordering?",
+    "answer": "STRING_AGG (PostgreSQL, SQL Server, BigQuery) and LISTAGG (Oracle, Redshift) aggregate multiple row values into a single delimited string. Syntax: STRING_AGG(product_name, ', ' ORDER BY product_name). To eliminate duplicates, use a subquery with DISTINCT first: STRING_AGG(DISTINCT product_name, ', '). Redshift's LISTAGG does not support DISTINCT natively — the pattern is to pre-deduplicate with a CTE. Ordering within the aggregation is important for deterministic output. Useful for creating comma-separated tag lists, flattening one-to-many relationships into a single row, and building human-readable summaries in SQL.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-013",
+    "category": "SQL for DE",
+    "question": "How do you implement a Slowly Changing Dimension Type 1 (SCD1) in SQL?",
+    "answer": "SCD Type 1 simply overwrites old values with new ones — no history is kept. In SQL, implement with MERGE (UPSERT): MERGE INTO dim_customer AS target USING staging AS source ON target.customer_id = source.customer_id WHEN MATCHED THEN UPDATE SET target.email = source.email, target.name = source.name WHEN NOT MATCHED THEN INSERT (customer_id, email, name) VALUES (source.customer_id, source.email, source.name). In dbt, this is the default incremental model with a unique_key — existing rows get overwritten. SCD1 is the simplest but loses all change history.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-014",
+    "category": "SQL for DE",
+    "question": "How do you implement a Slowly Changing Dimension Type 2 (SCD2) in SQL?",
+    "answer": "SCD Type 2 preserves full history by adding a new row for each change, with valid_from/valid_to date columns and an is_current flag. Pattern: (1) JOIN incoming data to the dimension on the natural key WHERE is_current = TRUE. (2) For changed rows, UPDATE the old row: SET valid_to = today, is_current = FALSE. (3) INSERT the new version with valid_from = today, valid_to = '9999-12-31', is_current = TRUE. (4) For new rows, INSERT with the same valid_to sentinel. dbt snapshots automate this with the timestamp or check strategy. SCD2 is the standard for tracking entity history in a data warehouse.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-015",
+    "category": "SQL for DE",
+    "question": "How do you implement a Slowly Changing Dimension Type 3 (SCD3) in SQL?",
+    "answer": "SCD Type 3 adds a column for the previous value rather than a new row. Instead of full history, you store current and 'previous' values in extra columns: ALTER TABLE dim_customer ADD COLUMN prev_email VARCHAR, ADD COLUMN email_changed_date DATE. On update: UPDATE dim_customer SET prev_email = email, email_changed_date = today, email = new_email WHERE customer_id = X. SCD3 is a compromise: simple (no extra rows) but only tracks one level of history. Best for attributes where you only need to compare current vs. immediately-prior state, like region changes for marketing attribution.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-016",
+    "category": "SQL for DE",
+    "question": "What is a SQL MERGE statement (UPSERT) and what are its main clauses?",
+    "answer": "MERGE synchronizes a target table with a source in a single atomic statement. Core clauses: WHEN MATCHED THEN UPDATE (update existing rows where key matches), WHEN MATCHED AND condition THEN DELETE (conditionally delete), WHEN NOT MATCHED BY TARGET THEN INSERT (new rows from source), WHEN NOT MATCHED BY SOURCE THEN DELETE (remove rows in target not in source — careful!). MERGE is supported in most warehouses but syntax varies (BigQuery uses MERGE; Snowflake uses MERGE; older Redshift required INSERT+UPDATE workarounds but now supports MERGE too). Always test MERGE logic in a transaction with a rollback in dev — a wrong condition on NOT MATCHED BY SOURCE can delete your whole table.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-017",
+    "category": "SQL for DE",
+    "question": "What is the difference between a materialized view and a regular view in a data warehouse?",
+    "answer": "A regular view is a stored SQL query that executes at query time — no data is stored, always fresh, but query cost is paid every time. A materialized view pre-computes and physically stores the result set, making reads fast but requiring refresh to stay current. Refresh modes: COMPLETE (full rebuild), FAST/INCREMENTAL (only changed data), ON COMMIT (auto on source write). In Redshift, materialized views use AUTO REFRESH. In Snowflake, dynamic tables extend this with configurable lag targets. Use materialized views for expensive aggregations queried frequently; use regular views for simple aliases or when freshness is paramount. The tradeoff is storage cost + refresh overhead vs. query latency.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-018",
+    "category": "SQL for DE",
+    "question": "How do indexes improve query performance and what types should a data engineer know?",
+    "answer": "Indexes create auxiliary data structures that let the engine find rows without scanning the full table. Types to know: B-Tree (default in Postgres — good for equality and range queries on sorted data), Hash (equality only — faster than B-Tree for = but useless for ranges), Partial index (indexes only rows matching a condition — e.g., WHERE is_deleted = FALSE — much smaller), Composite index (multi-column — column order matters; leftmost prefix rule), and Covering index (includes all columns a query needs, avoiding table lookup). In columnar warehouses (Snowflake, BigQuery), traditional row-level indexes don't exist — instead use clustering keys, partitioning, and sort keys to achieve similar effects.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-019",
+    "category": "SQL for DE",
+    "question": "How do you write efficient time-series queries in SQL — sliding windows, gaps-and-islands, and sessionization?",
+    "answer": "Sliding window aggregation: SUM(revenue) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) for a 7-day rolling sum. Gaps detection: use LAG(event_date) and compare date - LAG(date) > threshold to find gaps in a series. Gaps-and-islands (sessionization): assign a group ID using SUM(CASE WHEN date - LAG(date) > 30 THEN 1 ELSE 0 END) OVER (PARTITION BY user_id ORDER BY date) — each gap increments the session counter. Then GROUP BY user_id, session_id to aggregate sessions. Sessionization is a core pattern for clickstream, IoT, and event data pipelines and comes up heavily in DE interviews.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "sql-de-020",
+    "category": "SQL for DE",
+    "question": "How do you detect and remove duplicate rows in a large table using SQL?",
+    "answer": "Pattern 1 — ROW_NUMBER dedup: WITH deduped AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY natural_key ORDER BY updated_at DESC) AS rn FROM table) SELECT * FROM deduped WHERE rn = 1. This is the most reliable method. Pattern 2 — DISTINCT: only works if all columns are the natural key. Pattern 3 — GROUP BY + MAX/MIN for aggregating: SELECT id, MAX(updated_at) as latest FROM table GROUP BY id. For in-place deduplication on a large table, use CREATE TABLE AS SELECT (CTAS) with the deduped CTE, then DROP the old table and rename — safer than DELETE with a subquery. In Redshift, DELETE FROM table USING (SELECT ... ROW_NUMBER() > 1) is the standard approach.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "sql-de-021",
+    "category": "SQL for DE",
+    "question": "What is pushdown predicate optimization and why does it matter in distributed SQL engines?",
+    "answer": "Predicate pushdown is when the query engine moves WHERE clause filters as close to the data source as possible — ideally evaluated at the storage layer before data is transferred to compute nodes. In a distributed engine like Spark SQL or Presto/Trino, this means filters are applied at the file/partition level, reducing data scanned and shuffled across the network. For Parquet files, this extends to column pruning (only reading needed columns) and row group skipping (using Parquet min/max statistics). To leverage predicate pushdown: filter on partition columns, avoid wrapping filter columns in functions (WHERE YEAR(date) = 2026 prevents pushdown; WHERE date >= '2026-01-01' enables it), and keep filter expressions simple.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "sql-de-022",
+    "category": "SQL for DE",
+    "question": "What is data skew in SQL joins and how do you handle it?",
+    "answer": "Data skew occurs when one or a few join key values appear far more frequently than others (e.g., NULL or a single high-cardinality user ID), causing one partition to process most of the data while others are idle. Symptoms: a single task takes 10x longer than others in Spark/Redshift. Solutions: (1) Salt the key — append a random suffix (0-N) to skewed keys on the large side and replicate the small side with all N suffixes, then join. (2) Filter NULLs before joining (NULL = NULL is always false anyway). (3) Broadcast join — if one side is small enough, broadcast it to all nodes eliminating the shuffle. (4) Use COALESCE on the join key to replace NULLs with a placeholder. Skew is one of the top causes of slow SQL in distributed systems.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "sql-de-023",
+    "category": "SQL for DE",
+    "question": "How do you use SQL to compute a cohort retention analysis?",
+    "answer": "Cohort analysis groups users by acquisition period and tracks what fraction return each subsequent period. SQL pattern: (1) Create a cohort CTE: SELECT user_id, MIN(DATE_TRUNC('month', event_date)) AS cohort_month FROM events GROUP BY user_id. (2) Join events back to cohorts: SELECT c.cohort_month, DATEDIFF('month', c.cohort_month, e.event_month) AS period_number, COUNT(DISTINCT e.user_id) AS retained. (3) Divide by cohort size to get retention rate. Window functions can replace some joins. This pattern appears in nearly every DE/analytics interview — master it. Variations: daily cohorts, revenue cohorts, feature cohorts.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "sql-de-024",
+    "category": "SQL for DE",
+    "question": "What is the difference between UNION and UNION ALL and when should you use each?",
+    "answer": "UNION deduplicates rows across the combined result sets — it performs a sort or hash-based dedup that adds significant overhead proportional to data size. UNION ALL combines all rows from both queries without deduplication — it's much faster (no dedup pass). Use UNION ALL by default and add explicit DISTINCT or dedup logic only when needed. The only correct reason to use UNION over UNION ALL is when you genuinely need to eliminate duplicates that could appear across the two result sets. A common DE mistake is writing UNION everywhere 'to be safe' — this silently removes legitimate duplicate rows and wastes compute.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql-de-025",
+    "category": "SQL for DE",
+    "question": "How do you write a SQL query to pivot rows into columns and unpivot columns into rows?",
+    "answer": "Pivot (rows → columns): Use conditional aggregation: SELECT user_id, SUM(CASE WHEN product = 'A' THEN revenue END) AS product_a, SUM(CASE WHEN product = 'B' THEN revenue END) AS product_b FROM sales GROUP BY user_id. Some engines support PIVOT syntax directly. Unpivot (columns → rows): UNION ALL approach: SELECT user_id, 'product_a' AS product, product_a AS revenue FROM wide_table UNION ALL SELECT user_id, 'product_b', product_b FROM wide_table. Or use UNPIVOT syntax (SQL Server, Snowflake) or cross-join with a values list. In BigQuery, UNNEST combined with a STRUCT array is idiomatic. Pivoting is common in DE for reshaping data before loading into BI tools.",
+    "difficulty": "intermediate"
+  }
+]

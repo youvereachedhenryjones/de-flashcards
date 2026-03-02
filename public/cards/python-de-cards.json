@@ -1,0 +1,177 @@
+[
+  {
+    "id": "python-de-001",
+    "category": "Python for DE",
+    "question": "What is a Python generator and why are generators essential for large dataset processing?",
+    "answer": "A generator is a function that uses yield instead of return to produce values lazily — one at a time — rather than building the entire result in memory. When called, a generator function returns a generator object; values are produced only when iterated. For large datasets, this is critical: reading a 100GB CSV with a list comprehension loads everything into RAM and crashes; a generator-based reader yields one row at a time using O(1) memory. Pattern: def read_chunks(path, chunksize=1000): with open(path) as f: chunk = []; for line in f: chunk.append(line); if len(chunk) == chunksize: yield chunk; chunk = []. Generators are the foundation of memory-efficient ETL pipelines.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "python-de-002",
+    "category": "Python for DE",
+    "question": "What is the yield from syntax in Python generators and when would you use it?",
+    "answer": "yield from delegates to a sub-generator, transparently passing values through. Instead of: for item in sub_generator(): yield item, you write yield from sub_generator(). This is useful for composing generator pipelines: def pipeline(files): for f in files: yield from process_file(f). It also correctly handles send() and throw() calls to the sub-generator (important for coroutines). In data engineering, yield from is used to flatten nested iterables, chain multiple file generators, and compose multi-stage stream processing pipelines without breaking the lazy evaluation chain.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-003",
+    "category": "Python for DE",
+    "question": "How do you write a retry decorator in Python for flaky API calls or network operations?",
+    "answer": "import functools, time\ndef retry(max_attempts=3, delay=1.0, exceptions=(Exception,)):\n    def decorator(fn):\n        @functools.wraps(fn)\n        def wrapper(*args, **kwargs):\n            for attempt in range(max_attempts):\n                try:\n                    return fn(*args, **kwargs)\n                except exceptions as e:\n                    if attempt == max_attempts - 1:\n                        raise\n                    time.sleep(delay * (2 ** attempt))  # exponential backoff\n            return wrapper\n    return decorator\n\n@retry(max_attempts=5, exceptions=(requests.HTTPError,))\ndef fetch_data(url): ...\n\nfunctools.wraps preserves the original function's name and docstring. Exponential backoff avoids hammering a struggling service. The tenacity library provides a production-grade version with jitter, conditional retry, and logging.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-004",
+    "category": "Python for DE",
+    "question": "How do you write a timing decorator in Python and what should you know about decorator ordering?",
+    "answer": "import functools, time, logging\ndef timer(fn):\n    @functools.wraps(fn)\n    def wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        result = fn(*args, **kwargs)\n        elapsed = time.perf_counter() - start\n        logging.info(f'{fn.__name__} took {elapsed:.3f}s')\n        return result\n    return wrapper\n\nDecorator ordering matters when stacking: @timer @retry decorates inner-first, so retry wraps the function first, then timer wraps retry — meaning timer measures the total time including retries, which is usually what you want. Reverse if you want to time individual attempts. Always use functools.wraps or tools like inspect.signature break on the decorated function.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-005",
+    "category": "Python for DE",
+    "question": "What is a Python context manager and how do you implement a custom one using both class-based and contextlib approaches?",
+    "answer": "Context managers implement the with statement protocol, guaranteeing cleanup even if exceptions occur. Class-based: class DBConnection:\n    def __enter__(self): self.conn = connect(); return self.conn\n    def __exit__(self, exc_type, exc_val, tb): self.conn.close(); return False\n(return False re-raises exceptions; True suppresses them).\n\ncontextlib.contextmanager approach:\nfrom contextlib import contextmanager\n@contextmanager\ndef db_connection():\n    conn = connect()\n    try:\n        yield conn\n    finally:\n        conn.close()\n\nDE uses: managing database connections, temporary S3 file downloads, acquiring/releasing distributed locks, timed checkpoints. contextlib.suppress(FileNotFoundError) is a handy one-liner context manager to silently ignore specific exceptions.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-006",
+    "category": "Python for DE",
+    "question": "How do type hints work in Python and what are the most important ones for DE code?",
+    "answer": "Type hints (PEP 484+) annotate function signatures and variables with expected types; they are not enforced at runtime but enable static analysis (mypy, pyright) and IDE autocomplete. Key types for DE:\n- Basic: int, float, str, bool, bytes\n- Collections: list[str], dict[str, int], tuple[int, ...], set[str]\n- Optional/Union: Optional[str] = str | None (Python 3.10+)\n- Callable: Callable[[int, str], bool]\n- IO: IO[str], TextIO, BinaryIO\n- Generator: Generator[YieldType, SendType, ReturnType]\n- DataFrame stubs (pandas-stubs): pd.DataFrame\nUse TypeVar for generic functions. Type hints dramatically improve maintainability in shared DE codebases and enable mypy to catch type mismatches before runtime.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "python-de-007",
+    "category": "Python for DE",
+    "question": "What is Pydantic and why is it the standard for data validation in DE pipelines?",
+    "answer": "Pydantic is a Python library that uses type annotations to define data schemas and validates data at runtime — perfect for validating API responses, config files, and incoming event payloads. class EventPayload(BaseModel): user_id: int; event_type: str; timestamp: datetime; metadata: dict[str, Any] = {}. Calling EventPayload(**raw_dict) validates and coerces data, raising ValidationError with detailed field-level error messages on failure. Key DE uses: validating S3 event notifications before processing, enforcing config schemas in Airflow operators, building typed Pydantic models for Kafka consumer messages, and validating dbt source freshness configs. V2 (Pydantic v2) is significantly faster with Rust core.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-008",
+    "category": "Python for DE",
+    "question": "What is Python asyncio and when should (and shouldn't) you use it in data engineering?",
+    "answer": "asyncio is Python's built-in async I/O framework using an event loop, coroutines (async def), and await. It enables concurrent I/O operations without threads — a single thread can handle thousands of concurrent HTTP requests or DB connections by yielding control while waiting on I/O. When to use in DE: fetching data from many APIs concurrently (async with aiohttp), running many Snowflake queries in parallel (asyncpg, aiomysql), lightweight event-driven consumers. When NOT to use: CPU-bound work (Spark transformations, pandas crunching) — asyncio doesn't parallelize CPU; use multiprocessing instead. Also avoid when your libraries aren't async-native — mixing sync and async (asyncio.run() from sync code, run_in_executor() for sync blocking calls) adds complexity.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-009",
+    "category": "Python for DE",
+    "question": "What is the difference between Python multiprocessing, threading, and asyncio for DE workloads?",
+    "answer": "Threading: multiple OS threads sharing one Python process. The GIL prevents true parallel CPU execution in CPython, so threading is best for I/O-bound work (HTTP, DB calls, file I/O). asyncio: single-threaded cooperative multitasking — no GIL issue, lower overhead than threads, ideal for high-concurrency I/O (thousands of connections). Multiprocessing: spawns separate Python processes, each with its own GIL — true parallelism for CPU-bound work (data transformation, compression, ML inference). DE rule of thumb: reading/writing many files or APIs → asyncio or threading. Transforming data with heavy computation → multiprocessing with ProcessPoolExecutor. For Spark/Dask, these are handled by the framework. concurrent.futures provides a unified API over both.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-010",
+    "category": "Python for DE",
+    "question": "How do you read a large CSV file in chunks with pandas and why does it matter for memory?",
+    "answer": "Use pd.read_csv(path, chunksize=N) which returns a TextFileReader iterator. Each iteration yields a DataFrame of N rows:\nfor chunk in pd.read_csv('large.csv', chunksize=100_000):\n    process(chunk)\nThis keeps memory bounded to ~chunksize rows at a time rather than loading the entire file. For aggregations: accumulate results per chunk and combine after:\nresults = [chunk.groupby('user_id')['revenue'].sum() for chunk in reader]\npd.concat(results).groupby(level=0).sum()\nAlternatives for truly large data: Dask (chunked pandas API), Polars (lazy evaluation), PyArrow (Parquet streaming). For CSVs over ~1GB, prefer converting to Parquet first.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "python-de-011",
+    "category": "Python for DE",
+    "question": "What are the most important pandas groupby patterns a data engineer should know?",
+    "answer": "df.groupby('col').agg({'revenue': 'sum', 'orders': 'count'}): basic multi-column aggregation. Named aggregations (pandas 0.25+): df.groupby('col').agg(total_rev=('revenue', 'sum'), n_orders=('order_id', 'nunique')). transform() applies a function and returns a same-size Series (for adding group-level stats back to rows): df['pct_of_group'] = df['revenue'] / df.groupby('category')['revenue'].transform('sum'). apply() for arbitrary functions per group — flexible but slow; avoid in favor of vectorized agg. filter() drops entire groups: df.groupby('user')['orders'].filter(lambda g: g.sum() > 100). For large DataFrames, groupby can be slow — consider Polars or DuckDB for groupby-heavy workloads.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-012",
+    "category": "Python for DE",
+    "question": "How do you perform efficient pandas merges and avoid common pitfalls?",
+    "answer": "pd.merge(left, right, on='key', how='inner|left|right|outer'). Pitfalls: (1) Duplicate column names — use suffixes=('_left', '_right') or rename before merge. (2) Cartesian explosion — if the key is not unique on both sides, you get one row per combination; always assert key uniqueness before merging on it. (3) NaN coercion — merge on int columns with NaN (from outer join) causes them to become float; use Int64 nullable integer type. (4) Memory: for very large DataFrames, merge loads both into memory simultaneously — use chunked or DuckDB/Polars instead. (5) validate parameter: pd.merge(..., validate='1:1') raises if keys aren't unique — use this in DE pipelines to catch bad data early.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-013",
+    "category": "Python for DE",
+    "question": "How do you reduce pandas DataFrame memory usage?",
+    "answer": "Key techniques: (1) Use df.info(memory_usage='deep') to see actual memory per column. (2) Downcast numeric types: pd.to_numeric(df['col'], downcast='integer') picks the smallest int type. (3) Convert low-cardinality string columns to Categorical: df['status'] = df['status'].astype('category') — often 10-20x smaller. (4) Use sparse arrays for columns with many zeros/NaNs. (5) Drop unused columns before operations. (6) Read selectively: pd.read_csv(path, usecols=['col1','col2'], dtype={'id': 'int32'}). (7) For large data, switch to Polars (lazy evaluation, zero-copy Arrow memory) or PyArrow directly. Reducing memory also speeds up operations via better cache utilization.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-014",
+    "category": "Python for DE",
+    "question": "How does pathlib compare to os.path and what are the key pathlib patterns for DE scripts?",
+    "answer": "pathlib.Path is the modern, object-oriented file path API that replaces os.path string manipulation. Key patterns: Path('/data') / 'raw' / 'events.csv' (join with /), p.stem (filename without extension), p.suffix, p.name, p.parent, p.exists(), p.is_file(), p.is_dir(). Iteration: list(Path('/data').glob('*.parquet')), list(Path('/data').rglob('**/*.json')) for recursive. Reading/writing: p.read_text(), p.write_text(), p.read_bytes(). Creating dirs: p.mkdir(parents=True, exist_ok=True). In DE scripts, pathlib makes paths composable and cross-platform (handles Windows backslash issues). Use pathlib by default; fall back to os.environ for environment variables and shutil for high-level file operations (copy, move, rmtree).",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "python-de-015",
+    "category": "Python for DE",
+    "question": "What is a Python dataclass and when would you use it vs TypedDict vs NamedTuple?",
+    "answer": "dataclass (@dataclass decorator) generates __init__, __repr__, __eq__ from annotated fields — best for mutable, class-based data with methods and optional default values. TypedDict (from typing) is a dict subtype with type hints — compatible with JSON/dict-based code, works with existing dict tooling (json.dumps), no runtime enforcement. NamedTuple (from typing) is an immutable tuple with named fields — hashable (usable in sets/dicts), positional access, very lightweight. DE guidance: use TypedDict for config dicts and API response shapes (stays dict-compatible). Use dataclass for in-pipeline data objects with logic. Use NamedTuple for lightweight immutable records used as dict keys. Use Pydantic BaseModel when you need runtime validation.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-016",
+    "category": "Python for DE",
+    "question": "How do you implement streaming CSV processing in Python without loading everything into memory?",
+    "answer": "import csv\ndef stream_csv(path, batch_size=1000):\n    with open(path, newline='', encoding='utf-8') as f:\n        reader = csv.DictReader(f)\n        batch = []\n        for row in reader:\n            batch.append(row)\n            if len(batch) >= batch_size:\n                yield batch\n                batch = []\n        if batch:\n            yield batch\n\nFor compressed files: import gzip; open with gzip.open(path, 'rt'). For S3: stream with boto3's Body.iter_lines() or smart_open library which handles s3://, gs://, hdfs:// transparently. The key principle: use Python's file object as a lazy iterator — it reads one line at a time, so the OS buffer is your only memory overhead. This pattern processes terabyte files with megabytes of RAM.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-017",
+    "category": "Python for DE",
+    "question": "What is the functools module and which utilities are most useful for DE code?",
+    "answer": "functools provides higher-order function utilities. Key ones for DE: functools.wraps (preserve wrapped function metadata in decorators — always use this), functools.lru_cache(maxsize=128) (memoize pure function results — great for caching expensive lookups like schema fetches or config reads), functools.cache (Python 3.9+ unbounded cache alias), functools.partial (create a new function with some args pre-filled — useful for building parametrized operators), functools.reduce (fold a list with a binary function — useful for combining multiple DataFrames), functools.total_ordering (define __eq__ and one comparison to get all six). In practice, lru_cache is the most commonly used for DE performance optimization.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-018",
+    "category": "Python for DE",
+    "question": "How do you write a Python script that reads from S3 efficiently using boto3?",
+    "answer": "import boto3\ns3 = boto3.client('s3')\n\n# Stream a large file line by line:\nobj = s3.get_object(Bucket='my-bucket', Key='data/events.csv')\nfor line in obj['Body'].iter_lines():\n    process(line.decode('utf-8'))\n\n# List objects efficiently (paginated):\npaginator = s3.get_paginator('list_objects_v2')\nfor page in paginator.paginate(Bucket='my-bucket', Prefix='data/'):\n    for obj in page.get('Contents', []):\n        print(obj['Key'])\n\nBest practices: use paginators (never list_objects which caps at 1000), prefer streaming (iter_lines/iter_chunks) over get_object + read() for large files, use s3.download_file for binary files, and use aioboto3 or s3fs for async access. For high-throughput parallel downloads, use TransferConfig with multipart settings.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-019",
+    "category": "Python for DE",
+    "question": "What is the difference between Python's json, orjson, and ujson libraries and when does it matter?",
+    "answer": "json (stdlib) is the standard, pure-Python JSON serializer/deserializer — always available, handles Python objects well, but slow for large payloads. orjson is a Rust-powered drop-in replacement — 5-10x faster for serialization, 2-3x faster for deserialization, natively handles datetime, UUID, numpy arrays, and dataclasses. ujson is a C extension — faster than stdlib but slower than orjson and has some edge-case conformance issues. In DE pipelines processing millions of JSON records (Kafka consumers, S3 JSON ingestion, API ETL), the speed difference is significant: switching from json to orjson on a high-throughput consumer can halve CPU usage. Use orjson as the default in any performance-sensitive DE code: import orjson; orjson.loads(data); orjson.dumps(obj).",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-020",
+    "category": "Python for DE",
+    "question": "How do you implement a simple caching decorator using lru_cache and when does caching help in DE pipelines?",
+    "answer": "from functools import lru_cache\n@lru_cache(maxsize=256)\ndef get_schema(table_name: str) -> dict:\n    return warehouse_client.get_table_schema(table_name)\n\nlru_cache memoizes based on all arguments (which must be hashable). It's a thread-safe in-memory cache for the process lifetime. DE use cases: caching schema lookups (called hundreds of times per batch), caching config/feature flag reads, caching API-fetched lookup tables. Limitations: no TTL (stale values persist until process restart), no distributed caching (each process has its own cache). For distributed caching use Redis with a decorator wrapping redis.get/set. To cache non-hashable args, use cache key construction: wrap the function with functools.partial or convert dicts to frozensets.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-021",
+    "category": "Python for DE",
+    "question": "What is Python's logging module best practice setup for DE pipelines and why not use print()?",
+    "answer": "print() has no level control, no timestamps, no structured output, and can't be redirected to log aggregators. logging provides levels (DEBUG/INFO/WARNING/ERROR/CRITICAL), structured formatting, handlers (file, stream, syslog), and filtering.\n\nimport logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s %(name)s %(levelname)s %(message)s',\n    datefmt='%Y-%m-%dT%H:%M:%S'\n)\nlogger = logging.getLogger(__name__)\n\nFor structured logging (JSON logs for Datadog/CloudWatch): use python-json-logger. In Airflow tasks, use the Airflow task logger (from airflow.utils.log.logging_mixin import LoggingMixin) so logs appear in the task logs UI. Always use lazy formatting: logger.info('Processing %d rows', n) not f-strings — avoids string construction overhead when the log level is disabled.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "python-de-022",
+    "category": "Python for DE",
+    "question": "How do you use itertools for efficient data processing in DE pipelines?",
+    "answer": "itertools provides lazy combinatorial and iteration utilities — all return iterators, not lists. Key ones for DE: itertools.chain(*iterables) flattens multiple iterables without creating intermediate lists (chain multiple file generators). itertools.islice(iterable, n) takes first N items from an iterator without consuming the rest. itertools.groupby(iterable, key) groups consecutive elements — data MUST be pre-sorted by key. itertools.batched(iterable, n) (Python 3.12) creates fixed-size batches lazily — for chunked API writes. itertools.product, combinations, permutations for combinatorial generation. The key principle: prefer itertools over list comprehensions when building processing pipelines — it keeps everything lazy and avoids materializing intermediate datasets.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-023",
+    "category": "Python for DE",
+    "question": "What is the PyArrow library and how does it fit into the Python DE ecosystem?",
+    "answer": "PyArrow is the Python interface to Apache Arrow — an in-memory columnar data format designed for zero-copy reads and high-performance analytics. Key roles in DE: (1) Parquet I/O: pyarrow.parquet.read_table() and write_table() — the standard for reading/writing Parquet files. (2) Feather format for fast IPC. (3) Flight RPC for high-speed data transfer. (4) Schema enforcement: define arrow.Schema and validate incoming data. (5) Zero-copy interop: Arrow tables share memory with pandas (pd.DataFrame(arrow_table.to_pandas()) with zero_copy_only=True), Polars, DuckDB, and Spark — avoiding serialize/deserialize overhead. PyArrow is the substrate under Polars, the default Parquet engine in pandas 2.0+, and how Snowflake/BigQuery Python connectors return data.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-024",
+    "category": "Python for DE",
+    "question": "How do you test DE pipeline code with pytest — what patterns work best?",
+    "answer": "Key patterns: (1) Fixtures for shared setup: @pytest.fixture def sample_df(): return pd.DataFrame({...}). (2) Parametrize for edge cases: @pytest.mark.parametrize('input,expected', [...]) tests multiple scenarios cleanly. (3) Mock external dependencies: from unittest.mock import patch, MagicMock — mock S3 calls, DB connections, APIs. For S3, use moto library (mock_s3() context manager). (4) Test transformations in isolation: pure functions that take a DataFrame and return a DataFrame are trivially testable — design your pipeline this way. (5) Use tmp_path fixture for file I/O tests. (6) Assert DataFrames with pd.testing.assert_frame_equal(actual, expected, check_dtype=True). Testing DE code is about asserting schema, row counts, values, and null handling — not just that the code runs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "python-de-025",
+    "category": "Python for DE",
+    "question": "What are Python's walrus operator (:=) and structural pattern matching (match/case) and where do they help in DE code?",
+    "answer": "Walrus operator (:=, Python 3.8+) assigns a value as part of an expression — most useful in while loops and comprehensions: while chunk := f.read(8192): process(chunk) (read until EOF). Or: if (n := len(df)) > 1_000_000: logger.warning('Large batch: %d', n). Structural pattern matching (match/case, Python 3.10+) switches on the structure of data — more powerful than if/elif chains for routing events by type or shape: match event: case {'type': 'insert', 'table': table}: handle_insert(table); case {'type': 'delete'}: handle_delete(). This is particularly useful in CDC event consumers routing Debezium change events by operation type (insert/update/delete). Both features improve code expressiveness in event-processing pipelines.",
+    "difficulty": "advanced"
+  }
+]

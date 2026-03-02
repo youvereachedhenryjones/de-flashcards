@@ -1,0 +1,177 @@
+[
+  {
+    "id": "cloud-aws-001",
+    "category": "Cloud/AWS for DE",
+    "question": "What are the S3 storage classes and how do you choose between them for a data lake?",
+    "answer": "S3 Standard: low latency, high throughput, 3+ AZ replication — for frequently accessed data (hot layer, recent events). S3 Standard-IA (Infrequent Access): same durability but lower storage cost, retrieval fee — for data accessed monthly (warm layer). S3 One Zone-IA: single AZ, cheapest IA tier — for reproducible data where AZ loss is tolerable (derived datasets you can recompute). S3 Glacier Instant Retrieval: millisecond access, very low storage cost — for quarterly-accessed archives. S3 Glacier Flexible Retrieval: minutes-to-hours retrieval — for true cold archives (compliance data). S3 Glacier Deep Archive: hours retrieval, cheapest storage in AWS — for 7+ year retention. Intelligent-Tiering auto-moves objects between tiers based on access patterns for unknown/changing access. Rule: always use lifecycle policies to move aging data to cheaper tiers automatically.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "cloud-aws-002",
+    "category": "Cloud/AWS for DE",
+    "question": "How do S3 lifecycle policies work and what are the common data lake patterns?",
+    "answer": "S3 lifecycle policies are JSON rules attached to a bucket that automate object transitions and expiration. Transition actions move objects between storage classes after N days; expiration actions delete objects. Common data lake lifecycle: raw ingestion lands in Standard → after 30 days transition to Standard-IA → after 90 days to Glacier → expire after 7 years. You can filter by prefix (raw/, processed/) and object tags. Important: transition actions have a minimum object size (128KB for Standard→IA transitions — smaller objects may cost more after transition). Use Object Lock with retention policies for immutable compliance data. Lifecycle policies are free; each transition is a PUT request charge.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-003",
+    "category": "Cloud/AWS for DE",
+    "question": "What are S3 presigned URLs and how do you use them securely in a DE context?",
+    "answer": "A presigned URL is a time-limited, pre-authenticated URL that grants temporary access to a specific S3 object without requiring AWS credentials. Generated with: s3.generate_presigned_url('get_object', Params={'Bucket': 'my-bucket', 'Key': 'data/file.csv'}, ExpiresIn=3600). The URL encodes the requester's credentials and expiry — anyone with the URL can access the object until expiry. DE uses: secure data sharing with external partners (no IAM user needed), allowing browser-based direct uploads (presigned PUT), generating download links for pipeline outputs, and enabling ML models to fetch training data. Security: use short expiry times, HTTPS only, and log access via S3 server access logging or CloudTrail data events.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-004",
+    "category": "Cloud/AWS for DE",
+    "question": "What is S3 Select and when does it provide a performance benefit?",
+    "answer": "S3 Select allows you to push SQL filtering down to S3 storage, returning only the matching subset of a CSV, JSON, or Parquet file rather than downloading the whole object. Example: s3.select_object_content(Bucket='b', Key='events.csv', Expression='SELECT * FROM S3Object WHERE user_id = 123', ExpressionType='SQL', InputSerialization={'CSV': {'FileHeaderInfo': 'USE'}}, OutputSerialization={'CSV': {}}). Performance benefit: if you need 1% of a 10GB CSV, S3 Select returns ~100MB instead of 10GB — dramatic reduction in network cost and latency. Limitations: single-file only (no multi-object queries), limited SQL (no joins, aggregations). For data lakes, Athena is better for complex queries; S3 Select is best for single-file targeted extracts in Lambda or small ETL jobs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-005",
+    "category": "Cloud/AWS for DE",
+    "question": "What is AWS Glue and what are its main components for a data engineering platform?",
+    "answer": "AWS Glue is a fully managed serverless ETL service. Main components: (1) Glue Data Catalog — a centralized metadata store for tables, schemas, and partitions; used by Athena, EMR, and Redshift Spectrum as a Hive-compatible metastore. (2) Glue Crawlers — auto-discover schema from S3, RDS, or Redshift and populate the Data Catalog. (3) Glue ETL Jobs — serverless Spark jobs (Python or Scala) for data transformation; billed by DPU-hours. (4) Glue DataBrew — visual data preparation tool (no code). (5) Glue Workflows — orchestrate crawlers and jobs with triggers. (6) Glue Studio — visual ETL job editor. For most DE work, the Data Catalog and ETL jobs are the key components; use Airflow or Step Functions for orchestration rather than Glue Workflows.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "cloud-aws-006",
+    "category": "Cloud/AWS for DE",
+    "question": "What are AWS Glue job bookmarks and how do they enable incremental processing?",
+    "answer": "Job bookmarks track the state of previously processed data so a Glue job only processes new or modified data on each run — avoiding reprocessing the entire dataset. For S3 sources, bookmarks track which files have been processed using their last-modified timestamp and ETag. For JDBC sources, they track the max value of a specified sequence column. To enable: set --job-bookmark-option to 'job-bookmark-enable' in the job parameters. Resetting a bookmark (--job-bookmark-option job-bookmark-reset) reprocesses everything. Limitations: bookmarks work well for append-only data; for upsert patterns, you need to implement your own incremental logic using max(updated_at). Bookmarks are Glue-native — if you use custom PySpark jobs outside Glue's DynamicFrame API, you manage state yourself.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-007",
+    "category": "Cloud/AWS for DE",
+    "question": "What is AWS Lambda and how is it used for event-driven data pipelines?",
+    "answer": "Lambda is a serverless function-as-a-service that runs code in response to events, billed per invocation and execution duration. DE uses: S3 trigger → Lambda to validate/route incoming files (e.g., file lands in raw/ → Lambda validates schema → copies to processed/ or dead-letter/), SNS/SQS trigger for lightweight event processing, Kinesis stream trigger for micro-batch consumer, EventBridge scheduled trigger for lightweight cron jobs. Architectural pattern: use Lambda as the glue layer for event routing and lightweight transformation; hand off heavy computation to Glue, EMR, or Fargate. Lambda is not suitable for long-running ETL (15-minute max timeout), large memory operations (10GB max), or stateful processing — use Step Functions for multi-step workflows involving Lambda.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-008",
+    "category": "Cloud/AWS for DE",
+    "question": "What are Amazon Redshift distribution keys and how do they affect query performance?",
+    "answer": "A distribution key (DISTKEY) determines how rows are distributed across Redshift compute nodes. The goal is to co-locate rows that will be joined together on the same node, eliminating network redistribution (shuffling). Distribution styles: EVEN (round-robin — no DISTKEY) — evenly distributed but joins require redistribution. KEY (specify a column) — rows with the same key value go to the same node — ideal for the most common join column (e.g., user_id). ALL (full copy on every node) — best for small dimension tables joined frequently. AUTO (Redshift manages it based on table size). Best practice: set DISTKEY on the column used in your most frequent, most expensive joins (usually the FK to your largest fact table). Mismatched DISTKEYs between joined tables cause DS_BCAST or DS_DIST nodes in EXPLAIN, indicating expensive data redistribution.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-009",
+    "category": "Cloud/AWS for DE",
+    "question": "What are Redshift sort keys and compound vs interleaved sort keys?",
+    "answer": "Sort keys define the physical sort order of data on disk within each Redshift slice, enabling zone map pruning — skipping entire 1MB disk blocks whose min/max range doesn't include the queried value. This is Redshift's alternative to B-Tree indexes. Compound sort key: sort order is by the leading columns first — very efficient when queries filter on the leading column(s), but less useful when queries filter only on non-leading columns (similar to SQL composite index leftmost prefix rule). Interleaved sort key: weights each column equally — allows efficient filtering on any single column in the sort key but has higher maintenance overhead (VACUUM REINDEX required). Best practice: use compound sort keys in most cases (most tables have a primary time-based filter + one or two dimension columns). Set sort key on date/timestamp columns for time-range queries.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-010",
+    "category": "Cloud/AWS for DE",
+    "question": "How does the Redshift COPY command work and why is it faster than INSERT for bulk loading?",
+    "answer": "COPY loads data in parallel directly from S3, DynamoDB, EMR, or SSH into Redshift — it's the canonical bulk load mechanism. Each compute node reads its slice of files in parallel, making it dramatically faster than single-threaded INSERT. Optimal pattern: split your source file into as many gzip-compressed files as compute node slices (e.g., 16 files for a 2-node ra3.4xlarge cluster), store in S3, then: COPY table FROM 's3://bucket/prefix/' IAM_ROLE 'arn:...' FORMAT AS PARQUET. Key options: GZIP (compression), MANIFEST (explicit file list), REGION (if S3 is in a different region — avoid cross-region), MAXERROR (tolerate N errors). Never use INSERT INTO ... SELECT for large loads in Redshift — it uses a single leader node and is orders of magnitude slower.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-011",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Amazon Redshift Spectrum and when would you use it over a standard Redshift table?",
+    "answer": "Redshift Spectrum lets you query data in S3 directly from Redshift using SQL — without loading it into Redshift storage. It uses the Glue Data Catalog as the metastore. You create an external schema pointing to the Glue database, then query external tables like regular tables. When to use: querying historical data too large or cold to justify Redshift storage cost, joining a small Redshift dimension table to a massive S3 fact table, and ad-hoc exploration of raw S3 data. Spectrum queries push predicate and projection pushdown to S3 (using Parquet column pruning and partition filtering) before returning data to Redshift for final joins/aggregations. Cost: $5 per TB scanned — always use Parquet and partition by date to minimize scan cost.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-012",
+    "category": "Cloud/AWS for DE",
+    "question": "What is the difference between Amazon Kinesis Data Streams, Kinesis Data Firehose, and Kinesis Data Analytics?",
+    "answer": "Kinesis Data Streams: a low-latency, durable data stream with configurable retention (24h to 365 days) and shard-based partitioning. You write producer code (KPL or SDK), manage shards, and write consumer code — full control, real-time (sub-second latency). Use when you need custom processing logic or fan-out to multiple consumers. Kinesis Data Firehose: a fully managed delivery service — no consumer code needed. Buffers data and delivers to S3, Redshift, OpenSearch, or Splunk in batches (60s min latency). Handles format conversion (JSON → Parquet), compression, and partitioning automatically. Use when you just need to land data in S3/Redshift with no custom processing. Kinesis Data Analytics (now Amazon Managed Service for Apache Flink): fully managed Flink for stateful stream processing on top of Kinesis or MSK. Use when you need windowed aggregations, joins, or complex event processing.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-013",
+    "category": "Cloud/AWS for DE",
+    "question": "How do you scale Amazon Kinesis Data Streams and what causes hot shards?",
+    "answer": "Each Kinesis shard supports 1 MB/s write (1000 records/s) and 2 MB/s read. Scale by adding shards: use UpdateShardCount to scale up/down (triggers a brief resharding). A hot shard occurs when most records hash to the same shard — caused by using a low-cardinality partition key (e.g., all records with partition_key='events' go to one shard, while others are idle). Fix: use a high-cardinality partition key (e.g., user_id, device_id, UUID) so records spread evenly. Monitor via CloudWatch metric IncomingRecords per shard. Enhanced fan-out allows multiple consumers each at 2 MB/s per shard — up to 5 consumers simultaneously without throttling each other. On-demand mode (no shard management) auto-scales but costs more.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "cloud-aws-014",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Amazon EMR and what are the key decisions when setting up an EMR cluster for Spark workloads?",
+    "answer": "EMR (Elastic MapReduce) is AWS's managed Hadoop/Spark cluster service. Key decisions: (1) Cluster type: long-running (persistent) vs. transient (spin up for a job, terminate after). Transient is cheaper and more resilient; long-running is better for interactive workloads (notebooks, ad-hoc queries). (2) Instance types: master node (m5.xlarge+), core nodes (memory-optimized r5/r6g for Spark), task nodes (spot instances for ephemeral compute). (3) Spot instances: use spot for task nodes to cut costs 60-80%; keep core nodes on-demand (core nodes hold HDFS data — spot interruption loses data). (4) EMR on EKS vs. EMR on EC2 vs. EMR Serverless: Serverless is the modern choice for transient workloads — no cluster management, auto-scaling, pay per use. (5) Bootstrap actions: scripts that run before cluster startup to install custom dependencies.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-015",
+    "category": "Cloud/AWS for DE",
+    "question": "What is AWS Lake Formation and how does it simplify data lake governance?",
+    "answer": "Lake Formation is a data lake governance service built on top of the Glue Data Catalog. It provides: (1) Fine-grained access control — column-level and row-level security on Glue tables, applied consistently across Athena, Redshift Spectrum, and EMR (no need to manage S3 bucket policies per tool). (2) Tag-based access control (LF-TBAC) — assign attribute-based tags to databases/tables and grant access by tag, scaling governance without per-table grants. (3) Data sharing — share Glue catalog resources cross-account without data movement. (4) Governed Tables — ACID-compliant tables in S3 with row-level filtering. Without Lake Formation, you grant access via S3 IAM policies — complex, error-prone, and inconsistent across query engines. With Lake Formation, permissions are centralized and applied at the catalog level.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-016",
+    "category": "Cloud/AWS for DE",
+    "question": "What are IAM best practices for securing data pipelines in AWS?",
+    "answer": "Key principles: (1) Least privilege — grant only the specific S3 prefix, specific actions (s3:GetObject, s3:PutObject) needed, not s3:*. (2) Use IAM roles, not users — attach roles to EC2/Lambda/ECS/EMR, never hardcode access keys. (3) Service roles — create dedicated roles per service (GlueServiceRole, LambdaETLRole) with minimum permissions scoped to their function. (4) Resource-based policies — use S3 bucket policies to enforce HTTPS only (aws:SecureTransport condition) and deny unencrypted uploads. (5) VPC endpoints — route S3 and Glue traffic over private network without internet gateway. (6) STS AssumeRole for cross-account access — pipelines in Account A assume a role in Account B's data account. (7) Secrets Manager — never put DB passwords or API keys in code or env vars; use secretsmanager:GetSecretValue at runtime.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-017",
+    "category": "Cloud/AWS for DE",
+    "question": "What is AWS Step Functions and how does it compare to Airflow for DE pipeline orchestration?",
+    "answer": "Step Functions is AWS's serverless workflow orchestrator — visual state machine with JSON/YAML (Amazon States Language). Strengths: native integration with all AWS services (Lambda, Glue, ECS, EMR, SageMaker) with no polling code, automatic retry/error handling with exponential backoff, Express Workflows for high-volume short-duration workflows. Weaknesses: no built-in scheduler (use EventBridge), no sensor/external-trigger patterns, complex branching logic is verbose in ASL, no data-aware scheduling or backfill primitives. vs. Airflow: Airflow has richer scheduling (cron, data-interval-aware backfill), a Python DAG API, sensors, XCom, and a large operator ecosystem. Step Functions is better for AWS-native, event-driven, serverless architectures; Airflow is better for complex, data-aware pipeline scheduling with cross-system operators. Many teams use both: Airflow for daily batch, Step Functions for event-driven micro-workflows.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-018",
+    "category": "Cloud/AWS for DE",
+    "question": "How do you optimize costs in an AWS data engineering stack?",
+    "answer": "S3: use lifecycle policies to tier cold data to Glacier, enable S3 Intelligent-Tiering for unknown access patterns, use Parquet + compression to minimize bytes stored and scanned. Compute: use Spot instances for EMR task nodes and Glue flex execution, rightsize Glue DPUs (start with 2, increase only if needed), use EMR Serverless for intermittent workloads. Athena: partition tables by date and always filter on partition key ($5/TB scanned — Parquet + partitioning reduces scans 90%+). Redshift: use RA3 nodes (storage decoupled from compute), pause clusters during off-hours, use Spectrum for cold data instead of Redshift storage. Data transfer: keep data in the same region as compute to avoid inter-region transfer fees, use VPC endpoints to avoid NAT gateway costs for S3 traffic. Monitoring: use AWS Cost Explorer with resource-level tags on all DE resources to track costs by pipeline/team.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-019",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Amazon Athena and how do you optimize queries against S3 data?",
+    "answer": "Athena is a serverless, presto-based interactive query engine for S3 — pay per TB scanned ($5/TB). No infrastructure to manage. Optimization strategies: (1) Use Parquet or ORC (columnar formats) — Athena only reads the columns you SELECT, skipping others. (2) Partition by date and always filter on the partition column (WHERE dt = '2026-01-15') — Athena skips entire S3 prefixes. (3) Compress with Snappy or ZSTD — reduces bytes scanned. (4) Target 128MB–1GB file sizes — too many small files causes high metadata overhead; use S3DistCp or Glue to compact small files. (5) Use columnar projection pushdown for nested Parquet. (6) Workgroup query result reuse (60-minute cache). (7) Register tables in Glue Data Catalog with accurate partition metadata. A well-optimized Athena table costs 100x less than a poorly partitioned one.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-020",
+    "category": "Cloud/AWS for DE",
+    "question": "How do you implement CDC (Change Data Capture) from an RDS database to S3 using AWS services?",
+    "answer": "Two primary patterns: (1) AWS DMS (Database Migration Service) — fully managed CDC using database transaction logs (binlog for MySQL, WAL for Postgres). Configure a replication instance, source endpoint (RDS), and target endpoint (S3 or Kinesis). DMS continuously captures changes and writes them as CSV or Parquet to S3, partitioned by table and timestamp. Simple to set up but limited transformation capability. (2) Debezium on MSK (Managed Kafka) — Debezium Kafka Connect connector reads WAL and publishes change events to MSK topics in Avro format (via Glue Schema Registry). Kinesis Firehose or a Lambda consumer then lands data to S3. More complex but richer: full change event metadata, compacted topics for current state. For Gradient AI / Capital One-style interviews: know both patterns and their tradeoffs (DMS = simpler ops, Debezium = richer events and ecosystem).",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "cloud-aws-021",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Amazon MSK (Managed Streaming for Apache Kafka) and how does it compare to Kinesis?",
+    "answer": "MSK is AWS's fully managed Apache Kafka service — runs real Kafka (you get the full Kafka API, Kafka Connect ecosystem, Schema Registry, Kafka Streams). MSK handles broker provisioning, patching, replication, and monitoring. Compared to Kinesis: MSK is Kafka-compatible (no vendor lock-in, portable to self-managed Kafka or Confluent Cloud), supports Kafka Connect and Debezium natively, and scales to much higher throughput with lower per-GB cost at scale. Kinesis is simpler to operate (no broker sizing, shard-based pricing, native AWS IAM auth) and integrates more natively with other AWS services (Lambda triggers, Firehose). Choose MSK when: you need Kafka ecosystem tools (Debezium, ksqlDB, Kafka Streams), team has Kafka expertise, or you want portability. Choose Kinesis when: you want zero Kafka operations overhead and AWS-native integration.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "cloud-aws-022",
+    "category": "Cloud/AWS for DE",
+    "question": "How do you structure an AWS data lake for a modern DE platform (zones, permissions, formats)?",
+    "answer": "Standard three-zone architecture: (1) Raw zone (s3://bucket/raw/) — exact copy of source data as-is (JSON, CSV, Avro), immutable, partitioned by source/date/hour. No transformations. Strict read access (only ingestion pipelines write). (2) Processed/Curated zone (s3://bucket/processed/) — cleaned, standardized, converted to Parquet+Snappy, partitioned by business date. Registered in Glue Catalog. Read access for Athena/Spark. (3) Consumption zone (s3://bucket/consumption/) — aggregated marts and feature tables, optimized for BI/ML access. May sync to Redshift or Snowflake. Access controls via Lake Formation with column-level security. Format standards: Parquet everywhere in processed+, Delta Lake or Iceberg for ACID-compliant tables. Tagging: tag all S3 objects with pipeline, team, data-classification tags for cost allocation and governance.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "cloud-aws-023",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Amazon EventBridge and how do you use it to build event-driven DE pipelines?",
+    "answer": "EventBridge is AWS's serverless event bus — it routes events from AWS services, SaaS apps, or custom publishers to targets (Lambda, Step Functions, SNS, SQS, Kinesis, Glue) based on rules. For DE pipelines: (1) S3 event notifications → EventBridge → Lambda (validate) → Step Functions (orchestrate ETL). (2) Scheduled rules (cron/rate expressions) as a lightweight Airflow replacement for simple periodic jobs. (3) Cross-account event sharing via event buses — pipeline in Account A publishes events, Account B's EventBridge rules consume them. (4) Schema Registry — EventBridge can discover and version event schemas automatically. EventBridge is the glue for loosely coupled, event-driven DE architectures where components react to data arrival events rather than polling or being scheduled on fixed intervals.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-024",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Amazon SQS and how is it used as a buffer in DE data pipelines?",
+    "answer": "SQS (Simple Queue Service) is a fully managed message queue that decouples producers from consumers with guaranteed at-least-once delivery. Key DE uses: (1) S3 event notifications → SQS → Lambda consumer — SQS buffers file arrival events so Lambda processes at its own pace, avoiding throttling during traffic bursts. (2) Dead letter queues (DLQ) — failed processing attempts go to a DLQ for inspection and replay, providing fault tolerance without data loss. (3) Fan-out: SNS → multiple SQS queues → multiple consumers for parallel processing pipelines. Standard vs FIFO: Standard SQS has unlimited throughput but best-effort ordering and possible duplicate delivery. FIFO SQS guarantees exactly-once delivery and strict ordering (300 msg/s) — use for event pipelines where order matters (CDC event ordering per entity). Visibility timeout: set to 2x the max expected processing time to prevent duplicate processing.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud-aws-025",
+    "category": "Cloud/AWS for DE",
+    "question": "What is Apache Iceberg on AWS and why is it replacing traditional Hive-partitioned S3 tables?",
+    "answer": "Apache Iceberg is an open table format for S3-based data lakes that adds ACID transactions, schema evolution, time travel, and hidden partitioning. On AWS, it's natively supported by Athena (v3), EMR, Glue, and Redshift Spectrum via the Glue Data Catalog. Key advantages over Hive partitioning: (1) ACID transactions — multiple writers can safely append/update/delete without corrupting readers. (2) Time travel — query data AS OF a timestamp or snapshot ID: SELECT * FROM table FOR TIMESTAMP AS OF '2026-01-01'. (3) Schema evolution — add/rename/drop columns without rewriting data. (4) Hidden partitioning — partition by year(ts), month(ts), bucket(user_id, 8) without exposing partition columns in queries — the engine applies partition pruning automatically. (5) Row-level deletes — GDPR 'right to be forgotten' without full table rewrites. Iceberg (with Delta Lake as an alternative) is the future of S3-based lakehouse architecture.",
+    "difficulty": "advanced"
+  }
+]
