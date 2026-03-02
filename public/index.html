@@ -92,15 +92,25 @@ textarea{min-height:80px;resize:vertical}
 /* Hide sections */
 .hidden{display:none}
 
+.auth-bar{background:var(--card);border:1px solid rgba(100,116,139,.15);border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.auth-bar input{background:var(--bg);border:1px solid rgba(100,116,139,.2);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;flex:1;min-width:180px;outline:none}
+.auth-bar input:focus{border-color:var(--teal)}
+.auth-bar button{background:var(--teal);color:var(--text);border:none;padding:6px 14px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer}
+.auth-bar button.outline{background:transparent;border:1px solid rgba(100,116,139,.2);color:var(--slate)}
+.auth-bar .status{color:var(--slate);font-size:12px}
+.auth-bar .email{color:var(--teal-light);font-weight:500}
+
 @media(max-width:480px){
   .container{padding:12px}
   .card-text{font-size:16px}
   .ratings{grid-template-columns:repeat(2,1fr)}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="container">
+  <div id="auth-bar" class="auth-bar"></div>
   <header>
     <h1>DE <span>Flashcards</span></h1>
     <div class="stats-bar">
@@ -189,6 +199,11 @@ textarea{min-height:80px;resize:vertical}
 <script>
 const STORAGE_KEY='de-flashcards';
 const STREAK_KEY='de-fc-streak';
+const SUPABASE_URL="https://ytlzdeqpbsxjcoywrdcm.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0bHpkZXFwYnN4amNveXdyZGNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNjQ4NDQsImV4cCI6MjA4NTk0MDg0NH0.Sz4kdFW59lrwm57OUcBJ471n9n_-c5p1jcVDAeOmlZ0";
+var sb=null;
+try{sb=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null}catch(e){console.warn('Supabase init failed:',e)}
+let currentUser=null;
 const DEFAULT_CARDS=[
 // SQL (10)
 {cat:"SQL",q:"What is a CTE (Common Table Expression)?",a:"A temporary named result set defined with WITH clause, scoped to a single query. Improves readability and allows recursive queries."},
@@ -367,7 +382,9 @@ function rate(quality){
   if(currentIdx<0)return;
   cards[currentIdx]=sm2(cards[currentIdx],quality);
   saveCards();
+  syncCardToSupabase(cards[currentIdx]);
   updateStreak();
+  syncStreakToSupabase();
   updateStats();
   showCard();
 }
@@ -464,12 +481,157 @@ async function mergePackCards(){
   }
 }
 
+function renderAuthBar(){
+  const bar=document.getElementById('auth-bar');
+  if(!bar)return;
+  if(!sb){
+    bar.innerHTML='<span class="status">Cloud sync unavailable.</span>';
+    return;
+  }
+  if(!currentUser){
+    bar.innerHTML=`
+      <input id="auth-email" type="email" placeholder="you@example.com" />
+      <button id="auth-send">Send Magic Link</button>
+      <span id="auth-status" class="status"></span>
+    `;
+    const sendBtn=bar.querySelector('#auth-send');
+    if(sendBtn)sendBtn.addEventListener('click',sendMagicLink);
+  }else{
+    bar.innerHTML=`
+      <span class="status">Signed in as <span class="email">${currentUser.email||'User'}</span></span>
+      <button id="auth-signout" class="outline">Sign Out</button>
+    `;
+    const signOutBtn=bar.querySelector('#auth-signout');
+    if(signOutBtn)signOutBtn.addEventListener('click',signOut);
+  }
+}
+
+async function sendMagicLink(){
+  if(!sb)return;
+  const emailInput=document.getElementById('auth-email');
+  const statusEl=document.getElementById('auth-status');
+  const email=(emailInput&&emailInput.value||'').trim();
+  if(!email){if(statusEl)statusEl.textContent='Enter an email.';return;}
+  if(statusEl)statusEl.textContent='Sending link...';
+  const{error}=await sb.auth.signInWithOtp({email});
+  if(error){
+    if(statusEl)statusEl.textContent=error.message||'Failed to send link.';
+    return;
+  }
+  if(statusEl)statusEl.textContent='Check your email for the magic link.';
+}
+
+async function signOut(){
+  if(!sb)return;
+  await sb.auth.signOut();
+  currentUser=null;
+  renderAuthBar();
+}
+
+async function loadFromSupabase(){
+  if(!supabase||!currentUser)return false;
+  let found=false;
+  const{data:progress,error:progressErr}=await supabase
+    .from('card_progress')
+    .select('card_id,box,next_review,streak')
+    .eq('user_id',currentUser.id);
+  if(!progressErr&&Array.isArray(progress)&&progress.length){
+    const byId=new Map(progress.map(r=>[r.card_id,r]));
+    cards=cards.map(c=>{
+      const row=byId.get(c.id);
+      if(!row)return c;
+      const due=row.next_review?new Date(row.next_review).getTime():c.due;
+      return{...c,interval:row.box??c.interval,reps:row.streak??c.reps,due};
+    });
+    saveCards();
+    found=true;
+  }
+  const{data:streakRow,error:streakErr}=await supabase
+    .from('user_streaks')
+    .select('current_streak,last_study_date')
+    .eq('user_id',currentUser.id)
+    .maybeSingle();
+  if(!streakErr&&streakRow){
+    const nextStreak={count:streakRow.current_streak||0,lastDate:streakRow.last_study_date||null};
+    localStorage.setItem(STREAK_KEY,JSON.stringify(nextStreak));
+    found=true;
+  }
+  if(found){
+    updateStats();
+    showCard();
+  }
+  return found;
+}
+
+async function migrateToSupabase(){
+  if(!supabase||!currentUser)return;
+  const cardRows=cards.map(c=>({
+    user_id:currentUser.id,
+    card_id:c.id,
+    box:c.interval,
+    next_review:new Date(c.due).toISOString(),
+    streak:c.reps,
+    last_reviewed:null
+  }));
+  await sb.from('card_progress').upsert(cardRows,{onConflict:'user_id,card_id'});
+  const s=getStreak();
+  await sb.from('user_streaks').upsert({
+    user_id:currentUser.id,
+    current_streak:s.count||0,
+    best_streak:s.count||0,
+    last_study_date:s.lastDate||null,
+    total_reviews:0
+  },{onConflict:'user_id'});
+}
+
+async function syncCardToSupabase(card){
+  if(!supabase||!currentUser||!card)return;
+  await sb.from('card_progress').upsert({
+    user_id:currentUser.id,
+    card_id:card.id,
+    box:card.interval,
+    next_review:new Date(card.due).toISOString(),
+    streak:card.reps,
+    last_reviewed:new Date().toISOString()
+  },{onConflict:'user_id,card_id'});
+}
+
+async function syncStreakToSupabase(){
+  if(!supabase||!currentUser)return;
+  const s=getStreak();
+  await sb.from('user_streaks').upsert({
+    user_id:currentUser.id,
+    current_streak:s.count||0,
+    best_streak:s.count||0,
+    last_study_date:s.lastDate||null,
+    total_reviews:0
+  },{onConflict:'user_id'});
+}
+
+async function onAuthStateChange(session){
+  currentUser=session?session.user:null;
+  renderAuthBar();
+  if(!currentUser)return;
+  const hasCloud=await loadFromSupabase();
+  if(!hasCloud)await migrateToSupabase();
+}
+
 async function initApp(){
   loadCards();
-  await mergePackCards();
+  try{await Promise.race([mergePackCards(),new Promise((_,r)=>setTimeout(()=>r('timeout'),5000))])}catch(e){console.warn('Pack cards load failed:',e)}
   renderFilters();
   updateStats();
   showCard();
+  renderAuthBar();
+  if(sb){
+    try{
+      sb.auth.onAuthStateChange((event,session)=>{
+        onAuthStateChange(session);
+      });
+      const{data}=await Promise.race([sb.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r('timeout'),5000))]);
+      onAuthStateChange(data?data.session:null);
+    }catch(e){console.warn('Supabase auth failed:',e)}
+  }
 }
 
 // Init
