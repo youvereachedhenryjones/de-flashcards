@@ -1,0 +1,352 @@
+[
+  {
+    "id": "spark-L001",
+    "category": "Spark",
+    "question": "What is the role of the Spark Driver?",
+    "answer": "The Driver is the main control process that runs your application's main() function. It creates the SparkSession, builds the DAG of transformations, negotiates resources with the cluster manager, schedules tasks onto executors, and collects results. Think of it as the orchestrator — it coordinates the work but doesn't do the heavy lifting itself.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L002",
+    "category": "Spark",
+    "question": "What are Spark Executors and what do they do?",
+    "answer": "Executors are JVM processes that run on worker nodes and perform the actual computation. Each executor runs tasks assigned by the Driver, stores data in memory or disk (block storage), and reports status back to the Driver. Executors live for the lifetime of the application — unlike MapReduce, which spawns new JVMs per job.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L003",
+    "category": "Spark",
+    "question": "What are the four cluster managers Spark supports and when would you use each?",
+    "answer": "YARN (most common in Hadoop/on-prem/EMR environments), Kubernetes (cloud-native, containerized workloads — growing fast), Standalone (dev/test, simple setups with no external dependency), and Mesos (legacy, rarely seen today). In modern cloud deployments, Kubernetes is increasingly preferred for its isolation and orchestration capabilities.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L004",
+    "category": "Spark",
+    "question": "Explain the Spark execution hierarchy: Application → Job → Stage → Task.",
+    "answer": "An Application contains one or more Jobs. A Job is triggered by an action (.count(), .write(), .collect()) and is split into Stages at shuffle boundaries. Each Stage is broken into Tasks — one Task per partition, running on one executor core. If you have 200 partitions in a stage, Spark creates 200 tasks for that stage.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L005",
+    "category": "Spark",
+    "question": "What is lazy evaluation in Spark and why does it matter?",
+    "answer": "Transformations like .filter(), .map(), and .join() don't execute immediately — they build up a DAG. Only an action (.count(), .collect(), .write()) triggers actual execution. This lets Catalyst see the entire query plan upfront and apply optimizations like predicate pushdown, column pruning, and join reordering that wouldn't be possible if each step ran immediately.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L006",
+    "category": "Spark",
+    "question": "What is the difference between the DAG Scheduler and the Task Scheduler?",
+    "answer": "The DAG Scheduler is high-level: it converts your logical plan into stages, determines stage dependencies, and handles the overall execution graph. The Task Scheduler is low-level: it takes tasks from the DAG Scheduler and assigns them to specific executor slots, handling retries on failure. They work together — DAG Scheduler decides what, Task Scheduler decides where.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L007",
+    "category": "Spark",
+    "question": "What is the difference between narrow and wide transformations?",
+    "answer": "Narrow transformations (filter, map, select, union) have each input partition contribute to exactly one output partition — no shuffle, fast. Wide transformations (groupBy, join, repartition, distinct) have input partitions contributing to multiple output partitions, requiring a shuffle. Wide transformations create stage boundaries, meaning Spark must complete all upstream tasks before proceeding.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L008",
+    "category": "Spark",
+    "question": "Name 5 transformations and 5 actions in Spark.",
+    "answer": "Transformations (lazy): filter, select, groupBy, join, withColumn, map, flatMap, repartition, coalesce, cache. Actions (eager, trigger execution): count, collect, show, take(n), first, write, save, foreach, reduce, toPandas. The key distinction: transformations return a new DataFrame/RDD; actions return a result to the driver or write to storage.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L009",
+    "category": "Spark",
+    "question": "What is an RDD and what does 'Resilient' mean in that context?",
+    "answer": "An RDD (Resilient Distributed Dataset) is Spark's original core abstraction — a distributed, immutable collection of JVM objects. 'Resilient' means fault-tolerant: every RDD records its lineage (the DAG of transformations that produced it), so if a partition is lost due to executor failure, Spark can recompute it from the original data source without restarting the whole job.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L010",
+    "category": "Spark",
+    "question": "When should you use RDDs instead of DataFrames?",
+    "answer": "Use RDDs when you need: unstructured data processing (custom text parsing, non-tabular data), fine-grained control over partitioning and serialization, or low-level transformations not expressible in the DataFrame API. RDDs don't benefit from Catalyst optimization or Tungsten's off-heap memory, so they're significantly slower for typical analytical workloads. In practice, DataFrames are the right default 95% of the time.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L011",
+    "category": "Spark",
+    "question": "What is the difference between a DataFrame and a Dataset in Spark?",
+    "answer": "A DataFrame is a distributed collection of Rows in named columns — think of it as Dataset[Row]. A Dataset adds compile-time type safety (e.g., Dataset[Person]), so type errors are caught at compile time rather than runtime. Datasets are Scala/Java only — Python is dynamically typed so the distinction doesn't apply. Both benefit from Catalyst and Tungsten optimizations.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L012",
+    "category": "Spark",
+    "question": "Why are DataFrames faster than RDDs for most workloads?",
+    "answer": "DataFrames benefit from three layers of optimization RDDs lack: (1) Catalyst optimizer rewrites and optimizes the query plan — predicate pushdown, column pruning, join reordering; (2) Tungsten uses off-heap memory and whole-stage code generation, bypassing JVM overhead; (3) Columnar format integration (Parquet/ORC) means only reading the columns you actually need from disk.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L013",
+    "category": "Spark",
+    "question": "What are the four phases of the Catalyst optimizer?",
+    "answer": "1. Analysis — resolves column names and data types against the schema catalog. 2. Logical Optimization — applies rule-based rewrites: predicate pushdown, column pruning, constant folding. 3. Physical Planning — converts the logical plan to physical plans and picks the best one (e.g., chooses join strategy based on statistics). 4. Code Generation — Tungsten generates optimized JVM bytecode for execution. Use df.explain(True) to inspect all four phases.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L014",
+    "category": "Spark",
+    "question": "What is predicate pushdown and why does it matter?",
+    "answer": "Predicate pushdown moves filter conditions as close to the data source as possible. For example, df.read.parquet('data/').filter(col('country') == 'US') causes Catalyst to push the filter into the Parquet scan itself — only pages matching 'US' are read from disk. This can reduce I/O by orders of magnitude when only a small fraction of data matches the filter.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L015",
+    "category": "Spark",
+    "question": "What is column pruning in Spark SQL?",
+    "answer": "Column pruning is a Catalyst optimization that tells the data source to only load the columns your query actually uses. If you do df.select('name', 'age').show(), Catalyst instructs the Parquet reader to skip all other columns. This is especially powerful with Parquet's columnar format, which stores each column separately — unneeded columns are never read from disk.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L016",
+    "category": "Spark",
+    "question": "What is Tungsten and what are its three key innovations?",
+    "answer": "Tungsten is Spark's physical execution layer that operates below the JVM to maximize hardware efficiency. Its three innovations: (1) Off-heap memory management — stores binary data outside the JVM heap using sun.misc.Unsafe, dramatically reducing GC overhead; (2) Cache-aware data structures — memory layout optimized for CPU cache hit rates; (3) Whole-stage code generation (WSCG) — compiles an entire stage into one optimized JVM function, eliminating virtual function call overhead.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L017",
+    "category": "Spark",
+    "question": "What is whole-stage code generation (WSCG) in Tungsten?",
+    "answer": "Instead of interpreting a query through a pipeline of operator objects (with expensive virtual function calls at each step), WSCG compiles an entire stage into a single hand-written JVM function. This is analogous to JIT compilation — Spark generates code that processes data directly, like a hand-optimized program. The result can be 10-100x faster than interpreted execution for CPU-bound operations.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L018",
+    "category": "Spark",
+    "question": "How do you inspect a Spark query plan?",
+    "answer": "Use df.explain() with different verbosity modes: df.explain() shows the physical plan only; df.explain(True) shows all four phases (parsed logical, analyzed logical, optimized logical, physical); df.explain('formatted') gives a prettier output (Spark 3.x). Look for unexpected sorts or shuffles, missing predicate pushdown, and which join strategy was chosen. This is your primary debugging tool for query performance.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L019",
+    "category": "Spark",
+    "question": "What is a shuffle in Spark and why is it expensive?",
+    "answer": "A shuffle redistributes data across the cluster when records must be co-located by key (for groupBy, join, repartition, distinct). It's expensive because: (1) Disk I/O — shuffle data is written to local disk before transfer; (2) Network I/O — data crosses the network between nodes; (3) Serialization overhead; (4) Stage barrier — Stage N+1 can't start until ALL tasks in Stage N complete, so one slow task blocks everything.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L020",
+    "category": "Spark",
+    "question": "What is the difference between repartition() and coalesce()?",
+    "answer": "repartition(n) always performs a full shuffle to distribute data evenly across n partitions — can increase or decrease partition count, gives even distribution. coalesce(n) reduces partitions by merging adjacent partitions without a full shuffle (moves data locally) — can only decrease count, faster but may produce uneven partitions. Rule: use coalesce before writes to reduce file count; use repartition when you need to increase parallelism or ensure even distribution.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L021",
+    "category": "Spark",
+    "question": "What is spark.sql.shuffle.partitions and how should you tune it?",
+    "answer": "This setting (default 200) controls the number of partitions created after a shuffle (groupBy, join). The target is ~100-200MB per partition. For a 10GB dataset, ~50 partitions; for a 1TB dataset, ~5000 partitions. Default 200 is often too many for small datasets (excessive task scheduling overhead) and too few for large ones (memory pressure/spill). With AQE enabled, Spark auto-coalesces small partitions, making this setting less critical.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L022",
+    "category": "Spark",
+    "question": "What is data skew in Spark and how do you detect it?",
+    "answer": "Data skew occurs when data is unevenly distributed across partitions — one or a few keys have far more records, causing those tasks to run 10-100x longer than others. Detection: in the Spark UI, look at the Stage detail's task list — if the Max task time is dramatically higher than the Median task time, you have skew. The slow task blocks the entire next stage from starting.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L023",
+    "category": "Spark",
+    "question": "What are the main strategies for handling data skew in Spark?",
+    "answer": "1. Broadcast join — if one side is small, broadcast it to eliminate shuffle entirely. 2. Salting — add a random prefix to spread the hot key across N partitions; explode the small side to match all salt values. 3. AQE Skew Join (Spark 3.x) — spark.sql.adaptive.skewJoin.enabled=true auto-detects and splits skewed partitions. 4. Isolate the hot key — process it separately then union results. 5. Fix upstream data quality if skew is caused by nulls/'unknown' values.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L024",
+    "category": "Spark",
+    "question": "What is a broadcast join and when should you use it?",
+    "answer": "A broadcast join sends the smaller DataFrame to every executor, where each executor joins its local partition of the large table against the broadcasted copy — zero shuffle on the large table. Use it when one side is small enough to fit in executor memory (Spark auto-broadcasts tables under spark.sql.autoBroadcastJoinThreshold, default 10MB). Force it with broadcast(small_df). Don't use it if the 'small' table is actually hundreds of MB — the broadcast itself can OOM executors.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L025",
+    "category": "Spark",
+    "question": "What are the four Spark join strategies?",
+    "answer": "1. Broadcast Hash Join — one side is small, broadcasted to all executors; no shuffle on either side. Fastest. 2. Sort Merge Join — both sides are large; both are sorted and shuffled by key. Most common for large-large joins. 3. Shuffle Hash Join — medium-sized tables; shuffle but no sort (fits in memory for hash table). 4. Cartesian Join — cross join with no join key; produces M×N rows; extremely expensive and usually a bug. AQE can switch strategies at runtime.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L026",
+    "category": "Spark",
+    "question": "How is Spark executor memory divided?",
+    "answer": "Executor JVM memory splits into: (1) Reserved Memory (~300MB) — Spark internals; (2) User Memory (40%) — UDFs, data structures in your code; (3) Spark Memory Pool (60%, controlled by spark.memory.fraction) — shared between Storage Memory (cached data, broadcast variables) and Execution Memory (shuffles, sorts, joins, aggregations). Storage and Execution can borrow from each other, but Execution can evict cached Storage data when it needs space.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L027",
+    "category": "Spark",
+    "question": "What is the difference between Storage Memory and Execution Memory in Spark?",
+    "answer": "Storage Memory holds cached/persisted DataFrames (via .cache() or .persist()) and broadcast variables. Execution Memory holds data actively needed for computation: shuffle buffers, sort buffers, hash tables for joins/aggregations. Execution Memory cannot be evicted (actively in use); if it runs out, Spark spills to disk. Storage Memory can be evicted by Execution when needed. Both share the unified Spark Memory Pool and can borrow from each other.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L028",
+    "category": "Spark",
+    "question": "What happens when Spark runs out of Execution Memory?",
+    "answer": "Spark spills intermediate data (shuffle buffers, sort results) to disk. This is normal and expected, but significantly slows the job because disk I/O is orders of magnitude slower than memory. You can spot spills in the Spark UI Stage detail — look at the 'Spill (Memory)' and 'Spill (Disk)' columns. To reduce spills: increase executor memory, use more partitions (less data per task), or use more memory-efficient aggregations.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L029",
+    "category": "Spark",
+    "question": "What are the different Spark persistence storage levels?",
+    "answer": "MEMORY_ONLY — stores as deserialized JVM objects in RAM; fails if doesn't fit (RDD default). MEMORY_AND_DISK — spills to disk if doesn't fit in RAM (DataFrame .cache() default). MEMORY_ONLY_SER — serialized (smaller, slower to read). DISK_ONLY — never uses RAM (for rarely-accessed but expensive-to-recompute data). OFF_HEAP — Tungsten off-heap binary storage (requires config). Always call .unpersist() when done to free memory for other operations.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L030",
+    "category": "Spark",
+    "question": "When should you cache a DataFrame?",
+    "answer": "Cache when: the DataFrame is used multiple times in the same job, after an expensive operation (complex join or aggregation) whose result feeds multiple downstream queries, or in iterative algorithms (ML training loops). Don't cache when: the DataFrame is used only once, memory is tight (cached data competes with execution memory), or the data is easily recomputed from a fast source. Always .unpersist() when done.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L031",
+    "category": "Spark",
+    "question": "What are broadcast variables in Spark and when do you use them?",
+    "answer": "Broadcast variables distribute a read-only value to each executor once — it's cached there and reused across all tasks on that executor. Without broadcast, Spark serializes the variable with every task (potentially thousands of times). Best use case: a lookup dictionary or small reference table that every row needs to reference. The DataFrame API auto-broadcasts tables under autoBroadcastJoinThreshold. For RDDs, use sparkContext.broadcast(value) and access via .value.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L032",
+    "category": "Spark",
+    "question": "What are Spark Accumulators and what is their main gotcha?",
+    "answer": "Accumulators are write-only shared variables — executors can only add to them, only the Driver can read the result. They're useful for counting events across tasks (e.g., bad record counts) without collecting all data to the Driver. The key gotcha: if a stage is re-executed due to task failure, accumulator updates in transformations can be double-counted. Use accumulators for approximate metrics, not for exact auditing or business-critical counts.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L033",
+    "category": "Spark",
+    "question": "What is AQE (Adaptive Query Execution) and what three problems does it solve?",
+    "answer": "AQE (Spark 3.0+, enabled by default in 3.2+) re-optimizes the query plan at runtime using actual statistics from completed stages, rather than static estimates. It solves: (1) Dynamic Partition Coalescing — merges small post-shuffle partitions automatically; (2) Skew Join Optimization — detects and splits oversized partitions into sub-tasks; (3) Dynamic Join Strategy Switching — converts a sort-merge join to a broadcast join at runtime if one side turns out small. Enable with spark.sql.adaptive.enabled=true.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L034",
+    "category": "Spark",
+    "question": "How does AQE's dynamic partition coalescing work?",
+    "answer": "After a shuffle, AQE inspects the actual sizes of post-shuffle partitions and merges small adjacent ones into fewer, larger partitions before the next stage begins. For example, you might set spark.sql.shuffle.partitions=200, but if your dataset is small, AQE might collapse those into 10 actual tasks. This eliminates the need to manually tune shuffle partitions for every job — AQE adapts to the actual data volume at runtime.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L035",
+    "category": "Spark",
+    "question": "What is the difference between reduceByKey and groupByKey in the RDD API?",
+    "answer": "groupByKey shuffles ALL values to the reducer before aggregating — very network-intensive. reduceByKey performs a partial aggregation (map-side combine) locally on each partition before shuffling, sending only the partial result over the network. For a sum of 1M records with 1000 unique keys, reduceByKey sends ~1000 partial sums per partition; groupByKey sends all 1M records. In the DataFrame API, Catalyst handles this automatically — groupBy().agg(sum()) already uses partial aggregation.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L036",
+    "category": "Spark",
+    "question": "How does Spark achieve fault tolerance?",
+    "answer": "Through lineage — every RDD/DataFrame records the DAG of transformations that produced it. If an executor fails and loses a partition, Spark recomputes only that partition by re-running its lineage from the original source. For shuffle data: if shuffle files survive (on local disk), only the failed reduce tasks are re-run; if the source node is lost, the entire preceding stage reruns. For long lineages, use .checkpoint() to materialize to HDFS/S3 and break the chain.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L037",
+    "category": "Spark",
+    "question": "What is Spark checkpointing and when should you use it?",
+    "answer": "Checkpointing materializes a DataFrame/RDD to HDFS or S3 and cuts the lineage chain at that point. Unlike cache/persist, it's durable across executor failures. Use it when: lineage is very long (risk of stack overflow or expensive full recomputation), in iterative algorithms like Spark MLlib training loops, or when the cost of recomputing from scratch exceeds the cost of writing to durable storage. Call spark.sparkContext.setCheckpointDir('path') before df.checkpoint().",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L038",
+    "category": "Spark",
+    "question": "How do you optimize Spark writes to avoid the 'small file problem'?",
+    "answer": "The small file problem occurs when many tasks each write tiny files (e.g., default 200 shuffle partitions → 200 files). Fix it by: (1) coalesce(n) before write to merge partitions — df.coalesce(20).write.parquet('output/'); (2) repartition by output partition key for balanced files — df.repartition(col('date')).write.partitionBy('date').parquet(); (3) For Delta Lake, run OPTIMIZE + ZORDER to compact files and co-locate related data. Target 128MB-1GB per Parquet file.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L039",
+    "category": "Spark",
+    "question": "What is the optimal partition size in Spark and how do you tune it?",
+    "answer": "Target 100-200MB of compressed data per partition (2-3x larger in memory when deserialized). Formula for shuffle partitions: total data size / target partition size. For input partitions, spark.sql.files.maxPartitionBytes (default 128MB) controls how Parquet/ORC files are split. Symptoms of wrong sizing: tasks under 100ms → too many partitions (scheduling overhead); frequent spill to disk → too few partitions or too much data per partition.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L040",
+    "category": "Spark",
+    "question": "What are the most impactful Spark configuration settings to tune?",
+    "answer": "Key configs: spark.sql.shuffle.partitions (default 200, tune to data size), spark.executor.memory and spark.executor.cores (right-size your executors), spark.sql.adaptive.enabled=true (enable AQE), spark.sql.autoBroadcastJoinThreshold (default 10MB, raise for larger dim tables), spark.serializer=KryoSerializer (faster than Java default for RDD workloads), spark.dynamicAllocation.enabled=true (auto-scale executors). Always check Spark UI before tuning blindly.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L041",
+    "category": "Spark",
+    "question": "How do you systematically debug a slow Spark job?",
+    "answer": "1. Open Spark UI — find the slowest stage by duration. 2. Check for skew — is Max task time >> Median? If yes, salting/broadcast/AQE. 3. Check shuffle metrics — large Shuffle Read/Write? Consider broadcast joins or pre-partitioning. 4. Check spill columns — Spill > 0 means insufficient memory per task. 5. Check GC time — if GC > 10% of task time, you have memory pressure. 6. Run df.explain('formatted') — look for missing predicate pushdown or unexpected shuffles. 7. Check data volume — did input size spike?",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L042",
+    "category": "Spark",
+    "question": "What causes OOM errors on Spark executors and how do you fix them?",
+    "answer": "Common causes: (1) Too much data per task — fix with repartition(500) to spread the load; (2) Caching too aggressively — use MEMORY_AND_DISK instead of MEMORY_ONLY; (3) Accidental cross join (missing join key) — explodes data size; (4) Python UDF overhead — each UDF serializes rows between JVM and Python process; replace with native Spark functions. Also increase spark.executor.memory and spark.executor.memoryOverhead (for Python/off-heap), and never .collect() a large DataFrame to the Driver.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L043",
+    "category": "Spark",
+    "question": "How would you join a 500GB table with a 10MB lookup table efficiently?",
+    "answer": "Use a broadcast join: from pyspark.sql.functions import broadcast; result = large_df.join(broadcast(small_df), 'key'). This serializes the 10MB table to every executor once — each executor joins locally against its partition of the large table with zero shuffle on the 500GB side. Without broadcast, Spark would shuffle both tables by key (a 500GB shuffle). Raise autoBroadcastJoinThreshold if needed: spark.conf.set('spark.sql.autoBroadcastJoinThreshold', '100m').",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L044",
+    "category": "Spark",
+    "question": "Why should you avoid Python UDFs in PySpark and what are the alternatives?",
+    "answer": "Python UDFs require serializing each row from the JVM (Spark's execution layer) to a Python process, applying the function, then serializing back. This serialization overhead can make UDFs 10-100x slower than equivalent built-in functions and increases memory usage. Alternatives: (1) Use Spark's built-in functions (pyspark.sql.functions) — they run in the JVM with full Catalyst/Tungsten optimization; (2) Use Pandas UDFs (vectorized UDFs) via @pandas_udf — operate on batches using Apache Arrow, far faster than row-by-row Python UDFs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L045",
+    "category": "Spark",
+    "question": "What is dynamic allocation in Spark and when is it useful?",
+    "answer": "Dynamic allocation (spark.dynamicAllocation.enabled=true) lets Spark automatically scale the number of executors up and down based on workload — acquiring more when there are pending tasks and releasing idle executors back to the cluster. This is ideal for shared clusters or variable workloads where you don't want to pre-allocate a fixed number of executors. Set min/max bounds with spark.dynamicAllocation.minExecutors and maxExecutors to prevent runaway resource usage.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L046",
+    "category": "Spark",
+    "question": "What is Kryo serialization and when should you enable it?",
+    "answer": "Kryo is a faster, more compact serialization library than Java's default serializer. Enable with spark.serializer=org.apache.spark.serializer.KryoSerializer. It's most impactful for RDD-based workloads where objects cross the network or get cached — DataFrame/SQL workloads use Tungsten's binary format instead, so the benefit is lower there. You can register custom classes for further optimization. Expect 10-30% performance improvement in RDD-heavy jobs.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L047",
+    "category": "Spark",
+    "question": "What is write partitioning in Spark and what are the tradeoffs?",
+    "answer": "Writing with .write.partitionBy('year', 'month') creates a directory hierarchy (year=2025/month=01/) where downstream readers can skip entire partitions using predicate pushdown — a major query speedup for time-series or categorical data. The tradeoff: too many partition columns or high-cardinality columns (like customer_id) create millions of tiny files (the small file problem). Choose partition columns with low cardinality (date, region, status) that align with your most common query filters.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L048",
+    "category": "Spark",
+    "question": "What is the salting technique for handling skewed joins?",
+    "answer": "Salting spreads a hot key across N partitions by appending a random number (0 to N-1) to the skewed key. On the large table: salted_key = concat(key, '_', rand() * N). On the small/dim table: explode it N times, each copy gets one salt value. Then join on salted_key. The hot key's 1 million rows get split across N partitions instead of all going to one. After joining, aggregate away the salt. This is a manual fix — AQE's skewJoin.enabled=true handles this automatically in Spark 3.x for joins.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L049",
+    "category": "Spark",
+    "question": "How does Spark handle executor failure during a job?",
+    "answer": "The Driver detects executor failure via heartbeat timeout. It then: (1) reschedules the failed tasks to other available executors; (2) requests a replacement executor from the cluster manager. If shuffle files on the failed node are needed and unavailable, Spark reruns the entire preceding stage that produced them. Spark retries tasks up to spark.task.maxFailures times (default 4) before failing the job. This lineage-based recovery avoids the need for checkpointing in most failure scenarios.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-L050",
+    "category": "Spark",
+    "question": "What is the Spark UI and what key metrics should you check for performance analysis?",
+    "answer": "The Spark UI (or History Server for completed jobs) is your primary debugging tool. Key locations: Jobs → Stage list sorted by Duration to find the bottleneck; Stage detail → Task list to compare Max vs Median task time (skew detection); Stage summary metrics → Spill (Memory) and Spill (Disk) columns; Stage summary → Shuffle Read/Write (shuffle cost); Task list → GC Time column (memory pressure indicator). Pair UI analysis with df.explain('formatted') to understand the physical plan driving the metrics.",
+    "difficulty": "intermediate"
+  }
+]
