@@ -103,5 +103,267 @@
     "question": "What is a slowly changing dimension (SCD) and which type is most commonly implemented in modern data warehouses?",
     "answer": "A slowly changing dimension (SCD) is a dimension whose attribute values change over time but not frequently (e.g., a customer's address or a product's category). SCD Type 2 is the most commonly implemented: it adds a new row for each change with effective date ranges, preserving the full history of attribute values. Modern tools like dbt snapshots automate SCD Type 2 implementation. The right choice depends on whether history matters for reporting.",
     "difficulty": "intermediate"
+  },
+  {
+    "id": "dm16",
+    "front": "What is a Slowly Changing Dimension (SCD) Type 1?",
+    "back": "Overwrite the old value with the new value. No history is kept. Simple to implement. Use when historical accuracy doesn't matter (e.g., fixing a typo in a customer name). Pros: simple. Cons: no audit trail.",
+    "tags": [
+      "data-modeling",
+      "scd",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm17",
+    "front": "What is a SCD Type 2 and when do you use it?",
+    "back": "Insert a new row for each change, with effective_date, expiry_date, and is_current flag (or surrogate key version). Preserves full history. Use when business decisions depend on historical attribute values (e.g., customer's address at time of purchase). The most common SCD type in production data warehouses.",
+    "tags": [
+      "data-modeling",
+      "scd",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm18",
+    "front": "How do you implement SCD Type 2 in dbt?",
+    "back": "Use dbt's `snapshot` materialization with `strategy: timestamp` or `strategy: check`. Define `unique_key`, `updated_at` column (for timestamp), or `check_cols` list. dbt adds `dbt_scd_id`, `dbt_updated_at`, `dbt_valid_from`, `dbt_valid_to` columns automatically. Run with `dbt snapshot`. Snapshots live in the `snapshots/` directory.",
+    "tags": [
+      "data-modeling",
+      "scd",
+      "dbt"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm19",
+    "front": "What is a SCD Type 3, and what is its main limitation?",
+    "back": "Add a new column for each tracked change (e.g., `current_region`, `previous_region`). Only keeps the previous value, not full history. Limited to one level of change history \u2014 if an attribute changes a third time, the second-oldest value is lost. Useful only when exactly one prior value matters.",
+    "tags": [
+      "data-modeling",
+      "scd",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm20",
+    "front": "What are SCD Type 4 and Type 6?",
+    "back": "Type 4: Separate 'mini-dimension' table holds fast-changing attributes (age bands, income tiers) to avoid Type 2 row explosion. Type 6 (hybrid): Combines Types 1, 2, and 3 \u2014 adds current value column (Type 1), inserts new row for history (Type 2), and keeps a 'current_value' denormalized column updated on all rows (Type 3). Allows filtering by current value without joining to latest version.",
+    "tags": [
+      "data-modeling",
+      "scd",
+      "dimensions"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm21",
+    "front": "What is Data Vault 2.0? Name its three core entity types.",
+    "back": "A modeling methodology designed for scalability, auditability, and historical tracking. Three core types: (1) Hub: business keys + load date + record source. No descriptive data. (2) Link: associations between hubs (many-to-many relationships). (3) Satellite: descriptive attributes of hubs or links + effective dates. Every change tracked. Audit-first design \u2014 never delete or overwrite data.",
+    "tags": [
+      "data-modeling",
+      "data-vault"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm22",
+    "front": "When would you choose Data Vault over Kimball star schema?",
+    "back": "Data Vault wins when: (1) Multiple source systems with conflicting business keys (Data Vault handles integration at hub level). (2) Regulatory/audit requirements demand full lineage (record source + load timestamps on every row). (3) Schema evolves frequently (satellites are additive \u2014 add a satellite, don't alter existing). Kimball wins when: reporting is well-understood, team is smaller, performance on known queries is the priority.",
+    "tags": [
+      "data-modeling",
+      "data-vault",
+      "kimball"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm23",
+    "front": "What are late-arriving facts and how do you handle them?",
+    "back": "Late-arriving facts are transactions that arrive after the reporting period closes (e.g., an order placed on Dec 31 arrives in the warehouse on Jan 3). Strategies: (1) Reprocess the affected partition. (2) Use an accumulating snapshot fact table that updates in-place as events arrive. (3) Record `event_date` and `load_date` separately so reports can filter by either. Avoid simply ignoring late facts \u2014 they skew metrics.",
+    "tags": [
+      "data-modeling",
+      "fact-tables"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm24",
+    "front": "What are the three types of fact tables? Describe each.",
+    "back": "(1) Transaction fact: one row per discrete event. Sparse. Highest granularity. (e.g., one row per sale). (2) Periodic snapshot: one row per entity per time period. Captures state at regular intervals (e.g., account balance every day). (3) Accumulating snapshot: one row per business process instance, updated as it progresses (e.g., order row updated from placed \u2192 shipped \u2192 delivered). Multiple date foreign keys.",
+    "tags": [
+      "data-modeling",
+      "fact-tables"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm25",
+    "front": "What is a degenerate dimension?",
+    "back": "A dimension attribute that lives in the fact table rather than a separate dimension table \u2014 usually because it has no other attributes to justify its own table (e.g., invoice number, order number, ticket number). It's used for grouping and filtering but has no descriptive attributes. Common in transaction fact tables. Stored as a plain column in the fact table, not a foreign key.",
+    "tags": [
+      "data-modeling",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm26",
+    "front": "What is a junk dimension?",
+    "back": "A single dimension table that combines multiple low-cardinality flags and indicators from the fact table (e.g., is_promo, payment_method, is_gift). Without it, you'd have many single-column foreign keys in the fact. With a junk dimension, you precompute all combinations into one dimension table. Reduces fact table width. Common in retail and e-commerce models.",
+    "tags": [
+      "data-modeling",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm27",
+    "front": "What is a role-playing dimension?",
+    "back": "The same dimension table used multiple times in the same fact table for different roles. Example: a date dimension used as `order_date`, `ship_date`, and `delivery_date` in an orders fact. Implemented as separate views or aliases of the same base table. Each alias gets its own foreign key in the fact table. Common with date and customer dimensions.",
+    "tags": [
+      "data-modeling",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm28",
+    "front": "What is a bridge table and when do you need one?",
+    "back": "A bridge table (also called an associative table) handles many-to-many relationships between a fact table and a dimension. Example: a customer can have multiple accounts, and an account can have multiple customers. A bridge table holds (customer_key, account_key, weighting_factor). The weighting factor allocates metrics proportionally across dimension members. Without it, you'd double-count facts.",
+    "tags": [
+      "data-modeling",
+      "dimensions"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm29",
+    "front": "What are conformed dimensions?",
+    "back": "Dimensions shared identically across multiple fact tables and data marts. A conformed `dim_customer` used by both the sales and support fact tables ensures consistent definitions, keys, and attributes. Conformed dimensions enable drill-across queries (joining two fact tables through a shared dimension). Core to the Kimball enterprise data warehouse bus architecture.",
+    "tags": [
+      "data-modeling",
+      "kimball",
+      "dimensions"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm30",
+    "front": "Kimball vs. Inmon: what is the fundamental philosophical difference?",
+    "back": "Kimball (bottom-up): Build department-specific data marts first using star schemas. Conformed dimensions tie them together over time. Faster to deliver business value. Inmon (top-down): Build a normalized enterprise data warehouse (EDW) in 3NF first, then build data marts on top. More rigorous but slower to first delivery. In practice: most modern warehouses are Kimball-inspired. Data Vault is a third path optimized for auditability and agility.",
+    "tags": [
+      "data-modeling",
+      "kimball",
+      "inmon"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm31",
+    "front": "What is the One Big Table (OBT) pattern? When is it appropriate?",
+    "back": "OBT pre-joins all dimensions into a single wide denormalized table. Every fact and dimension attribute in one row. Pros: no joins at query time (fast for BI tools), simple for analysts. Cons: massive storage, update anomalies if dimensions change, column explosion for high-cardinality dimensions. Appropriate for: small-to-medium datasets, analytical queries with known grain, modern columnar stores (BigQuery, Snowflake) where column scanning is cheap. Anti-pattern at enterprise scale with evolving schema.",
+    "tags": [
+      "data-modeling",
+      "obt"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm32",
+    "front": "What is the 'stranded metrics' problem in star schema design?",
+    "back": "Stranded metrics occur when facts exist at different grains than the fact table's declared grain, causing double-counting or incorrect aggregations. Example: an orders fact table at order-line grain includes a header-level field (order_total) \u2014 summing order_total across lines gives a wrong result. Solution: always declare grain explicitly. Put header metrics in a separate header-grain fact table. Never mix grains in a single fact table.",
+    "tags": [
+      "data-modeling",
+      "fact-tables"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm33",
+    "front": "What are surrogate keys and why prefer them over natural keys in dimensional models?",
+    "back": "Surrogate keys are system-generated integers (or hashes) used as primary keys in dimension tables, independent of business logic. Prefer them because: (1) Natural keys can change (SSN updates, customer email change) \u2014 surrogate key stays stable. (2) Supports SCD Type 2 (multiple rows per natural key). (3) Insulates the warehouse from source system changes. (4) Join performance: integer foreign keys are faster than string comparisons. Use natural keys as attributes, not as primary keys.",
+    "tags": [
+      "data-modeling",
+      "keys"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm34",
+    "front": "What are the trade-offs of the Medallion architecture (Bronze/Silver/Gold)?",
+    "back": "Pros: clear separation of concerns (raw \u2192 cleaned \u2192 business-ready), easy to reprocess from Bronze, auditable lineage. Cons: (1) 3 copies of data = 3x storage cost. (2) Latency: each layer adds processing time. (3) Organizational overhead \u2014 teams disagree on what belongs in Silver vs. Gold. (4) Over-engineering for small datasets. When NOT to use it: small teams, low data volume, or when a simpler raw-to-mart pattern ships faster. It is not a one-size-fits-all solution.",
+    "tags": [
+      "data-modeling",
+      "medallion",
+      "architecture"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm35",
+    "front": "What is an outrigger dimension?",
+    "back": "A secondary dimension that hangs off a primary dimension (not the fact table directly). Example: dim_product has a `category_key` that links to dim_category. dim_category is the outrigger \u2014 it provides context for the product dimension but doesn't join directly to the fact table. Generally discouraged in Kimball (prefer flattening the hierarchy into dim_product). Acceptable when the outrigger is large, shared, or frequently queried independently.",
+    "tags": [
+      "data-modeling",
+      "dimensions"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm36",
+    "front": "How do you model hierarchical dimensions (e.g., employee org charts, product categories)?",
+    "back": "Common patterns: (1) Flattened hierarchy columns: add level_1, level_2, level_3 columns (fast queries, fixed depth). (2) Bridge table with path: stores all ancestor-descendant relationships (flexible depth, recursive queries). (3) Closure table: stores all ancestor-descendant pairs with depth. (4) Nested set model: stores left/right bounds for tree traversal. For most BI use cases, flattened hierarchy (option 1) is fastest and most compatible with BI tools.",
+    "tags": [
+      "data-modeling",
+      "dimensions",
+      "hierarchy"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm37",
+    "front": "How do you handle fiscal calendars in a date dimension?",
+    "back": "Add fiscal calendar columns alongside calendar columns in dim_date: `fiscal_year`, `fiscal_quarter`, `fiscal_month`, `fiscal_week`, `fiscal_period_start`, `is_fiscal_year_end`. Fiscal definitions vary by company (e.g., year ending March 31, or 4-4-5 accounting periods). Pre-calculate all values during dim_date generation \u2014 never calculate fiscal logic in query time SQL. If multiple fiscal calendars exist (different subsidiaries), add prefixed column sets (e.g., `us_fiscal_year`, `eu_fiscal_year`).",
+    "tags": [
+      "data-modeling",
+      "dimensions",
+      "date"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm38",
+    "front": "What is an aggregate fact table? When does it help?",
+    "back": "A pre-aggregated summary fact table at a higher grain than the base fact table. Example: base fact at order-line grain \u2192 aggregate fact at day-product grain with daily sales totals. Helps when: (1) BI queries consistently roll up to the same grain. (2) Base fact is billions of rows and performance is critical. (3) Pre-aggregation is cheaper than query-time aggregation. Modern columnar databases (Snowflake, BigQuery, DuckDB) have reduced the need \u2014 materialized views often cover the same use case with less maintenance.",
+    "tags": [
+      "data-modeling",
+      "fact-tables",
+      "performance"
+    ],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dm39",
+    "front": "What is the declared grain of a fact table and why does it matter?",
+    "back": "The grain is the most atomic level of detail represented by a single row. It must be declared explicitly before adding any facts or dimensions. Example: 'One row per order line item per day.' Why it matters: (1) Determines which dimensions can join. (2) Prevents double-counting. (3) Controls storage size. (4) Guides what facts can be stored. Getting grain wrong is the root cause of most dimensional modeling bugs. Define it in English, agree on it with stakeholders, and enforce it in code.",
+    "tags": [
+      "data-modeling",
+      "fact-tables"
+    ],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dm40",
+    "front": "What is a periodic snapshot fact table? Give a real-world example.",
+    "back": "Captures the state of a business entity at regular time intervals (daily, weekly, monthly). Each row is an entity-period snapshot. Example: bank account balances \u2014 one row per account per day with (account_key, date_key, balance, overdraft_count, interest_accrued). Unlike transaction facts (which record events), periodic snapshots record state. Useful for: inventory levels, account balances, ticket queue depth, employee headcount. Storage cost: entities x periods x years \u2014 can grow large.",
+    "tags": [
+      "data-modeling",
+      "fact-tables"
+    ],
+    "difficulty": "intermediate"
   }
 ]
