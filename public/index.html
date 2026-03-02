@@ -534,9 +534,9 @@ async function signOut(){
 }
 
 async function loadFromSupabase(){
-  if(!supabase||!currentUser)return false;
+  if(!sb||!currentUser)return false;
   let found=false;
-  const{data:progress,error:progressErr}=await supabase
+  const{data:progress,error:progressErr}=await sb
     .from('card_progress')
     .select('card_id,box,next_review,streak')
     .eq('user_id',currentUser.id);
@@ -551,7 +551,7 @@ async function loadFromSupabase(){
     saveCards();
     found=true;
   }
-  const{data:streakRow,error:streakErr}=await supabase
+  const{data:streakRow,error:streakErr}=await sb
     .from('user_streaks')
     .select('current_streak,last_study_date')
     .eq('user_id',currentUser.id)
@@ -569,7 +569,7 @@ async function loadFromSupabase(){
 }
 
 async function migrateToSupabase(){
-  if(!supabase||!currentUser)return;
+  if(!sb||!currentUser)return;
   const cardRows=cards.map(c=>({
     user_id:currentUser.id,
     card_id:c.id,
@@ -590,7 +590,7 @@ async function migrateToSupabase(){
 }
 
 async function syncCardToSupabase(card){
-  if(!supabase||!currentUser||!card)return;
+  if(!sb||!currentUser||!card)return;
   await sb.from('card_progress').upsert({
     user_id:currentUser.id,
     card_id:card.id,
@@ -602,7 +602,7 @@ async function syncCardToSupabase(card){
 }
 
 async function syncStreakToSupabase(){
-  if(!supabase||!currentUser)return;
+  if(!sb||!currentUser)return;
   const s=getStreak();
   await sb.from('user_streaks').upsert({
     user_id:currentUser.id,
