@@ -1,0 +1,177 @@
+[
+  {
+    "id": "snowflake-001",
+    "category": "Snowflake",
+    "question": "What are the three main layers of Snowflake's architecture?",
+    "answer": "1) Cloud Services Layer — the 'brain': handles query optimization, metadata management, authentication, and access control. 2) Query Processing Layer — virtual warehouses (MPP compute clusters) that execute queries. 3) Centralized Storage Layer — compressed, columnar data stored in cloud object storage (S3/GCS/Azure Blob), fully decoupled from compute. This separation is why Snowflake can scale compute independently of storage, and why multiple warehouses can query the same data simultaneously without conflicts.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "snowflake-002",
+    "category": "Snowflake",
+    "question": "What is a Snowflake Virtual Warehouse and how does sizing work?",
+    "answer": "A Virtual Warehouse is an MPP compute cluster that executes queries — it's Snowflake's unit of compute. Sizes range from XS (1 server) to 6XL (512 servers), each doubling in capacity and cost. Key behaviors: warehouses auto-suspend when idle (saving cost), auto-resume on query arrival, and multiple warehouses can run against the same data concurrently. Interview tip: warehouse size affects query speed, not storage or concurrency limits. For concurrency, use multiple warehouses or multi-cluster warehouses.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "snowflake-003",
+    "category": "Snowflake",
+    "question": "What is micro-partitioning in Snowflake and why does it matter for performance?",
+    "answer": "Snowflake automatically divides all tables into micro-partitions: contiguous units of 50–500MB of uncompressed data, stored in columnar format with metadata (min/max values, distinct counts, null counts per column). The Cloud Services Layer uses this metadata for partition pruning — skipping entire micro-partitions that can't contain query results. This means a query with WHERE date = '2024-01-15' may scan <1% of the table. You don't manage micro-partitions manually; Snowflake handles it. Contrast with Hive where you explicitly define partition columns.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-004",
+    "category": "Snowflake",
+    "question": "When would you define a Clustering Key in Snowflake, and what are the trade-offs?",
+    "answer": "Define a clustering key when: (1) queries consistently filter on columns that aren't naturally ordered in insert sequence (e.g., region, product_category on a table inserted in timestamp order), and (2) the table is very large (hundreds of GB+). Snowflake's automatic clustering periodically re-sorts micro-partitions to improve partition pruning on those columns. Trade-offs: clustering incurs credit costs for the background reclustering service, and it helps read performance but adds write overhead. For most tables, natural micro-partition ordering from insert patterns is sufficient — don't add clustering keys prematurely.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-005",
+    "category": "Snowflake",
+    "question": "What is Snowpipe and how does it differ from batch COPY INTO?",
+    "answer": "Snowpipe is Snowflake's continuous micro-batch ingestion service that loads data within minutes of files landing in a stage. Unlike batch COPY INTO (which you schedule via tasks or external orchestrators), Snowpipe is event-driven: cloud event notifications (S3 SQS, Azure Event Grid) trigger Snowpipe automatically. Snowpipe uses serverless compute billed per-second rather than virtual warehouse credits. Use Snowpipe when you need near-real-time freshness (5-minute SLA) without managing a scheduler. Batch COPY INTO is cheaper for large, infrequent loads where latency tolerance is hours.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-006",
+    "category": "Snowflake",
+    "question": "What is Snowflake Time Travel and how does it work under the hood?",
+    "answer": "Time Travel lets you query data as it existed at any point within a retention window (default 1 day, up to 90 days for Enterprise). Under the hood, Snowflake never overwrites micro-partitions — all DML operations create new partitions and mark old ones as deleted. Time Travel simply reads those 'deleted' partitions. Common uses: SELECT * FROM orders AT(timestamp => '2024-01-01 12:00:00'); UNDROP TABLE orders; CREATE TABLE orders_backup CLONE orders AT(offset => -3600). Longer retention = more storage cost. After the retention window, data moves to Fail-Safe.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-007",
+    "category": "Snowflake",
+    "question": "What is Fail-Safe in Snowflake and how does it differ from Time Travel?",
+    "answer": "Fail-Safe is a 7-day disaster recovery period after the Time Travel window expires. During Fail-Safe, data cannot be queried or restored by users — only Snowflake Support can recover it, and only in catastrophic scenarios (hardware failure, data corruption). Time Travel is self-service and user-accessible; Fail-Safe is a last-resort backstop managed by Snowflake. Combined: with 90-day Time Travel (Enterprise), data is protected for 97 days total. You can't disable Fail-Safe. Storage cost implication: total protected storage = table size × (time travel days + 7 fail-safe days).",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-008",
+    "category": "Snowflake",
+    "question": "How do Snowflake Streams enable CDC (Change Data Capture)?",
+    "answer": "A Stream is a change-tracking object placed on a table that records row-level DML changes (INSERT, UPDATE, DELETE) since the stream was last consumed. Each changed row includes METADATA$ACTION (INSERT/DELETE), METADATA$ISUPDATE (boolean), and METADATA$ROW_ID. When you query and consume a stream (via INSERT INTO ... SELECT FROM stream or a task), the stream offset advances. This is CDC without Kafka or Debezium — native to Snowflake. Practical pattern: stream on raw table → task runs every minute → merges changes into cleaned/processed table. Streams expire if not consumed within the Time Travel window.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-009",
+    "category": "Snowflake",
+    "question": "What are Snowflake Tasks and how do you build a pipeline with streams + tasks?",
+    "answer": "Tasks are scheduled SQL statements or stored procedure calls — Snowflake's native scheduling primitive. They support cron syntax or interval-based scheduling and can be chained into DAGs (child tasks triggered by parent completion). The canonical CDC pipeline: (1) Create stream on source table. (2) Create task that checks 'SYSTEM$STREAM_HAS_DATA()' before executing — this prevents wasted runs when no changes exist. (3) Task merges stream rows into target table using MERGE statement. Tasks run on either a named warehouse or serverless compute. Unlike Airflow, tasks are tightly coupled to Snowflake and can't coordinate cross-system workflows.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-010",
+    "category": "Snowflake",
+    "question": "What is the difference between an internal stage and external stage in Snowflake?",
+    "answer": "Internal stages are Snowflake-managed storage (S3/GCS/Azure behind the scenes, but you never see the cloud bucket). Types: user stage (@~, per-user), table stage (@%tablename, per-table), named stage (shared, reusable). External stages point to YOUR cloud storage bucket (S3, GCS, ADLS) with credentials. Use internal stages for temporary uploads and testing; use external stages for production pipelines where files arrive in your own S3 buckets via upstream processes. External stages are required for Snowpipe automation with cloud event notifications.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-011",
+    "category": "Snowflake",
+    "question": "How does COPY INTO work and what are the key options to know?",
+    "answer": "COPY INTO <table> FROM @<stage> loads staged files into a table. Key options: FILE_FORMAT (CSV, JSON, PARQUET, AVRO — define inline or reference a named format object), ON_ERROR (CONTINUE, SKIP_FILE, ABORT_STATEMENT), PURGE (delete files from stage after load), FORCE (reload already-loaded files — Snowflake tracks loaded files by ETag). Snowflake's load history prevents duplicate loads by default for 64 days. For transformations during load: COPY INTO can include a SELECT with column mappings. After loading, always check COPY history: SELECT * FROM information_schema.load_history ORDER BY last_load_time DESC.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-012",
+    "category": "Snowflake",
+    "question": "What is result caching in Snowflake and when does it apply?",
+    "answer": "Snowflake has two relevant caches: (1) Result Cache — if the exact same query is re-run within 24 hours and underlying data hasn't changed, Snowflake returns the cached result instantly at zero compute cost. (2) Local Disk Cache (warehouse cache) — active warehouse nodes cache frequently accessed micro-partitions in SSD/memory; this accelerates repeated queries on the same data within a session. Result cache persists across warehouse suspensions; local disk cache is lost when warehouse suspends. Implication for benchmarking: always disable result cache with ALTER SESSION SET USE_CACHED_RESULT = FALSE to get true query performance.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-013",
+    "category": "Snowflake",
+    "question": "How do you diagnose slow queries in Snowflake?",
+    "answer": "Use the Query Profile (UI) or QUERY_HISTORY view. Key signals: (1) Partition scan ratio — if scanning 90%+ of partitions, consider clustering or rewriting the WHERE clause. (2) Spillage to local/remote disk — warehouse is undersized; upgrade or optimize query to reduce data volume. (3) 'Bytes sent over network' — large shuffle in joins; consider collocating data or rewriting joins. (4) Compilation time — complex queries or dynamic SQL. SQL: SELECT * FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY()) WHERE EXECUTION_STATUS = 'SUCCESS' ORDER BY TOTAL_ELAPSED_TIME DESC. Also check ACCOUNT_USAGE.QUERY_HISTORY for historical analysis.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "snowflake-014",
+    "category": "Snowflake",
+    "question": "What is Snowflake's role-based access control model and how does privilege inheritance work?",
+    "answer": "Snowflake uses RBAC where privileges are granted to roles, roles are granted to users or other roles. Key system roles: ACCOUNTADMIN (full control, use sparingly), SYSADMIN (manages warehouses/databases), SECURITYADMIN (manages roles/users), PUBLIC (auto-granted to all users). Privilege inheritance flows upward: if role A is granted to role B, role B inherits all of A's privileges. Best practice: create functional roles (etl_role, analyst_role), grant object privileges to those, then grant functional roles to personas. Use SHOW GRANTS TO ROLE <role> to audit. Snowflake also supports row-level security via row access policies and column masking policies for PII.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-015",
+    "category": "Snowflake",
+    "question": "How does Snowflake Data Sharing work and why is it architecturally significant?",
+    "answer": "Data Sharing lets you share live, read-only access to your Snowflake data with other Snowflake accounts without copying or moving data. The consumer account queries your data using their own compute (so you don't pay for their queries). Mechanism: you create a Share object, grant privileges on databases/schemas/tables/views to it, then add consumer accounts. The consumer creates a database FROM SHARE. This is architecturally significant because: no ETL pipelines needed between data producers and consumers, data is always current (no sync lag), and the provider pays zero compute. Common pattern: vendors sharing data with customers, internal BU-to-BU sharing across Snowflake accounts.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-016",
+    "category": "Snowflake",
+    "question": "What is the VARIANT data type in Snowflake and how do you query semi-structured data?",
+    "answer": "VARIANT is Snowflake's universal semi-structured type that can store JSON, Avro, XML, ORC, or Parquet data as a self-describing column. Snowflake automatically parses and stores VARIANT with column-level statistics on nested paths, enabling pruning. Query syntax: colon notation for paths (SELECT src:user:id::STRING, src:events[0]:type FROM raw_events) or dot notation after casting. For arrays, use LATERAL FLATTEN to explode: SELECT f.value:name::STRING FROM raw_events, LATERAL FLATTEN(input => src:items) f. Performance tip: frequently queried VARIANT paths should be extracted into typed columns in a downstream model to avoid repeated parsing.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "snowflake-017",
+    "category": "Snowflake",
+    "question": "How do you use dbt incremental models with Snowflake, and what merge strategies are available?",
+    "answer": "Incremental models in dbt append or merge only new/changed rows. With Snowflake, dbt supports: (1) append — INSERT new rows only (fastest, no dedup). (2) merge — MERGE statement on unique_key; updates existing rows, inserts new. (3) delete+insert — deletes matching rows and reinserts (useful when rows can't be updated in-place). Configure in dbt_project.yml or model config block. Key pattern: use is_incremental() macro to filter your SELECT to only new rows. Snowflake's MERGE is highly optimized. For large tables, also set partition_by to limit the merge scan range. Always run dbt run --full-refresh periodically to rebuild from scratch and catch schema changes.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "snowflake-018",
+    "category": "Snowflake",
+    "question": "What are External Tables in Snowflake and when would you use them vs. loading data?",
+    "answer": "External Tables let Snowflake query files in a cloud storage stage directly without loading them into Snowflake storage. Snowflake reads the files on-demand and exposes them as a table. Use when: data must stay in your data lake (cost, governance, or freshness reasons), you want to query raw files before deciding what to load, or for large historical archives rarely queried. Limitations: significantly slower than native tables (no micro-partition caching), read-only, and query costs are higher per byte scanned. Best pattern: use External Tables for exploration or as a landing zone, then load active data into native tables via COPY INTO. Materialized views on external tables can cache results for hot queries.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-019",
+    "category": "Snowflake",
+    "question": "How do you optimize Snowflake warehouse costs with auto-suspend and resource monitors?",
+    "answer": "Auto-suspend: set ALTER WAREHOUSE etl_wh SET AUTO_SUSPEND = 60 (seconds of inactivity before suspend). Auto-resume happens automatically on next query. For batch ETL, use short suspend times (60s); for interactive analytics, longer (300s) to avoid cold-start latency. Resource Monitors: set credit quotas at the account or warehouse level with notifications/actions at thresholds: NOTIFY (email alert), SUSPEND_IMMEDIATE (kill running queries when limit hit), SUSPEND (let queries finish). Example: CREATE RESOURCE MONITOR monthly_cap WITH CREDIT_QUOTA=1000 TRIGGERS ON 80 PERCENT DO NOTIFY ON 100 PERCENT DO SUSPEND. Use multi-cluster warehouses sparingly — they multiply costs. Separate warehouses per team/workload to isolate costs and apply targeted monitors.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "snowflake-020",
+    "category": "Snowflake",
+    "question": "What is a multi-cluster warehouse in Snowflake and when should you use it?",
+    "answer": "A multi-cluster warehouse automatically adds warehouse clusters (up to 10) when concurrency demand exceeds what a single cluster can handle, then scales back down. It solves the concurrency problem: Snowflake queues queries when too many hit one warehouse simultaneously. When to use: BI dashboards with many simultaneous users, peak-hour analytical workloads with bursty concurrency. When NOT to use: sequential ETL pipelines (one big warehouse + parallelism within the query is better), or cost-sensitive workloads (multi-cluster multiplies credit spend). Configure with MIN_CLUSTER_COUNT and MAX_CLUSTER_COUNT. Each cluster is a full copy of the warehouse, so an XL multi-cluster (max 3) costs up to 3× an XL single-cluster.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-021",
+    "category": "Snowflake",
+    "question": "How does Snowflake handle zero-copy cloning and what are the use cases?",
+    "answer": "CLONE creates an instant copy of a database, schema, or table without duplicating storage — it's a metadata operation that references the same underlying micro-partitions. New writes to the clone or source create new partitions independently (copy-on-write). Cost: cloning is instant and free at creation; storage cost accumulates only as the clone diverges from source. Use cases: (1) Dev/test environments — clone prod instantly for testing without data duplication cost. (2) Pre-deployment snapshots — clone before a risky migration. (3) Point-in-time clones using Time Travel: CREATE TABLE orders_backup CLONE orders AT(timestamp => '...'). Zero-copy cloning is one of Snowflake's most operationally powerful features.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "snowflake-022",
+    "category": "Snowflake",
+    "question": "What Snowflake-specific SQL features are commonly used in production DE pipelines?",
+    "answer": "Key features to know: (1) QUALIFY clause — window function filter without subquery (SELECT *, ROW_NUMBER() OVER (...) rn FROM t QUALIFY rn = 1). (2) MATCH_RECOGNIZE — pattern matching on ordered rows (event sequence detection). (3) GENERATOR() + FLATTEN for synthetic row generation. (4) MERGE with multiple WHEN clauses — upsert pattern. (5) COPY INTO with transformation — SELECT and transform during load. (6) SYSTEM$STREAM_HAS_DATA() — conditional task execution. (7) RESULT_SCAN(LAST_QUERY_ID()) — query results of a previous statement. (8) Stored procedures in JavaScript, Python, Scala, Java. Most critical for interviews: MERGE, QUALIFY, and the stream+task pattern.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "snowflake-023",
+    "category": "Snowflake",
+    "question": "How does Snowflake's query optimizer work, and what can you do to help it?",
+    "answer": "Snowflake's Cloud Services Layer runs a cost-based optimizer that uses table statistics (collected automatically from micro-partition metadata) to choose join order, pruning strategy, and execution plan. Unlike traditional databases, you can't manually create indexes or run ANALYZE. What you can do: (1) Write selective WHERE clauses on naturally-ordered columns to enable partition pruning. (2) Add clustering keys for frequently-filtered, high-cardinality columns on large tables. (3) Use LIMIT in exploratory queries to reduce scan scope. (4) Break complex queries into CTEs or intermediate tables — the optimizer can sometimes handle stages better than one giant query. (5) Use the Query Profile to identify partition scan efficiency and join spills.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "snowflake-024",
+    "category": "Snowflake",
+    "question": "What is a named file format in Snowflake and why use one over inline format options?",
+    "answer": "A named file format is a reusable schema definition (CREATE FILE FORMAT csv_standard TYPE='CSV' FIELD_DELIMITER=',' SKIP_HEADER=1 NULL_IF=('NULL','null') EMPTY_FIELD_AS_NULL=TRUE). You reference it in COPY INTO and external table definitions. Why use named formats: (1) DRY — define once, reuse across stages and COPY statements. (2) Governance — changing one named format updates all dependent loads. (3) Readability — COPY INTO orders FROM @s3_stage FILE_FORMAT = (FORMAT_NAME = csv_standard) is cleaner than inline options. For JSON: SET STRIP_OUTER_ARRAY=TRUE when loading arrays. For Parquet: no delimiter needed. Always test with COPY INTO ... VALIDATION_MODE='RETURN_ERRORS' before loading production data.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "snowflake-025",
+    "category": "Snowflake",
+    "question": "How do you approach schema evolution in Snowflake — adding, removing, or changing column types?",
+    "answer": "Snowflake supports non-breaking schema changes easily: ADD COLUMN (non-breaking, nulls for existing rows), RENAME COLUMN (check downstream dependencies), DROP COLUMN (destructive — check views, dbt models, dashboards). Type changes are restrictive: you generally can't change VARCHAR to INT directly; workaround is add new column, backfill, rename, drop old. For automated schema evolution from COPY INTO: use MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE option with Parquet/JSON to auto-map new columns. For dbt: run dbt run --full-refresh to rebuild models when column types change. Operational tip: treat schema changes as migrations (version-controlled SQL in a migration tool or dbt snapshot); never ALTER in production without a rollback plan.",
+    "difficulty": "medium"
+  }
+]

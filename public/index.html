@@ -459,7 +459,9 @@ async function mergePackCards(){
     'cards/dagster-cards.json',
     'cards/sql-de-cards.json',
     'cards/python-de-cards.json',
-    'cards/cloud-aws-de-cards.json'
+    'cards/cloud-aws-de-cards.json',
+    'cards/snowflake-cards.json',
+    'cards/data-quality-cards.json'
   ];
   const existingQuestions=new Set(cards.map(c=>normalizeQuestion(c.q)));
   try{

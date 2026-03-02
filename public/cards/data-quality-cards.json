@@ -1,0 +1,177 @@
+[
+  {
+    "id": "dataquality-001",
+    "category": "Data Quality",
+    "question": "What are the six core dimensions of data quality and why do they matter in interviews?",
+    "answer": "Completeness (all required data present — no unexpected NULLs), Accuracy (data reflects real-world truth), Consistency (same entity represented the same way across systems), Timeliness (data available within SLA for its use case), Uniqueness (no unintended duplicates), Validity (data conforms to defined formats, types, and ranges). Why it matters: interviewers use these dimensions to evaluate your mental model for building quality checks. When discussing a data pipeline problem, frame your answer around which dimension failed. E.g., 'the join was producing fan-out — a uniqueness issue on the right table' shows structured thinking.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dataquality-002",
+    "category": "Data Quality",
+    "question": "What is Great Expectations and what problem does it solve?",
+    "answer": "Great Expectations (GX) is an open-source Python library for defining, documenting, and validating data quality rules as code. It solves the 'silent bad data' problem — without it, pipelines load corrupt or schema-drifted data without alerting anyone. Core concepts: Expectation (a single assertion like 'column revenue must be > 0'), Expectation Suite (a named collection of expectations for a dataset), Data Docs (auto-generated HTML documentation of expectations and validation results), Checkpoint (an executable that runs a suite against a data asset and optionally triggers actions on failure). GX fits naturally before or after load in a pipeline, and integrates with Airflow, Spark, and Snowflake.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dataquality-003",
+    "category": "Data Quality",
+    "question": "What is a Great Expectations Checkpoint and how do you use it in a pipeline?",
+    "answer": "A Checkpoint bundles a Data Source, Expectation Suite, and post-validation Actions into a single runnable unit. Actions can include: updating Data Docs, sending Slack/email alerts, or raising an exception to fail the pipeline. In Airflow, a typical pattern: GXValidateOperator (or PythonOperator calling checkpoint.run()) runs between the extract and load stages. If validation fails and on_failure='raise', the downstream load task is skipped. This implements 'shift-left' quality — catching bad data before it contaminates the warehouse. Checkpoints can run in-memory (Pandas) for small datasets or against the warehouse (SQLAlchemy runtime) for large tables.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-004",
+    "category": "Data Quality",
+    "question": "What are dbt's built-in generic tests and how do you configure them?",
+    "answer": "dbt ships four generic tests: not_null (column has no NULL values), unique (no duplicate values in the column), accepted_values (column only contains values from a defined list), relationships (referential integrity — every value in column A exists in another model's column B). Configure in schema.yml: models: - name: orders columns: - name: status tests: [not_null, {accepted_values: {values: [placed, shipped, delivered]}}]. Run with dbt test. Tests generate SQL queries; a test fails if the query returns any rows. Generic tests are the first line of defence and should cover every primary key and critical FK relationship.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dataquality-005",
+    "category": "Data Quality",
+    "question": "What are dbt singular tests and when should you use them over generic tests?",
+    "answer": "Singular tests are SQL files in the tests/ directory that return rows when the test fails (zero rows = pass). Use them for complex business logic that can't be expressed with generic tests: e.g., 'revenue should never decrease month-over-month by more than 20%', or 'every order with status=shipped must have a non-null shipping_date'. They're also useful for cross-model assertions. Singular tests run as part of dbt test and appear in test result reporting. The naming convention is descriptive: tests/assert_revenue_never_negative.sql. Downside: they're not reusable — if you find yourself copying a singular test for multiple models, convert it into a custom generic test (macros/tests/).",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-006",
+    "category": "Data Quality",
+    "question": "What are custom generic tests in dbt and how do you build one?",
+    "answer": "Custom generic tests are macros in macros/tests/ (or a separate package) that accept a model, column name, and optional parameters. They let you create reusable assertions. Example — test that a column value is always positive: {% test positive_value(model, column_name) %} SELECT {{ column_name }} FROM {{ model }} WHERE {{ column_name }} <= 0 {% endtest %}. Then reference in schema.yml: tests: [{positive_value: {}}]. Popular dbt packages provide ready-made custom tests: dbt_expectations (port of Great Expectations), dbt_utils (expression_is_true, recency, equality). Custom tests are ideal when the same assertion applies across 10+ models — define once, reuse everywhere.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-007",
+    "category": "Data Quality",
+    "question": "What is a data contract and why is it becoming critical in modern data architectures?",
+    "answer": "A data contract is a formal, versioned agreement between data producers (upstream teams/systems) and data consumers (downstream pipelines, models, dashboards) that specifies: schema (column names, types, nullability), semantics (what a field means), SLAs (freshness, availability), and ownership. Why it matters: in data mesh and distributed ownership architectures, without contracts, producers silently break consumers by renaming columns or changing semantics. Contracts are typically defined in YAML, enforced at pipeline boundaries (via schema validation, GX checkpoints, or tools like Soda, Atlan). They shift responsibility: producers must maintain the contract, consumers must update when contract versions change. This is a hot interview topic at companies with mature data platforms.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-008",
+    "category": "Data Quality",
+    "question": "How do you implement data freshness monitoring and what makes a good freshness SLA?",
+    "answer": "Data freshness = the age of the newest data in a table relative to expected update frequency. Implementation approaches: (1) dbt source freshness — add loaded_at_field and freshness: thresholds to sources YAML; run dbt source freshness on a schedule. (2) Custom SQL checks — SELECT DATEDIFF('minute', MAX(updated_at), CURRENT_TIMESTAMP) > 60 AS is_stale. (3) Observability tools (Monte Carlo, Acceldata) continuously monitor max(timestamp) metrics. Good SLA design: SLA = max acceptable age, not just 'runs every hour'. Example: 'orders table must have data < 2 hours old by 8 AM EST'. Tie SLAs to business impact — if analysts open dashboards at 9 AM, data must be ready by 8:45 AM.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-009",
+    "category": "Data Quality",
+    "question": "What is schema drift and how do you detect and handle it in pipelines?",
+    "answer": "Schema drift occurs when the upstream source schema changes unexpectedly — new columns appear, columns are renamed or dropped, or data types change. Detection strategies: (1) Compare schema hash/fingerprint at each pipeline run against a stored baseline. (2) Use information_schema queries to diff column lists between runs. (3) Great Expectations expect_table_columns_to_match_ordered_list catches additions/removals. (4) Some ELT tools (Fivetran, Airbyte) handle drift automatically by adding new columns and alerting on type changes. Handling strategies: fail-fast and alert (safest for critical tables), flexible ingestion with VARIANT/JSON columns to absorb new fields, or auto-migrate using ALTER TABLE ADD COLUMN. Key principle: schema drift should trigger a human decision, not silently swallow data.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-010",
+    "category": "Data Quality",
+    "question": "What is data observability and how does it differ from traditional data quality testing?",
+    "answer": "Data observability (popularized by Monte Carlo) is the continuous, automated monitoring of data health across five 'pillars': Freshness (when was the table last updated?), Volume (row/byte count trends), Schema (structural changes over time), Distribution (column value statistics — mean, NULLs, cardinality), and Lineage (upstream/downstream impact of changes). Key difference from traditional testing: observability is passive and statistical (monitoring ongoing trends, detecting anomalies automatically), while testing is active and rule-based (assertions you explicitly define that must pass/fail). Observability catches unknown unknowns; testing validates known rules. Best practice: use both — tests for critical business rules, observability for broad anomaly coverage.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-011",
+    "category": "Data Quality",
+    "question": "How does anomaly detection work in data quality monitoring and what are the common approaches?",
+    "answer": "Anomaly detection flags statistical deviations from historical norms without requiring explicit thresholds. Common approaches: (1) Z-score / standard deviation — flag metric if it deviates > N standard deviations from rolling mean (e.g., row count drops 3σ below 30-day average). (2) Interquartile Range (IQR) — flag values outside Q1 - 1.5×IQR or Q3 + 1.5×IQR (more robust to outliers than Z-score). (3) Seasonal decomposition — account for day-of-week patterns (row counts always lower on weekends). (4) ML-based (Prophet, LSTM) — for complex seasonality. Practical: start simple with Z-score on row counts and NULL rates. Monte Carlo and similar tools handle this automatically. Key metrics to monitor: row count delta, NULL rate per column, distinct value counts, min/max per column.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dataquality-012",
+    "category": "Data Quality",
+    "question": "What is an SLA monitoring strategy for data pipelines and how do you implement one?",
+    "answer": "SLA monitoring tracks whether pipelines deliver data on time and with expected quality. Implementation: (1) Record pipeline metadata — log start time, end time, row count, and status for every run to a pipeline_runs table. (2) Define SLA assertions — 'etl_orders must complete by 7 AM and produce > 1000 rows'. (3) Build an SLA check job — runs at the SLA deadline, queries pipeline_runs, alerts if SLA is missed. (4) Use orchestrator features — Airflow SLA miss callbacks, Dagster asset freshness policies. Escalation paths: alert on first miss (Slack), page on 2nd consecutive miss (PagerDuty). Track SLA compliance % as a team KPI. SLA breaches should trigger RCA documentation to prevent recurrence.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-013",
+    "category": "Data Quality",
+    "question": "What is late-arriving data and what patterns do you use to handle it?",
+    "answer": "Late-arriving data is records that arrive in a system after their event time has passed — e.g., mobile app events that sync when connectivity is restored, 3-party data with multi-hour delays. Handling patterns: (1) Event-time watermarks (streaming) — Spark/Flink accept events up to N hours late; after watermark passes, late events are dropped or routed to a dead-letter queue. (2) Reprocessing windows (batch) — instead of only processing today's data, always process the last 3 days to catch late arrivals. (3) Upsert/merge patterns — use MERGE instead of INSERT so late arrivals update existing records rather than creating duplicates. (4) Separate late-data queues — hold late records and reconcile on a separate schedule. The key question to ask: what's the maximum late arrival window and what's the business cost of ignoring vs. reprocessing?",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-014",
+    "category": "Data Quality",
+    "question": "What is data reconciliation and how do you implement it between source and target systems?",
+    "answer": "Data reconciliation verifies that data moved between systems (source DB → warehouse, raw → curated layer) is complete and accurate. Implementation approach: (1) Row count check — SELECT COUNT(*) from source vs. target for the same time window. (2) Aggregate checksums — SUM(revenue), COUNT(DISTINCT order_id) compared across source and target. (3) Hash comparison — MD5(CONCAT(all columns)) per row, then compare sets (expensive for large tables; use on samples or key columns). (4) Column-level profiling — compare NULL rates, min/max, distinct counts between source and target. In SQL: WITH source AS (SELECT sum(amount) s FROM source.orders WHERE date='2024-01-01'), target AS (SELECT sum(amount) t FROM warehouse.orders WHERE date='2024-01-01') SELECT s, t, ABS(s-t)/s as pct_diff FROM source, target. Automate in a reconciliation job and alert if diff > threshold (e.g., 0.1%).",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dataquality-015",
+    "category": "Data Quality",
+    "question": "How do you test data quality in streaming pipelines and what makes it harder than batch?",
+    "answer": "Streaming data quality is harder because: (1) You can't scan the full dataset — you only see a window. (2) Late arrivals are common. (3) Schema can drift per-event. (4) Failures mid-stream may lose data. Testing approaches: (1) Per-event validation — validate each message schema as it arrives (Pydantic, Avro schema registry enforcement). (2) Windowed aggregation checks — count events per minute, alert if count drops below baseline (indicative of producer failure). (3) Dead-letter queues — events failing validation routed to DLQ for inspection, not silently dropped. (4) Schema registry — Confluent Schema Registry enforces Avro/Protobuf compatibility; producers rejected if schema breaks compatibility rules. (5) End-to-end reconciliation — periodically compare stream-derived aggregates to source-of-truth batch counts.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dataquality-016",
+    "category": "Data Quality",
+    "question": "What is the Great Expectations profiling workflow and how do you use it to bootstrap a suite?",
+    "answer": "GX profiling automatically inspects a dataset and suggests expectations based on observed statistics. Workflow: (1) Connect a Data Source and create a Batch Request pointing to your data. (2) Run profiler.profile(batch_request) — GX scans the data and generates a draft Expectation Suite with suggestions like expect_column_values_to_not_be_null (if < 5% are NULL), expect_column_values_to_be_between (min/max from sample). (3) Review and curate the generated suite — remove overly specific expectations (e.g., exact row count) that will fail as data grows; keep structural assertions. (4) Save the validated suite and wire it to a Checkpoint. Profiling is a starting point, not a finished product — always add domain-specific business rule expectations manually.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-017",
+    "category": "Data Quality",
+    "question": "How do you handle NULL values in data quality — when are NULLs a defect vs. valid?",
+    "answer": "NULL is valid when: the field is genuinely optional (e.g., middle_name, discount_amount when no discount applied), or when representing 'unknown' for a dimension value. NULL is a defect when: a required foreign key is NULL (order with no customer_id), a metric column needed for aggregation is unexpectedly NULL (revenue = NULL causes SUM to silently undercount), or NULLs appear in a column that was previously 100% populated (schema change or upstream bug). Detection: track NULL rate per column over time — a spike from 0% to 20% NULL in a previously complete column is a quality signal, not a data characteristic. In dbt: add not_null tests to columns that should always be populated; document intentional nullable columns in schema.yml description.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dataquality-018",
+    "category": "Data Quality",
+    "question": "What is a data quality scorecard and how do you build one for stakeholders?",
+    "answer": "A data quality scorecard aggregates quality metrics into a dashboard that business and data stakeholders can track over time. Key metrics to surface: Completeness score (% non-NULL for critical columns), Freshness (hours since last update vs. SLA), Test pass rate (% of dbt/GX tests passing over trailing 7 days), Incident count (pipeline SLA breaches per week), Coverage (% of tables with at least one quality check). Implementation: log quality check results to a dq_results table (test_name, table_name, pass/fail, run_timestamp, metric_value). Build a dbt model that aggregates into scores. Visualize in Metabase/Looker. Surface 'critical tables' (those feeding execs or financial reports) separately with higher SLAs. This demonstrates data engineering maturity.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-019",
+    "category": "Data Quality",
+    "question": "What is the difference between data validation at ingestion time vs. post-load testing?",
+    "answer": "Ingestion-time validation (pre-load): validate data before it enters the warehouse. Tools: Great Expectations on raw files/API responses, Pydantic for API payloads, Avro schema registry for streaming. Pros: prevents bad data from ever entering the warehouse; cons: blocking — pipeline fails if validation fails, and you need to handle rejected data (DLQ or quarantine). Post-load testing (dbt test): validate data after it's been loaded and transformed. Tools: dbt tests, GX with SQL runtime. Pros: can leverage warehouse compute for complex assertions, catches transformation bugs. Cons: bad data already in the warehouse — downstream consumers may have already read it. Best practice: lightweight schema validation at ingestion + comprehensive business rule testing post-transform. Never skip both.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-020",
+    "category": "Data Quality",
+    "question": "How do you implement column-level lineage for data quality impact analysis?",
+    "answer": "Column-level lineage maps which source columns flow into which downstream columns, enabling 'what breaks if this column changes?' analysis. Implementation: (1) dbt — dbt docs generate builds full column-level lineage for SQL models; view in dbt docs serve or export via dbt artifacts (manifest.json). (2) OpenLineage — open standard for lineage events; emitted by Spark, dbt, Airflow and consumed by tools like Marquez or DataHub. (3) Commercial tools — Monte Carlo, Collibra, Atlan parse SQL and warehouse query logs to infer lineage automatically. Why it matters for DQ: when a source column has a quality issue, you need to quickly answer 'which dashboards and models are affected?' Without lineage, this is a manual audit. Lineage + impact analysis is essential for confident schema migrations.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dataquality-021",
+    "category": "Data Quality",
+    "question": "What is a dead-letter queue (DLQ) in data pipelines and how does it relate to data quality?",
+    "answer": "A dead-letter queue holds records that failed processing — schema validation errors, deserialization failures, business rule violations, or processing exceptions. Instead of dropping bad records silently (data loss) or crashing the pipeline (availability loss), you route them to a DLQ for inspection and potential reprocessing. DLQ pattern: Kafka dead-letter topic, S3 quarantine prefix, or database table with error_reason and original_payload columns. Data quality integration: monitor DLQ volume — a spike means upstream data quality degraded. Build a DLQ dashboard showing error rates by source, error type, and time. Periodically review DLQ records to identify systemic upstream issues and work with producers to fix at source. DLQ record retention: keep for at least 30 days to allow root cause analysis.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-022",
+    "category": "Data Quality",
+    "question": "How do you test for data completeness when you can't query the source system?",
+    "answer": "When you can't compare against source directly, use these proxy strategies: (1) Expected volume ranges — if you reliably receive 10,000-12,000 orders per day, alert if count falls outside this range. (2) Ratio checks — new_customers / total_orders should stay within a historical band; a sharp deviation suggests missing data from one source. (3) Distribution stability — compare column value distributions (category breakdowns, geographic splits) to prior periods; a distribution shift may indicate missing segments. (4) Control totals from upstream — request that source systems publish summary control records (total_records_exported, checksum) alongside data files, then validate on receipt. (5) Downstream sanity checks — if revenue reports look wrong, trace back through the pipeline using intermediate table counts.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dataquality-023",
+    "category": "Data Quality",
+    "question": "What is idempotency in data pipelines and how does it relate to data quality?",
+    "answer": "An idempotent pipeline produces the same result regardless of how many times it runs for the same input. It's critical for data quality because: pipelines fail and must be retried; without idempotency, retries cause duplicates or double-counting. Achieving idempotency: (1) Use MERGE/upsert instead of INSERT for load operations. (2) Use deterministic row IDs (hash of natural key columns) rather than auto-increment sequences. (3) Partition-based overwrite — for batch pipelines, DELETE WHERE date = '{{ds}}' then INSERT, so reruns replace the partition. (4) Deduplicate with QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1. (5) Track processed offsets (Kafka offsets, file ETags) to skip already-processed data. Test idempotency explicitly: run your pipeline 3 times on the same data and assert row counts don't change.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dataquality-024",
+    "category": "Data Quality",
+    "question": "How does dbt's store_failures feature help with ongoing data quality monitoring?",
+    "answer": "When store_failures: true is set in dbt_project.yml or a test config, dbt writes failed test records to a table in your warehouse (schema: dbt_test__audit by default) instead of just reporting a count. This transforms tests from pass/fail signals into debuggable datasets. Example: a relationships test failure now creates a table of orphaned order_ids you can query. With store_failures + dbt Cloud jobs: schedule dbt test nightly, and failed rows persist in the warehouse for analysts to investigate. You can build a data quality dashboard by querying these failure tables. Extended pattern: combine store_failures with severity: warn (test failure doesn't break the pipeline but records are stored for review) — good for non-critical quality rules.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dataquality-025",
+    "category": "Data Quality",
+    "question": "You discover that 15% of revenue records in your warehouse have NULL for a required field after a production incident. Walk through your response.",
+    "answer": "This is a classic DQ incident response question. Step 1 — Scope: quantify affected rows (time range, which sources). SELECT MIN(event_date), MAX(event_date), COUNT(*) FROM orders WHERE revenue IS NULL. Step 2 — Blast radius: what downstream models, dashboards, and reports consumed this data during the impact window? Use lineage to identify. Step 3 — Root cause: trace back — did the NULL originate in the source, in a transformation, or after a recent deploy? Check pipeline_runs history and dbt run logs. Step 4 — Remediate: if source has the correct values, rerun the affected pipeline range with a fix. If source was also missing, escalate to data producers. Step 5 — Prevent: add a not_null dbt test or GX expectation on revenue with severity: error. Add a data quality check to your CI/CD pipeline. Step 6 — Post-mortem: document timeline, root cause, detection gap (why didn't we catch it before?), and action items.",
+    "difficulty": "hard"
+  }
+]
