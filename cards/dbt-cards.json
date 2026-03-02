@@ -103,5 +103,180 @@
     "question": "What is the dbt project layering convention (staging, intermediate, marts) and why does it matter?",
     "answer": "The convention separates models into staging (1:1 raw source cleaning, renaming, casting), intermediate (business logic joins and transformations), and marts (final wide tables for consumption by BI or ML). This layering keeps transformation logic modular, testable, and reusable. It also makes onboarding easier because developers know exactly where to look for each type of logic.",
     "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-016",
+    "category": "dbt",
+    "question": "What are the tradeoffs between 'table' and 'incremental' materializations in dbt?",
+    "answer": "Table rebuilds the entire model from scratch on every run — always consistent but expensive for large datasets. Incremental only processes new/changed rows using is_incremental() filter, but risks drift if upstream data is late-arriving or corrected. Use incremental for append-only event data; use table when correctness matters more than cost, or for models downstream of sources that can be corrected retroactively.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-017",
+    "category": "dbt",
+    "question": "What is the 'unique_key' config in a dbt incremental model and what merge strategies exist?",
+    "answer": "unique_key tells dbt which column(s) identify a unique row; on incremental runs, existing rows matching the key are updated (MERGE/UPSERT) rather than duplicated. Merge strategies: 'delete+insert' (deletes matched rows then inserts), 'merge' (standard SQL MERGE), 'append' (no deduplication — fastest but risks duplicates). The 'merge' strategy with a unique_key is the most correct for SCD1-style upserts.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-018",
+    "category": "dbt",
+    "question": "What does 'on_schema_change' do in a dbt incremental model?",
+    "answer": "on_schema_change controls behavior when the upstream model adds or removes columns compared to the existing incremental table. Options: 'ignore' (default — ignores new columns, can cause mismatches), 'append_new_columns' (adds new columns with NULL for historical rows), 'sync_all_columns' (adds new and removes dropped columns), 'fail' (raises error — safest for strict schemas). Choosing the right strategy prevents silent schema drift.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-019",
+    "category": "dbt",
+    "question": "What is slim CI in dbt and why does it matter for large projects?",
+    "answer": "Slim CI uses dbt's 'state:modified+' selector to only build models that changed versus the production manifest. Instead of running your full dbt project on every PR (which could take hours), slim CI diffs against the last production run and builds only changed models and their downstream dependencies. This requires passing the production manifest to CI via dbt ls --select state:modified+ --state /path/to/prod/manifest.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-020",
+    "category": "dbt",
+    "question": "What is the 'defer' flag in dbt and how does it work with slim CI?",
+    "answer": "The --defer flag tells dbt to look for upstream models in a production environment rather than building them locally. Combined with --state /path/to/prod/manifest, it means developers can test a changed model by running only that model (not its entire upstream chain), with dbt automatically pulling unmodified upstream data from prod. This dramatically speeds up local development on large dbt projects.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-021",
+    "category": "dbt",
+    "question": "What is dbt's Semantic Layer (MetricFlow) and what problem does it solve?",
+    "answer": "The dbt Semantic Layer (powered by MetricFlow) lets you define metrics centrally in YAML (e.g., revenue = SUM(amount) with specific grain and dimensions), then query them consistently across any BI tool. It solves metric inconsistency: without it, different analysts write different SQL for 'revenue' with different filters, leading to dashboard disagreements. The Semantic Layer is the single source of truth for business metrics.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-022",
+    "category": "dbt",
+    "question": "What are pre-hooks and post-hooks in dbt and what are common use cases?",
+    "answer": "Hooks are SQL statements that run before (pre-hook) or after (post-hook) a model runs. Common use cases: pre-hook to grant permissions or set session variables; post-hook to GRANT SELECT to reporting roles, call stored procedures, or log run metadata. Defined in dbt_project.yml (globally) or in model config blocks (per-model). They run as separate transactions from the model build.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-023",
+    "category": "dbt",
+    "question": "What is the difference between dbt Cloud and dbt Core?",
+    "answer": "dbt Core is the open-source CLI tool — free, runs anywhere, no scheduler or IDE included. dbt Cloud is the managed SaaS product with: a web IDE, a job scheduler (with triggers, retries, notifications), CI/CD integration, the Semantic Layer API, Explorer UI, and team collaboration. Core requires you to bring your own orchestrator (Airflow, Dagster, Prefect). Cloud is easier to operate; Core gives more control.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-024",
+    "category": "dbt",
+    "question": "How do you integrate dbt with Dagster for orchestration?",
+    "answer": "The dagster-dbt library provides native integration. You load dbt project assets using load_assets_from_dbt_project() or DbtCliResource, which auto-generates Dagster assets from dbt models preserving DAG lineage. This lets you schedule dbt models as Dagster assets, mix dbt and non-dbt assets in the same job, and get unified observability. The recommended pattern is to treat each dbt model as a Dagster software-defined asset.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-025",
+    "category": "dbt",
+    "question": "What is the check snapshot strategy vs the timestamp strategy in dbt?",
+    "answer": "Timestamp strategy: uses an updated_at column to detect row changes — fast and efficient, but requires the source to reliably update the timestamp on every change. Check strategy: compares specific columns you list to detect changes — works when there's no reliable updated_at column, but runs a full comparison on every snapshot run, which is slower. Timestamp is preferred when available.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-026",
+    "category": "dbt",
+    "question": "How does dbt handle late-arriving data in incremental models?",
+    "answer": "dbt does not handle late-arriving data automatically. By default, incremental filters only process rows newer than max(updated_at) in the existing table, meaning late-arriving rows are silently missed. The pattern to handle this is to use a lookback window in the incremental filter (e.g., WHERE updated_at >= current_date - 3) rather than a hard max. For correctness-critical pipelines, full-refresh runs or event-sourced designs are safer.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-027",
+    "category": "dbt",
+    "question": "What is column-level lineage in dbt and how do you access it?",
+    "answer": "Column-level lineage traces how each output column in a mart was derived from source columns through all intermediate transformations. dbt Cloud Explorer (not Core) provides column-level lineage by analyzing SQL and YAML definitions. In dbt Core, tools like sqlglot-based parsers or third-party catalogs (Atlan, Metaphor) can extract it. Column lineage is critical for impact analysis: knowing which dashboards break if you rename a source column.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-028",
+    "category": "dbt",
+    "question": "What is the 'dbt build' command and how does it differ from 'dbt run'?",
+    "answer": "'dbt build' runs models, tests, seeds, and snapshots in a single command in DAG order — if a model's test fails, downstream models that depend on it are automatically skipped. 'dbt run' only builds models (no tests). 'dbt build' is the preferred command for CI/CD and production runs because it enforces data quality gates automatically before propagating bad data downstream.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-029",
+    "category": "dbt",
+    "question": "What are dbt_utils and dbt_expectations packages used for?",
+    "answer": "dbt_utils provides helper macros for common SQL patterns: surrogate_key() (hashing multiple columns into a single PK), pivot(), unpivot(), generate_series(), date_spine(), and more. dbt_expectations ports Great Expectations-style data quality tests to dbt: expect_column_values_to_be_between(), expect_table_row_count_to_be_between(), etc. Together they eliminate boilerplate SQL and cover common data quality assertions with minimal code.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-030",
+    "category": "dbt",
+    "question": "What is an ephemeral materialization in dbt and when should you use it?",
+    "answer": "Ephemeral models are not built as database objects — they are compiled as CTEs and injected inline into any model that refs them. Use ephemeral for lightweight intermediate transformations that are only used by one or two downstream models, where creating a database object would be wasteful. Avoid ephemeral for complex transformations that are reused by many models (the CTE gets duplicated each time) or when you need to test or debug the intermediate result directly.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-031",
+    "category": "dbt",
+    "question": "How does dbt handle multiple environments (dev vs prod)?",
+    "answer": "dbt uses profiles (profiles.yml) to define target connections per environment. Each target specifies a different schema (e.g., 'dbt_ryan' for dev, 'analytics' for prod), so dev runs never touch production tables. The --target flag selects the profile. In dbt Cloud, environments are configured in the UI. The ref() and source() functions automatically resolve to the correct schema for the active target, enabling clean environment separation.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-032",
+    "category": "dbt",
+    "question": "What is a surrogate key in dbt and how do you generate one?",
+    "answer": "A surrogate key is a synthetic unique identifier generated by hashing a combination of natural key columns, used when no single column is a reliable primary key. In dbt, generate it with dbt_utils.generate_surrogate_key(['col1', 'col2']) which MD5-hashes the concatenated values. It's deterministic (same input always produces the same key), enabling reliable joins and deduplication across incremental loads.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-033",
+    "category": "dbt",
+    "question": "What testing strategy should you apply at each layer of the dbt project?",
+    "answer": "Sources: freshness checks + not_null + unique on primary keys — catch upstream data quality issues early. Staging: not_null and accepted_values on critical columns — validate raw data before transformation. Intermediate: relationship tests to ensure join integrity. Marts: unique + not_null on keys, row count expectations, business logic singular tests (e.g., revenue never negative). Prioritize testing at source and mart boundaries for maximum coverage with minimal test count.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-034",
+    "category": "dbt",
+    "question": "What is the 'dbt ls' command useful for?",
+    "answer": "'dbt ls' lists all resources in your project matching an optional selector — models, tests, sources, snapshots, seeds, exposures. Key uses: 'dbt ls --select tag:nightly' (preview what a tagged run touches), 'dbt ls --select state:modified+' (slim CI preview), 'dbt ls --select +marts.finance' (all models upstream of a mart). It's a dry-run that helps you verify selectors before running expensive builds.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-035",
+    "category": "dbt",
+    "question": "What is the relationship between dbt and a data catalog?",
+    "answer": "dbt generates a manifest.json and catalog.json at compile/docs time containing full project metadata: model descriptions, column descriptions, test definitions, lineage, and source freshness. Data catalogs (Atlan, Alation, DataHub, OpenMetadata) ingest these artifacts to auto-populate business-friendly documentation, column-level lineage, and data quality scores. dbt is effectively the source-of-truth metadata layer for the warehouse; catalogs make it explorable.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-036",
+    "category": "dbt",
+    "question": "What is the 'variables' feature in dbt and how do you use it?",
+    "answer": "Variables are key-value pairs defined in dbt_project.yml (under 'vars:') or passed at runtime (--vars '{key: value}'). Access them in models with {{ var('my_var', 'default_value') }}. Common uses: date filtering ('start_date' for backfills), feature flags (enabling/disabling logic per environment), and environment-specific config. Runtime vars let you parameterize dbt runs from your orchestrator (e.g., pass yesterday's date for an incremental backfill).",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "dbt-037",
+    "category": "dbt",
+    "question": "How do you perform a dbt backfill on an incremental model?",
+    "answer": "Run 'dbt run --full-refresh --select model_name' to drop the existing table and rebuild from scratch — simplest but re-processes all historical data. For partial backfills on specific date ranges, pass a variable: 'dbt run --select model_name --vars \"{start_date: \\'2026-01-01\\', end_date: \\'2026-01-31\\'}\\'\" and use those vars in the model's WHERE clause. Always test backfills in dev first, as they can be expensive and overwrite prod data.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-038",
+    "category": "dbt",
+    "question": "What is dbt's 'contract' feature and when would you use it?",
+    "answer": "A model contract (enabled: true in config) enforces that the model's output matches a declared schema: column names, data types, and constraints (not_null, primary_key, foreign_key). dbt validates the contract at compile time and the run fails if the schema doesn't match. Use contracts for critical mart models consumed by downstream applications or SLAs, where schema changes must be explicit and reviewed — not silent.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "dbt-039",
+    "category": "dbt",
+    "question": "What is the role of packages.yml vs dbt_project.yml in a dbt project?",
+    "answer": "dbt_project.yml is the main project config file: defines the project name, profile, model directories, default materializations per folder, and global variable defaults. packages.yml declares external dbt packages to install (from dbt Hub or Git). They are separate because packages are dependencies (like requirements.txt) while dbt_project.yml is the project configuration (like pyproject.toml). Run 'dbt deps' to install packages after modifying packages.yml.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "dbt-040",
+    "category": "dbt",
+    "question": "How does dbt's 'store_failures' config work for tests?",
+    "answer": "When store_failures: true is set on a test (globally in dbt_project.yml or per-test), dbt saves failing rows to a table in your warehouse under a schema like 'dbt_test__audit'. This lets you inspect which specific rows failed a test (e.g., which order_ids are duplicated) without re-running the query. Essential for debugging data quality issues in large tables where you can't just 'SELECT * WHERE test_fails' interactively.",
+    "difficulty": "advanced"
   }
 ]

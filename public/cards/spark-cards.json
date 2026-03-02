@@ -1,72 +1,247 @@
 [
   {
     "id": "spark-001",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is the difference between an RDD and a DataFrame in Spark?",
     "answer": "An RDD (Resilient Distributed Dataset) is Spark's low-level, type-safe, Java/Python object-based distributed collection with no schema. A DataFrame is a higher-level abstraction with a named column schema, similar to a database table, that allows Spark's Catalyst optimizer to optimize execution plans. DataFrames are almost always preferred for performance and expressiveness; RDDs are only needed for unstructured data or low-level control.",
     "difficulty": "beginner"
   },
   {
     "id": "spark-002",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is the difference between a transformation and an action in Spark?",
     "answer": "Transformations (e.g., filter, map, join, groupBy) are lazy: they build a logical execution plan but do not execute immediately. Actions (e.g., collect, count, write, show) trigger the actual computation by submitting a job to the cluster. This lazy evaluation allows Spark's optimizer to combine and reorder transformations before any data is moved.",
     "difficulty": "beginner"
   },
   {
     "id": "spark-003",
-    "category": "spark",
+    "category": "Spark",
     "question": "What causes shuffle in Spark and why is it expensive?",
     "answer": "Shuffle happens when data must be redistributed across partitions and executor nodes, triggered by wide transformations like groupBy, join, distinct, and repartition. It is expensive because it requires serializing data, writing it to disk, and transferring it over the network. Minimizing shuffle (via broadcast joins, partition pruning, and proper data bucketing) is one of the most impactful Spark performance optimizations.",
     "difficulty": "intermediate"
   },
   {
     "id": "spark-004",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is the Spark Catalyst optimizer?",
     "answer": "Catalyst is Spark SQL's query optimizer that transforms a logical plan (what you asked for) into an optimized physical plan (how to execute it efficiently). It applies rule-based and cost-based optimizations such as predicate pushdown, constant folding, and join reordering. This is why DataFrame/SQL code often outperforms equivalent RDD code written by hand.",
     "difficulty": "intermediate"
   },
   {
     "id": "spark-005",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is a broadcast variable in Spark and when should you use one?",
     "answer": "A broadcast variable is a read-only variable cached on each executor node rather than sent with each task, created via SparkContext.broadcast(). The most common use is a broadcast join: if one DataFrame is small enough to fit in memory (typically under a few GB), broadcasting it avoids shuffle entirely during a join. This can turn a multi-minute shuffle join into a seconds-long local lookup.",
     "difficulty": "intermediate"
   },
   {
     "id": "spark-006",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is a Spark accumulator?",
     "answer": "An accumulator is a write-only (from executors) shared variable used to aggregate values across tasks back to the driver, such as counting errors or events during a transformation. Unlike broadcast variables, executors can only add to accumulators, not read them; only the driver can read the final value. They are useful for lightweight monitoring and debugging inside transformations.",
     "difficulty": "intermediate"
   },
   {
     "id": "spark-007",
-    "category": "spark",
+    "category": "Spark",
     "question": "How does Spark partitioning affect performance?",
     "answer": "Partitioning determines how data is split across executor tasks; too few partitions underutilizes the cluster, while too many creates overhead from task scheduling and small files. A common rule of thumb is 2-4 partitions per CPU core. After a shuffle, Spark defaults to spark.sql.shuffle.partitions (default 200), which is often too high for small data or too low for very large data and should be tuned.",
     "difficulty": "intermediate"
   },
   {
     "id": "spark-008",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is Spark Structured Streaming and how does it differ from DStream-based streaming?",
     "answer": "Structured Streaming is a high-level streaming API built on the DataFrame/Dataset API that processes streaming data as an unbounded table, allowing you to write batch-like SQL or DataFrame code that runs incrementally. The older DStream API (Spark Streaming) operated at the RDD level with micro-batches and lacked the optimizer benefits. Structured Streaming also supports event-time windowing and exactly-once semantics with supported sinks.",
     "difficulty": "advanced"
   },
   {
     "id": "spark-009",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is the difference between narrow and wide transformations in Spark?",
     "answer": "Narrow transformations (map, filter, union) require data only from a single partition and do not cause shuffle; they are pipelined within a single stage. Wide transformations (groupBy, join, repartition) require data from multiple partitions and cause a shuffle, creating a new stage boundary. Minimizing wide transformations and ordering them carefully is key to reducing job execution time.",
     "difficulty": "advanced"
   },
   {
     "id": "spark-010",
-    "category": "spark",
+    "category": "Spark",
     "question": "What is Spark SQL and how does it relate to DataFrames?",
     "answer": "Spark SQL is the module that enables querying structured data using SQL syntax alongside the DataFrame API; both compile to the same underlying execution plan via Catalyst. You can register a DataFrame as a temporary view and query it with spark.sql('SELECT ...'), or mix SQL and DataFrame operations freely. Spark SQL also provides the JDBC/ODBC interface for BI tools to connect to Spark clusters.",
     "difficulty": "beginner"
+  },
+  {
+    "id": "spark-011",
+    "category": "Spark",
+    "question": "What are the components of Spark's cluster architecture?",
+    "answer": "Spark has a Driver (coordinates the application, creates the SparkContext, builds the DAG, schedules tasks), a Cluster Manager (allocates resources \u2014 Standalone, YARN, Kubernetes, or Mesos), and Executors (worker processes that run tasks and store data in memory or disk). The Driver sends task descriptions to executors; executors report results back to the Driver.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-012",
+    "category": "Spark",
+    "question": "What is the difference between repartition() and coalesce() in Spark?",
+    "answer": "repartition(n) performs a full shuffle and can increase or decrease the number of partitions. coalesce(n) merges partitions without a full shuffle by combining existing ones, so it can only decrease partitions. Use coalesce() when reducing after a filter (cheaper); use repartition() when you need to increase parallelism or ensure even distribution across partitions.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-013",
+    "category": "Spark",
+    "question": "What is the difference between cache() and persist() in Spark?",
+    "answer": "cache() is a shorthand for persist() with the default MEMORY_AND_DISK storage level. persist() lets you specify a storage level explicitly: MEMORY_ONLY (fastest, evicts on OOM), MEMORY_AND_DISK (spills to disk), MEMORY_ONLY_SER (serialized, smaller footprint), DISK_ONLY (slowest), and OFF_HEAP. Use persist() when memory is tight or when you need fine-grained control over eviction behavior.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-014",
+    "category": "Spark",
+    "question": "What are the three types of joins Spark can execute and when does each apply?",
+    "answer": "Broadcast Hash Join: the smaller DataFrame is broadcast to all executors, no shuffle required \u2014 best when one side fits in memory. Sort-Merge Join: both sides are sorted and merged on the join key, requires a shuffle \u2014 default for large-large joins. Shuffle Hash Join: the smaller side is hashed into a hash map per partition after a shuffle \u2014 used when one side is small but not small enough to broadcast. Catalyst selects the strategy automatically based on table statistics.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-015",
+    "category": "Spark",
+    "question": "What is data skew in Spark and how do you fix it?",
+    "answer": "Data skew occurs when some partitions have significantly more data than others (e.g., a join key like 'USA' dominating a country column), causing a few slow tasks to bottleneck the job. The salting technique fixes this: add a random integer prefix (0-N) to the skewed key when writing, then join using the salted key and aggregate the N results back together. AQE in Spark 3+ can also handle skew automatically via skew join hints.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-016",
+    "category": "Spark",
+    "question": "What is Adaptive Query Execution (AQE) in Spark 3+ and what does it optimize?",
+    "answer": "AQE dynamically re-optimizes query plans at runtime using actual partition statistics rather than estimates. It automatically: (1) coalesces small shuffle partitions to reduce overhead, (2) switches join strategies (e.g., to broadcast join if a table is smaller than expected at runtime), and (3) optimizes skewed joins by splitting skewed partitions. Enable with spark.sql.adaptive.enabled=true.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-017",
+    "category": "Spark",
+    "question": "What is Spark's DAG and how does it relate to stages and tasks?",
+    "answer": "Spark builds a Directed Acyclic Graph (DAG) of transformations when you call an action. The DAG Scheduler splits this into stages at shuffle boundaries (each wide transformation creates a new stage). Each stage is divided into tasks (one per partition). Tasks within a stage run in parallel; stages run sequentially when they depend on shuffle data from prior stages.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-018",
+    "category": "Spark",
+    "question": "What is a PySpark UDF and what are the performance implications vs Pandas UDF?",
+    "answer": "A Python UDF runs row-by-row through the Python interpreter, requiring serialization of each row between the JVM (Spark executor) and Python \u2014 extremely slow for large datasets. A Pandas UDF (vectorized UDF using the @pandas_udf decorator) processes entire Arrow-serialized batches at once, eliminating row-level overhead and achieving near-native Spark performance. Always prefer Pandas UDFs when custom Python logic is required.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-019",
+    "category": "Spark",
+    "question": "What is Delta Lake and what problems does it solve over plain Parquet?",
+    "answer": "Delta Lake adds ACID transactions, schema enforcement, and time travel to Parquet files. Problems solved: (1) Parquet has no transaction support \u2014 partial writes leave corrupt tables; Delta uses a transaction log (_delta_log/) for atomicity. (2) Parquet can't update/delete rows without rewriting files; Delta supports MERGE INTO, UPDATE, DELETE. (3) Delta tracks history with DESCRIBE HISTORY and supports VERSION AS OF for time travel queries.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-020",
+    "category": "Spark",
+    "question": "What is Z-ordering in Delta Lake?",
+    "answer": "Z-ordering is a multi-dimensional clustering technique that co-locates related data in the same set of Parquet files, reducing the amount of data read for filtered queries. You apply it with OPTIMIZE tableName ZORDER BY (col1, col2). It works best on high-cardinality columns frequently used in WHERE clauses. Unlike partitioning (which creates directories), Z-ordering works within files.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-021",
+    "category": "Spark",
+    "question": "What is checkpointing in Spark Streaming and when is it needed?",
+    "answer": "Checkpointing saves the state of a streaming query to reliable storage (HDFS, S3, GCS) at regular intervals, enabling recovery after a driver failure. It is required for stateful operations (aggregations, joins with watermarks, mapGroupsWithState) because Spark needs to recover accumulated state, not just replay from source. The checkpoint location is set with .option('checkpointLocation', path) on a streaming write.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-022",
+    "category": "Spark",
+    "question": "What is a watermark in Spark Structured Streaming?",
+    "answer": "A watermark is a time threshold that tells Spark how late data can arrive and still be included in a window aggregation. Defined with .withWatermark('timestamp_col', '10 minutes'), it means Spark will wait up to 10 minutes past the window end for late data, then discard anything older. Without a watermark, Spark must keep all state indefinitely; watermarks bound memory usage for stateful streaming.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-023",
+    "category": "Spark",
+    "question": "How does Spark handle memory management for executors?",
+    "answer": "Executor memory (spark.executor.memory) is divided into: Reserved Memory (300MB fixed for system), User Memory (data structures, UDFs \u2014 ~40%), and Unified Memory Pool (shared between Execution Memory for shuffle/sort and Storage Memory for cache \u2014 ~60%). When execution needs more memory, it evicts cached data. Key settings: spark.executor.memory, spark.memory.fraction, spark.memory.storageFraction.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-024",
+    "category": "Spark",
+    "question": "What is the Tungsten execution engine in Spark?",
+    "answer": "Tungsten is Spark's physical execution engine focused on CPU and memory efficiency. It uses off-heap binary encoding (avoiding JVM GC overhead), whole-stage code generation (compiling query plans to Java bytecode rather than interpreting each operator), and cache-aware algorithms. Together, these make Spark DataFrame execution approach hand-optimized native code performance.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-025",
+    "category": "Spark",
+    "question": "What are the trigger modes in Spark Structured Streaming?",
+    "answer": "ProcessingTime('interval'): micro-batch runs at fixed intervals (e.g., every 10 seconds). Once: processes all available data as one batch then stops \u2014 useful for batch-style scheduled runs. AvailableNow: processes all available data in multiple micro-batches then stops (Spark 3.3+). Continuous: experimental low-latency mode (<1ms) using a continuous processing model. Default (no trigger) runs as fast as possible.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-026",
+    "category": "Spark",
+    "question": "What is predicate pushdown in Spark and how does it improve performance?",
+    "answer": "Predicate pushdown moves WHERE clause filters as close to the data source as possible, so the source (Parquet, JDBC, Delta) reads only the rows that match before returning data to Spark. For Parquet, this uses column statistics and min/max values to skip entire row groups. For JDBC, it sends the filter as part of the SQL query. This dramatically reduces data transfer and Spark memory usage.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-027",
+    "category": "Spark",
+    "question": "What is bucketing in Spark and how does it differ from partitioning?",
+    "answer": "Partitioning splits data into directories by column value (e.g., /date=2026-01-01/), reducing data scanned per query. Bucketing assigns rows to a fixed number of buckets using a hash of a column, co-locating rows with the same hash value across the table. Bucketing eliminates shuffle for joins on the bucketed column \u2014 if two tables are bucketed by the same key and bucket count, Spark can join them without shuffling either side.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-028",
+    "category": "Spark",
+    "question": "What is MERGE INTO in Delta Lake and when would you use it?",
+    "answer": "MERGE INTO (also called upsert) matches source rows against a target Delta table using a condition, then applies WHEN MATCHED (UPDATE or DELETE) and WHEN NOT MATCHED (INSERT) clauses. Use it for CDC (change data capture) pipelines where you receive inserts, updates, and deletes together. It is far more efficient than manually filtering and rewriting partitions, and Delta handles ACID guarantees automatically.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-029",
+    "category": "Spark",
+    "question": "What is the default value of spark.sql.shuffle.partitions and why should you change it?",
+    "answer": "The default is 200, chosen when Spark was designed for larger clusters and bigger datasets. For small-to-medium jobs, 200 partitions creates overhead from tiny tasks. For very large jobs, 200 may be too few, creating large tasks that spill. A common tuning approach: set it to 2-3x the number of CPU cores for your cluster, or enable AQE (spark.sql.adaptive.enabled=true) which automatically coalesces small shuffle partitions at runtime.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-030",
+    "category": "Spark",
+    "question": "What is lineage in Spark and what role does it play in fault tolerance?",
+    "answer": "Lineage is the complete record of transformations applied to create a given RDD or DataFrame from its source. Spark uses lineage (not replication) for fault tolerance: if a partition is lost due to executor failure, Spark recomputes it from the lineage rather than restoring from a replica. For long lineage chains, checkpointing truncates the chain by writing to stable storage, preventing expensive full recomputation.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-031",
+    "category": "Spark",
+    "question": "What is a Spark Job, Stage, and Task \u2014 and how do they relate?",
+    "answer": "A Job is created by each action (e.g., count(), write()). Each Job is divided into Stages at shuffle boundaries \u2014 all transformations that can run without a shuffle form one stage. Each Stage is divided into Tasks \u2014 one Task per partition. Tasks are the actual units of work sent to executors. In the Spark UI, you diagnose performance by looking at task duration variance within stages and stage boundaries.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-032",
+    "category": "Spark",
+    "question": "How does Delta Lake time travel work?",
+    "answer": "Delta Lake records every transaction in the _delta_log/ directory as JSON commit files. You can query historical versions with VERSION AS OF (e.g., SELECT * FROM table VERSION AS OF 5) or TIMESTAMP AS OF. Use cases: auditing, recovering from accidental deletes or bad merges, and reproducible ML training datasets. History is retained for 30 days by default (delta.logRetentionDuration).",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-033",
+    "category": "Spark",
+    "question": "What is the difference between client mode and cluster mode when submitting Spark jobs?",
+    "answer": "In client mode, the Driver runs on the machine submitting the job (your laptop or edge node) \u2014 useful for interactive work and debugging since logs stream to your terminal, but the Driver is vulnerable if the client disconnects. In cluster mode, the Cluster Manager starts the Driver inside the cluster \u2014 required for production jobs so the Driver survives client disconnection. Always use cluster mode in production.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "spark-034",
+    "category": "Spark",
+    "question": "What is speculative execution in Spark and what problem does it solve?",
+    "answer": "Speculative execution launches duplicate copies of slow-running tasks (stragglers) on different executors and uses whichever finishes first, killing the duplicate. It solves the straggler problem \u2014 where one slow task in a stage delays the entire job. Enable with spark.speculation=true. It adds resource overhead but can significantly reduce P99 job latency in production environments with heterogeneous hardware.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark-035",
+    "category": "Spark",
+    "question": "What is the difference between foreachBatch and foreach in Spark Structured Streaming?",
+    "answer": "foreachBatch(func) delivers each micro-batch as a DataFrame to your function, enabling you to use all Spark DataFrame operations (including batch Delta writes, MERGE INTO, or writing to multiple sinks) within each batch. foreach(writer) operates row-by-row with open/process/close callbacks \u2014 lower overhead for simple row processing but lacks DataFrame capabilities. foreachBatch is the preferred pattern for production streaming pipelines.",
+    "difficulty": "advanced"
   }
 ]

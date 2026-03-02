@@ -1,0 +1,177 @@
+[
+  {
+    "id": "kafka-001",
+    "category": "kafka",
+    "question": "What is a Kafka topic?",
+    "answer": "A topic is a named, durable log to which producers publish records and from which consumers read. Topics are partitioned for parallelism and replicated across brokers for fault tolerance. Unlike a queue, a topic retains records for a configurable period, so multiple independent consumer groups can each read the same stream.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-002",
+    "category": "kafka",
+    "question": "What is a Kafka partition and why does it matter?",
+    "answer": "A partition is an ordered, immutable sequence of records within a topic — it's the fundamental unit of parallelism and throughput in Kafka. Each partition is owned by exactly one broker as its leader, and a topic with N partitions can be consumed in parallel by up to N consumers in the same consumer group. Choosing the right partition count upfront is important because increasing partitions later can disrupt ordering guarantees for keyed messages.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-003",
+    "category": "kafka",
+    "question": "What is a Kafka offset?",
+    "answer": "An offset is a monotonically increasing integer that uniquely identifies each record within a partition. Consumers track their position by committing offsets — either automatically or manually — to the internal __consumer_offsets topic. Because offsets are per-partition, rewinding or replaying data is as simple as resetting the committed offset to an earlier value.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-004",
+    "category": "kafka",
+    "question": "What is a Kafka producer and what are the key configuration decisions when writing one?",
+    "answer": "A producer is a client that publishes records to Kafka topics. Key decisions include: the serializer (how key/value bytes are encoded), the partitioner (which determines which partition a record lands on — round-robin for null keys, hash-based for keyed messages), and acknowledgment level (acks=0/1/all) which trades durability for latency. Setting acks=all with min.insync.replicas=2 is the standard durable-write pattern.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-005",
+    "category": "kafka",
+    "question": "What is a Kafka consumer and how does it poll for records?",
+    "answer": "A consumer is a client that reads records from one or more topic partitions by calling poll(), which returns a batch of records up to max.poll.records. The consumer must call poll() frequently enough to stay within max.poll.interval.ms, or the broker will consider it failed and trigger a rebalance. Consumers commit offsets after processing to mark their progress and avoid reprocessing on restart.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-006",
+    "category": "kafka",
+    "question": "What is a Kafka consumer group and how does it enable scalable consumption?",
+    "answer": "A consumer group is a set of consumers that cooperatively consume a topic, with each partition assigned to exactly one consumer in the group at a time. This gives you parallelism bounded by partition count — add consumers up to the number of partitions to scale throughput linearly. Different consumer groups each maintain their own independent offsets, so a downstream analytics pipeline and a real-time alerting service can both read the same topic without interfering.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-007",
+    "category": "kafka",
+    "question": "What is a Kafka broker?",
+    "answer": "A broker is a Kafka server process that stores partitions and serves producer and consumer requests. A Kafka cluster is a group of brokers, and each partition has one broker elected as its leader (which handles all reads and writes) and zero or more followers that replicate data. In KRaft mode (Kafka 3.3+ GA), brokers can also serve as controllers, eliminating the ZooKeeper dependency.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-008",
+    "category": "kafka",
+    "question": "What is replication in Kafka and what is the replication factor?",
+    "answer": "Replication is Kafka's durability mechanism: each partition is copied to multiple brokers, where one is the leader and the rest are in-sync replicas (ISRs). The replication factor controls how many copies exist — a replication factor of 3 means the cluster can tolerate 2 broker failures without data loss. The min.insync.replicas setting (typically 2 for a factor-3 setup) ensures producers get acks only when a quorum of replicas has received the data.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "kafka-009",
+    "category": "kafka",
+    "question": "What triggers a consumer group rebalance and why is it disruptive?",
+    "answer": "A rebalance is triggered when a consumer joins or leaves a group, a consumer fails its heartbeat within session.timeout.ms, or the subscribed topic's partition count changes. During a rebalance (with the default eager protocol), all consumers stop consuming and drop their partitions — this causes a 'stop-the-world' pause. The cooperative incremental rebalance (introduced in Kafka 2.4 via CooperativeStickyAssignor) fixes this by reassigning only the partitions that need to move, letting unaffected consumers keep processing.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-010",
+    "category": "kafka",
+    "question": "What are the main partition assignment strategies in Kafka and when would you choose each?",
+    "answer": "RangeAssignor (default pre-2.4) assigns contiguous partition ranges per topic per consumer — clean but can create imbalance with multiple topics. RoundRobinAssignor distributes partitions evenly across all consumers. StickyAssignor minimizes partition movement across rebalances while maintaining balance. CooperativeStickyAssignor is the modern choice: it does incremental rebalances (no stop-the-world) and is now the recommended default. For most production workloads, set partition.assignment.strategy=CooperativeStickyAssignor.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-011",
+    "category": "kafka",
+    "question": "How does Kafka retention work and what are the two retention modes?",
+    "answer": "Kafka retention controls how long data is kept. Time-based retention (retention.ms) deletes log segments older than the threshold — the default is 7 days. Size-based retention (retention.bytes) caps the total size per partition. The two fundamental modes are delete (segments beyond the threshold are removed) and compact (log compaction — only the latest value per key is kept indefinitely). You can combine both: set cleanup.policy=compact,delete to compact and then time-delete old compacted segments.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-012",
+    "category": "kafka",
+    "question": "What is Kafka log compaction and what use case does it serve?",
+    "answer": "Log compaction ensures Kafka retains at least the most recent value for each message key within a partition, discarding older records with the same key. This makes a compacted topic behave like a changelog or key-value store — a consumer who reads the topic from the beginning gets a complete snapshot of current state. It's the canonical pattern for change data capture (CDC) event streams and for populating downstream caches or databases with the latest entity state.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-013",
+    "category": "kafka",
+    "question": "What are Kafka's exactly-once semantics (EOS) and what components are required to enable them?",
+    "answer": "EOS guarantees that each message is written and processed exactly once — no duplicates, no drops — even if producers retry or consumers restart. It requires three components working together: idempotent producers (enable.idempotence=true), transactional producers (transactional.id set, using beginTransaction/commitTransaction), and consumers reading with isolation.level=read_committed so they only see committed transactional messages. EOS in Kafka Streams uses all three automatically when processing.guarantee=exactly_once_v2.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-014",
+    "category": "kafka",
+    "question": "What is an idempotent producer in Kafka and what problem does it solve?",
+    "answer": "An idempotent producer (enable.idempotence=true) ensures that even if a produce request is retried due to a network error, the broker deduplicates it so the record is written exactly once. The broker assigns a producer ID (PID) and sequence number to each message; if it receives a duplicate sequence, it acknowledges it without writing again. This is the foundation of EOS and should be enabled by default in any production producer — it also automatically sets acks=all and max.in.flight.requests.per.connection=5.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-015",
+    "category": "kafka",
+    "question": "What is a Kafka Schema Registry and why is it critical in a data platform?",
+    "answer": "Schema Registry (Confluent's open-source component, or alternatives like AWS Glue Schema Registry) is a centralized service that stores and enforces Avro, JSON Schema, or Protobuf schemas for Kafka topics. Producers register schemas and embed only a schema ID in each message; consumers look up the schema by ID to deserialize. This prevents schema drift from breaking consumers — you can enforce compatibility rules (backward, forward, full) so producers can only evolve schemas in safe ways.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-016",
+    "category": "kafka",
+    "question": "When would you use Avro over JSON for Kafka messages, and what are the tradeoffs?",
+    "answer": "Avro is the standard choice for high-throughput Kafka pipelines: it's binary (3-10x smaller than JSON), schema-enforced, and natively supported by Schema Registry with evolution rules. JSON is human-readable, schema-optional, and easier to debug — fine for low-volume topics or prototyping. In production DE work (especially with Spark or Flink consumers), Avro's compact binary format and schema evolution guarantees make it the right default; Protobuf is an alternative with stronger cross-language support.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-017",
+    "category": "kafka",
+    "question": "What is ksqlDB and what kinds of problems is it designed for?",
+    "answer": "ksqlDB is a streaming SQL engine built on top of Kafka Streams that lets you run continuous queries against Kafka topics using SQL syntax. You can create streams (unbounded, append-only views of a topic) and tables (materialized, keyed views of latest state) and join, filter, aggregate, or window them in real time. It's best suited for operational use cases — real-time enrichment, filtering, alerting, or aggregations — rather than ad-hoc analytics. It's not a replacement for a batch query engine like Spark SQL.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-018",
+    "category": "kafka",
+    "question": "What is Kafka Connect and how does it fit into a data platform?",
+    "answer": "Kafka Connect is a scalable, fault-tolerant framework for streaming data between Kafka and external systems (databases, S3, Elasticsearch, etc.) using pre-built or custom connectors. Source connectors ingest data into Kafka; sink connectors write Kafka data out to external stores. Connect handles offset management, error handling, schema evolution, and restart recovery automatically — it's the standard way to implement CDC (via Debezium) or replace custom ingestion scripts with a managed, monitored pipeline.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kafka-019",
+    "category": "kafka",
+    "question": "What is rack-awareness in Kafka and why should you configure it in production?",
+    "answer": "Rack-awareness is a broker configuration (broker.rack) that instructs Kafka's replica placement algorithm to spread partition replicas across different failure domains — physical racks, AWS Availability Zones, or GCP zones. Without it, all replicas of a partition could land on brokers in the same AZ, meaning a single AZ outage kills both the leader and all ISRs, causing data unavailability. With rack-awareness set, Kafka guarantees replicas are placed in distinct racks, so any single-AZ failure leaves at least one replica up and allows leader election to proceed.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "kafka-020",
+    "category": "kafka",
+    "question": "What is MirrorMaker 2 (MM2) and how does it improve on MirrorMaker 1 for cross-datacenter replication?",
+    "answer": "MirrorMaker 2 is Kafka's built-in, Kafka Connect-based replication framework for mirroring topics across clusters (active-active or active-passive). It solves MM1's critical gaps: MM2 replicates consumer group offsets (translated for the target cluster), preserves topic configurations, and uses a heartbeat/checkpoint mechanism so consumers can failover to the replica cluster with minimal rewind. The offset translation is the key feature — in MM1, offsets weren't translated, so a failover required consumers to seek to earliest or latest, often causing reprocessing or data loss.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "kafka-021",
+    "category": "kafka",
+    "question": "How does Kafka Streams compare to Apache Flink for stream processing, and when would you choose one over the other?",
+    "answer": "Kafka Streams is a lightweight Java library (no separate cluster) that processes data directly within your application — ideal when your data is already in Kafka, your team is JVM-based, and you want to avoid operating another distributed system. Flink is a full distributed stream processing engine with more powerful capabilities: true event-time semantics with watermarks, complex stateful operations, SQL API, and native connectors beyond Kafka. Choose Kafka Streams for simpler transformations and enrichments tightly coupled to Kafka; choose Flink when you need exactly-once stateful processing at scale, cross-source joins, or batch-stream unification.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "kafka-022",
+    "category": "kafka",
+    "question": "How do you tune Kafka producer throughput using batch.size, linger.ms, and compression.type?",
+    "answer": "batch.size (default 16KB) controls the maximum bytes buffered per partition before sending — increase it (e.g., 64KB–1MB) to amortize network round trips across more records. linger.ms (default 0) adds an intentional delay before sending to allow the batch to fill up — setting it to 5–20ms dramatically increases batch fill rate with minimal latency cost. compression.type (none, gzip, snappy, lz4, zstd) compresses batches before network send — lz4 or zstd gives excellent compression ratios with low CPU overhead. The standard high-throughput combination: batch.size=1048576, linger.ms=20, compression.type=lz4.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "kafka-023",
+    "category": "kafka",
+    "question": "How do you monitor consumer lag in Kafka and what does sustained lag indicate?",
+    "answer": "Consumer lag is the difference between the latest offset in a partition and the consumer group's committed offset for that partition — it measures how far behind consumers are. You can monitor it via kafka-consumer-groups.sh --describe, the Kafka AdminClient API, or tools like Burrow (LinkedIn's lag monitoring service) or Confluent's Metrics API. Sustained lag means your consumers can't keep up with producer throughput: the fix is usually adding more partitions + consumers, optimizing per-record processing time, or reducing the cost of downstream operations (e.g., batching DB writes). Alert on lag trends, not just absolute values — a slow but steady rise is more dangerous than a spike.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "kafka-024",
+    "category": "kafka",
+    "question": "How are compacted topics used to implement CDC (Change Data Capture) in a data platform?",
+    "answer": "In a CDC pattern, each message in a compacted topic represents a database row, keyed by the row's primary key. Updates overwrite previous values; a tombstone message (null value for a key) represents a delete. Because log compaction retains only the latest value per key, a consumer who reads from offset 0 reconstructs the full current state of the source table — equivalent to a snapshot. Tools like Debezium use this pattern to publish MySQL/Postgres WAL changes into Kafka compacted topics, giving any downstream system a reliable, replayable changelog without directly querying the source DB.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "kafka-025",
+    "category": "kafka",
+    "question": "What are the main levers for optimizing end-to-end Kafka latency from producer to consumer?",
+    "answer": "Producer side: set linger.ms=0 (don't wait to fill batches), reduce batch.size, disable compression (tradeoff: more network overhead), and use acks=1 if you can tolerate some durability risk. Broker side: tune num.io.threads, use local NVMe SSDs, and ensure replicas are in-sync (high ISR lag adds latency). Consumer side: reduce max.poll.interval.ms, keep poll loops tight (no blocking work inside), and use fetch.min.bytes=1 with fetch.max.wait.ms=0 to pull records immediately. Networking: place producers, brokers, and consumers in the same AZ to eliminate cross-AZ latency. For sub-10ms p99 latency, every layer matters.",
+    "difficulty": "advanced"
+  }
+]
