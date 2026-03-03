@@ -1,0 +1,122 @@
+[
+  {
+    "id": "trino-001",
+    "cat": "Trino",
+    "q": "What is Trino and what problem does it solve?",
+    "a": "Trino (formerly PrestoSQL) is a distributed SQL query engine that executes queries across multiple data sources in parallel. It solves the problem of running interactive SQL analytics at scale — querying terabytes in seconds rather than hours. Unlike Hive, Trino is purely a query engine (no storage). It connects to data sources via connectors (Hive, Iceberg, Delta, JDBC, Kafka) and federates queries across them. Key use case: ad-hoc analytics on a data lakehouse without loading data into a separate warehouse."
+  },
+  {
+    "id": "trino-002",
+    "cat": "Trino",
+    "q": "Describe Trino's core architecture: coordinator, workers, catalogs, and connectors.",
+    "a": "Trino has four architectural layers: (1) Coordinator — the brain. It parses SQL, builds a distributed query plan, schedules tasks on workers, and returns results to the client. There is exactly one coordinator per cluster. (2) Worker nodes — stateless executors. They process splits in parallel and stream results back to the coordinator via HTTP. Scale horizontally by adding workers. (3) Catalog — a named data source configured in Trino (e.g., 'hive', 'iceberg', 'mysql'). Each catalog maps to one connector. You reference catalogs in SQL: SELECT * FROM hive.schema.table. (4) Connector — a plugin that implements the Trino SPI to read/write a specific data system (HDFS, S3, Postgres, Kafka, etc.). The connector handles metadata, splits, and data reading. Connectors decouple storage from compute entirely."
+  },
+  {
+    "id": "trino-003",
+    "cat": "Trino",
+    "q": "How does Trino execute a query? Explain stages, tasks, splits, and the MPP pipeline model.",
+    "a": "Trino uses a Massively Parallel Processing (MPP) model: (1) Stages — the coordinator breaks a query plan into a tree of stages. Each stage corresponds to a pipeline of operators. Stages exchange data via shuffle (repartition) or broadcast. (2) Tasks — each stage is broken into tasks, one per worker. Tasks run concurrently across all workers. (3) Splits — a task processes one or more splits. A split is the smallest unit of data (e.g., an ORC file stripe, an S3 object range). The connector generates the split list; the coordinator schedules splits to workers. (4) Pipelining — Trino is fully pipelined: data flows between operators (scan → filter → join → aggregate) without materializing intermediate results to disk. This 'streaming' model is why Trino is fast for interactive queries. Data flows from leaf stages (table scans) up through exchange operators to the final output stage on the coordinator."
+  },
+  {
+    "id": "trino-004",
+    "cat": "Trino",
+    "q": "What are Trino's main connectors and what does each connect to?",
+    "a": "Key Trino connectors: (1) Hive — reads Hive-compatible formats (ORC, Parquet, Avro, TextFile) on HDFS or S3 using the Hive Metastore for metadata. Most common lakehouse connector. (2) Iceberg — reads Apache Iceberg tables; supports time-travel, schema evolution, and partition pruning. Uses Iceberg's own metadata (REST catalog, Hive, Glue, JDBC). (3) Delta Lake — reads Delta Lake tables (Databricks format); supports log-based snapshots. (4) JDBC — connects to any JDBC-compatible DB: MySQL, PostgreSQL, SQL Server, Oracle, Redshift. (5) Kafka — queries Kafka topics as SQL tables. (6) Black Hole — discards data (benchmarking). (7) TPC-H / TPC-DS — generate synthetic benchmark data. (8) MongoDB, Elasticsearch, Cassandra, Pinot — each have dedicated connectors. (9) Memory — in-memory connector for caching/testing. Connectors are configured in /etc/trino/catalog/<name>.properties."
+  },
+  {
+    "id": "trino-005",
+    "cat": "Trino",
+    "q": "Trino vs Spark for ad-hoc analytics: what are the key tradeoffs?",
+    "a": "Trino strengths: (1) Latency — Trino's fully pipelined, in-memory execution starts returning results in seconds. No JVM warm-up, no stage materialization. (2) SQL-first — native ANSI SQL, no DataFrame API required. (3) Federation — query across multiple catalogs in one SQL statement. (4) Resource efficiency — stateless workers, easy to auto-scale. Spark strengths: (1) Fault tolerance — Spark checkpoints shuffle data to disk/S3 (RDD lineage), enabling recovery from partial failures. Critical for multi-hour ETL jobs. (2) Complex transformations — Python/Scala UDFs, ML pipelines, streaming. (3) Large shuffles — Spark's external shuffle service handles petabyte-scale sorts better. (4) Ecosystem — MLlib, Structured Streaming, Delta Lake native. Rule of thumb: use Trino for interactive/ad-hoc queries (<minutes); use Spark for heavy ETL, ML, or jobs that need fault tolerance. Many shops run both."
+  },
+  {
+    "id": "trino-006",
+    "cat": "Trino",
+    "q": "How does predicate pushdown work in Trino, and which connectors support it?",
+    "a": "Predicate pushdown means Trino passes WHERE clause filters down to the storage layer so the connector can skip data before sending it to workers. How it works: (1) During planning, Trino identifies predicates on partitioned or indexed columns. (2) The coordinator passes these predicates to the connector's split generation. (3) The connector filters at the source — e.g., skips entire S3 files, Parquet row groups, or partitions. Types of pushdown: (a) Partition pruning — skip S3 prefixes/HDFS dirs that don't match the filter (Hive/Iceberg/Delta). (b) Predicate pushdown into file format — ORC/Parquet column statistics let Trino skip row groups (min/max bloom filters). (c) Full predicate pushdown to DB — JDBC connectors translate WHERE clauses into SQL sent to the remote DB. Connectors with strong pushdown: Hive, Iceberg (most advanced — hidden partitioning, Z-order), Delta, all JDBC connectors. To verify pushdown is happening: run EXPLAIN and look for 'ScanFilterProject' with pushdown annotations."
+  },
+  {
+    "id": "trino-007",
+    "cat": "Trino",
+    "q": "How does Trino's cost-based optimizer (CBO) work? What statistics does it use and how do you collect them?",
+    "a": "Trino's CBO uses table statistics to choose better join order, join strategy (broadcast vs hash), and aggregation placement. Statistics it uses: (1) Row count — total rows in a table. (2) Column NDV (number of distinct values) — used to estimate join output size. (3) Column min/max — enables range predicate selectivity estimation. (4) Null fraction — affects filter selectivity. (5) Average column size — memory estimation. How to collect: run ANALYZE <table> — this triggers a full scan and stores stats in the metastore. Example: ANALYZE hive.sales.orders; For Iceberg: ANALYZE iceberg.sales.orders WITH (mode = 'FULL_REFRESH'); CBO impact: without stats, Trino defaults to heuristic join ordering. With stats, it can reorder multi-way joins to start with the smallest tables, potentially 10–100x speedup. Check if stats exist: SHOW STATS FOR <table>. Gotcha: stats go stale after heavy writes — re-run ANALYZE periodically or after large loads."
+  },
+  {
+    "id": "trino-008",
+    "cat": "Trino",
+    "q": "How do cross-catalog (federated) queries work in Trino? Show the syntax and describe a real use case.",
+    "a": "Trino's three-part naming (catalog.schema.table) enables querying across catalogs in a single SQL statement. Syntax: SELECT o.order_id, c.name, p.price FROM hive.sales.orders o JOIN mysql.crm.customers c ON o.customer_id = c.id JOIN postgresql.pricing.products p ON o.product_id = p.id WHERE o.order_date >= DATE '2024-01-01'; Real use case: join a data lakehouse (Hive/Iceberg on S3) with a live operational database (MySQL/Postgres) to enrich historical analytics with current reference data — without ETL. Trino pulls data from each source in parallel, applies joins in-memory on workers. Performance tip: for JDBC sources, Trino pushes predicates down so only relevant rows are fetched. Federation gotcha: if a remote DB is slow or the result set is large, you become bottlenecked by that source. For large remote tables, consider ETL-ing them to the lakehouse first and only federating for small lookup joins."
+  },
+  {
+    "id": "trino-009",
+    "cat": "Trino",
+    "q": "How does Trino manage memory? Explain query memory limits, per-node limits, and spilling.",
+    "a": "Trino is primarily in-memory — understanding memory limits is critical to avoiding OOM kills. Key config properties: (1) query.max-memory — total memory a single query can use across ALL workers (default: 20GB). (2) query.max-memory-per-node — memory a query can use on a single worker node (default: 1GB). (3) memory.heap-headroom-per-node — memory reserved for non-query use (JVM overhead, etc.). Memory pools: workers have a 'general pool' for queries and a 'reserved pool' for the single largest query when memory is tight. Spilling: when enabled (experimental), Trino spills hash tables and sort buffers to disk to handle queries that exceed memory. Enable with: spill-enabled=true and spiller-spill-path=/mnt/trino-spill. Spilling is slower but prevents OOM. Diagnosis: if queries fail with 'Query exceeded per-node user memory limit', either reduce query parallelism (session property task_concurrency), add workers, or increase limits. Check memory usage live via Trino UI (coordinator:8080) → Query details → Memory tab."
+  },
+  {
+    "id": "trino-010",
+    "cat": "Trino",
+    "q": "What are resource groups in Trino and how do they enable multi-tenancy?",
+    "a": "Resource groups are Trino's mechanism for workload management — they limit and prioritize query execution across teams or use cases. Key concepts: (1) Resource group tree — groups are hierarchical (e.g., global → team_a, team_b → interactive, batch). (2) Per-group limits: maxQueued (max queued queries), hardConcurrencyLimit (max running queries), softMemoryLimit (% of cluster memory). (3) Scheduling policy: FAIR (default), WEIGHTED, WEIGHTED_FAIR, QUERY_PRIORITY. (4) Selectors — rules that route queries to groups based on user, source, client tag, or query regex. Example: BI dashboard queries go to 'interactive' (high concurrency, low memory), heavy ETL goes to 'batch' (low concurrency, high memory). Config: resource-groups.config-file in etc/resource-groups.json. Multi-tenancy use case: prevent a single runaway query from starving other users. SaaS platforms use resource groups to give each tenant a guaranteed share of the cluster. Pairs well with role-based security so teams can only query their own catalogs."
+  },
+  {
+    "id": "trino-011",
+    "cat": "Trino",
+    "q": "How does Trino handle security? Compare file-based access control with OPA integration.",
+    "a": "Trino security has two layers: authentication (who are you?) and authorization (what can you do?). Authentication options: LDAP, Kerberos, JWT, certificate-based, or OAuth2/OIDC — configured in config.properties. Authorization: (1) File-based access control — rules defined in a JSON file (access-control.json). You specify allow/deny rules for catalogs, schemas, tables, and columns per user or group. Simple but requires file updates and cluster restart (or hot-reload) for changes. Good for small teams. (2) OPA (Open Policy Agent) integration — Trino sends authorization requests as JSON to an external OPA server. Policies are written in Rego and can be updated dynamically without restarting Trino. Scales to complex, attribute-based policies (e.g., row-level or column-level security by department). Good for large orgs with dynamic policy needs. Column masking and row filtering: supported via OPA and the system access control SPI — enables data privacy at the query layer (e.g., mask SSN column for non-privileged users). TLS encryption between clients and coordinator, and between coordinator and workers, is configurable and recommended for production."
+  },
+  {
+    "id": "trino-012",
+    "cat": "Trino",
+    "q": "How does Trino work with S3 and the data lakehouse? Explain the native file system, Hive Metastore role, and S3 SelectPushdown.",
+    "a": "Trino reads data from S3 (or GCS/ADLS) via the Hive or Iceberg connector. Three components work together: (1) Native file system — Trino has a pluggable file system layer. The S3 native file system (s3://) is configured with AWS credentials, endpoint, region, and path-style access in catalog properties. Trino workers open S3 objects directly (no HDFS NameNode required). (2) Hive Metastore (HMS) — stores table metadata: schema, partition locations, file format, SerDe. Trino queries HMS to discover splits (which S3 paths/files to read). You can use AWS Glue Data Catalog as a drop-in HMS replacement (glue.catalog.id config). For Iceberg, the catalog can be REST, Hive, Glue, or JDBC — HMS is optional. (3) S3 Select Pushdown — AWS feature that lets Trino push simple column/row filters to S3 itself, which executes them server-side before returning data. Reduces network transfer. Enable with: hive.s3select-pushdown.enabled=true. Supported formats: CSV, JSON, Parquet (limited). Best practice: store data in columnar ORC or Parquet with snappy compression, partition by common filter columns (date, region), and use Iceberg for best partition pruning and schema evolution."
+  },
+  {
+    "id": "trino-013",
+    "cat": "Trino",
+    "q": "What are common Trino performance pitfalls and how do you diagnose them?",
+    "a": "Top pitfalls and diagnostics: (1) Missing predicate pushdown — query scans full table. Diagnose: EXPLAIN ANALYZE shows high 'Physical input bytes'. Fix: add WHERE on partition columns; verify connector supports pushdown. (2) Skewed joins — one worker handles most of the data. Diagnose: EXPLAIN ANALYZE shows uneven task durations. Fix: use session property skewed_join_threshold or rewrite query to pre-aggregate. (3) Too-large broadcast joins — Trino broadcasts the 'build' side of a hash join to all workers. If the build side is large, OOM. Fix: SET SESSION join_distribution_type = 'PARTITIONED' to force hash join instead. (4) Stale or missing statistics — CBO makes bad join ordering decisions. Fix: run ANALYZE on hot tables. (5) Connector bottleneck — HMS or metastore is slow to list partitions (thousands of partitions). Fix: use Iceberg (metadata files) or cache Hive partition lists. (6) GC pressure — large heap with old-gen GC pauses. Diagnose: coordinator logs, JVM GC logs. Fix: tune JVM heap (-Xmx), reduce heap-headroom-per-node. Key tool: Trino Web UI (port 8080) — Live Plan, Stage details, operator stats, memory usage per query."
+  },
+  {
+    "id": "trino-014",
+    "cat": "Trino",
+    "q": "What are key Trino session properties engineers commonly tune?",
+    "a": "Session properties override server-level defaults for a single query or session. Set with: SET SESSION property = value; Key properties: (1) task_concurrency — controls the number of local parallel threads per task (default: 16). Reduce for memory-heavy queries; increase for CPU-bound ones. SET SESSION task_concurrency = 8; (2) join_distribution_type — 'BROADCAST' (default for small builds) or 'PARTITIONED' (hash join). Force partitioned for large join inputs to avoid OOM: SET SESSION join_distribution_type = 'PARTITIONED'; (3) query_max_memory — per-query memory cap for this session only. SET SESSION query_max_memory = '50GB'; (4) redistribute_writes — controls whether INSERT/CTAS redistributes data before writing (enables parallel writes). SET SESSION redistribute_writes = true; Bonus: (5) enable_dynamic_filtering = true — enables dynamic filter pushdown for selective joins. (6) optimizer_use_histograms = true — uses column histograms for better cardinality estimates. View all available properties: SHOW SESSION;"
+  },
+  {
+    "id": "trino-015",
+    "cat": "Trino",
+    "q": "Trino vs AWS Athena: when should you self-host Trino instead of using managed Athena?",
+    "a": "Athena IS Trino under the hood (AWS forked Presto/Trino). Key differences: Athena pros: (1) Zero ops — no cluster to manage, auto-scales, pay per TB scanned. (2) Native Glue integration — table catalog is Glue by default. (3) S3 results caching, query history in console. (4) JDBC/ODBC drivers, BI tool integration. Trino (self-hosted) pros: (1) Cost at scale — at high query volume, dedicated Trino clusters are dramatically cheaper than Athena's per-TB pricing. Rule of thumb: >$5K/month Athena bill = time to evaluate self-hosted. (2) Latency — dedicated cluster has no cold-start; queries hit workers immediately. (3) Configurability — resource groups, custom connectors, session properties, fault-tolerant execution. (4) Federation — query non-S3 sources (Kafka, Postgres, MySQL) that Athena can't reach. (5) Data sovereignty — keep data and queries entirely in your VPC/infrastructure. Choose Athena when: you're early-stage, query volume is low/sporadic, and you want zero infrastructure overhead. Choose self-hosted Trino when: volume justifies cost savings, you need low latency SLAs, complex multi-source federation, or advanced workload management."
+  },
+  {
+    "id": "trino-016",
+    "cat": "Trino",
+    "q": "What is fault-tolerant execution (FTE) in Trino and how does it work?",
+    "a": "By default, Trino has no fault tolerance — if a worker dies mid-query, the entire query fails. Fault-tolerant execution (introduced in Trino 376+) changes this. What it enables: queries survive worker failures and can be retried at the task level rather than restarting from scratch. This makes Trino viable for long-running ETL/batch queries, not just interactive ones. How it works: (1) Exchange manager — FTE introduces an exchange manager that persists intermediate shuffle data (exchange data) to durable storage (S3 or HDFS) instead of keeping it in worker memory. If a worker fails, another worker reads the persisted exchange data and continues. (2) Task retries — coordinator detects failed tasks and reschedules them on healthy workers, reusing persisted upstream data. Config: retry-policy=TASK (task-level retry) or QUERY (full query retry). For task-level FTE: fault-tolerant-execution-exchange-manager.name=filesystem and configure a spill path. Tradeoffs: FTE adds I/O overhead (writing exchange data to S3), so latency increases ~10–30%. Best suited for multi-minute batch queries where correctness matters more than speed. Not recommended for sub-second interactive queries."
+  },
+  {
+    "id": "trino-017",
+    "cat": "Trino",
+    "q": "What is dynamic filtering in Trino and how does it speed up selective hash joins?",
+    "a": "Dynamic filtering is an optimization where Trino builds a runtime filter from the 'build' side of a hash join and pushes it down to the 'probe' side scan — reducing data read from storage. Classic problem it solves: SELECT * FROM large_orders o JOIN small_promotions p ON o.promo_id = p.id WHERE p.campaign = 'SUMMER2024'; Without dynamic filtering: Trino scans ALL of large_orders, then filters after joining. With dynamic filtering: (1) Trino first builds the hash table from small_promotions (the small side). (2) It extracts the set of promo_ids that match the WHERE clause — e.g., {42, 99, 107}. (3) It pushes this filter down to the large_orders table scan before reading S3/ORC files. (4) The scan skips row groups, partitions, and files that don't contain matching promo_ids. Result: instead of reading 100GB of orders, you might read 500MB. Speedup can be 10–100x for highly selective joins. Enable: SET SESSION enable_dynamic_filtering = true; (on by default in recent Trino versions). Works best when the build side is small and the join key has low cardinality relative to the probe table."
+  },
+  {
+    "id": "trino-018",
+    "cat": "Trino",
+    "q": "How do you read and interpret a Trino EXPLAIN output? What should you look for?",
+    "a": "EXPLAIN (TYPE DISTRIBUTED) shows the full distributed query plan as a tree of stages. Key things to look for: (1) Stages — numbered fragments (e.g., Fragment 0, Fragment 1). Data flows bottom-up. Leaf fragments = table scans; top fragment = final output. (2) Exchange type — GATHER (single node), REPARTITION (hash shuffle), REPLICATE (broadcast). Seeing REPLICATE on a large table = potential OOM. (3) Estimated rows and cost — shown per node if CBO stats exist: est. rows=1.23M, cost=2.45e8. If you see '?' for estimates, statistics are missing — run ANALYZE. (4) ScanFilterProject — the table scan node. Look for 'pushdown' annotations showing predicates being pushed to storage. (5) Join strategy — HashJoin vs MergeJoin. HashJoin is most common; check build vs probe side sizing. (6) Aggregation placement — partial aggregation should happen close to the scan (before shuffle) to reduce data volume. EXPLAIN ANALYZE actually executes the query and shows real row counts and timings per operator — use this to find which stage is slowest or producing unexpectedly large outputs. Key command variants: EXPLAIN SELECT ...; EXPLAIN ANALYZE SELECT ...; EXPLAIN (TYPE LOGICAL) SELECT ...;"
+  },
+  {
+    "id": "trino-019",
+    "cat": "Trino",
+    "q": "How do Trino table statistics work? Show the ANALYZE syntax and explain how stats improve query planning.",
+    "a": "Trino's cost-based optimizer (CBO) relies on table statistics stored in the metastore. Without stats, the optimizer uses conservative defaults and often makes suboptimal join ordering decisions. Statistics collected: row count, column NDV (number of distinct values), min/max values, null fraction, and average column size. How to collect stats: -- For Hive connector: ANALYZE hive.sales.orders; -- With column-level stats on specific columns: ANALYZE hive.sales.orders WITH (columns = ARRAY['customer_id', 'order_date', 'amount']); -- For Iceberg: ANALYZE iceberg.analytics.events; How stats improve planning: (1) Join ordering — CBO reorders multi-way joins so smallest tables are on the build side. A 5-table join can have 120 orderings; stats let CBO pick the best. (2) Broadcast vs hash join — if the build side is estimated < broadcast_max_size (default 100MB), Trino broadcasts it to all workers instead of doing a costly hash shuffle. (3) Partial aggregation — CBO decides whether partial aggregation before shuffle is worth it based on NDV estimates. View current stats: SHOW STATS FOR hive.sales.orders; Automation tip: schedule ANALYZE after major data loads in your Airflow DAG to keep stats fresh."
+  },
+  {
+    "id": "trino-020",
+    "cat": "Trino",
+    "q": "How do you read Delta Lake and Apache Iceberg tables in Trino? Which connector do you use and what's the syntax?",
+    "a": "Both Delta Lake and Iceberg have dedicated Trino connectors. Apache Iceberg: Use the Iceberg connector. Config (etc/trino/catalog/iceberg.properties): connector.name=iceberg iceberg.catalog.type=hive_metastore (or rest, glue, jdbc) hive.metastore.uri=thrift://metastore:9083 Query syntax: SELECT * FROM iceberg.analytics.events WHERE event_date >= DATE '2024-01-01'; Time travel: SELECT * FROM iceberg.analytics.events FOR TIMESTAMP AS OF TIMESTAMP '2024-01-15 12:00:00'; SELECT * FROM iceberg.analytics.events FOR VERSION AS OF 42; Delta Lake: Use the Delta connector. Config (etc/trino/catalog/delta.properties): connector.name=delta_lake hive.metastore.uri=thrift://metastore:9083 delta.enable-non-concurrent-writes=true Query syntax: SELECT * FROM delta.sales.orders LIMIT 100; Time travel (Delta log snapshots): SELECT * FROM delta.sales.orders FOR TIMESTAMP AS OF TIMESTAMP '2024-02-01 00:00:00'; SELECT * FROM delta.sales.orders FOR VERSION AS OF 10; Key differences: Iceberg is more feature-rich in Trino (hidden partitioning, better CBO integration, REST catalog support). Delta support in Trino is read-focused (write support is more limited than in Spark). For greenfield projects, prefer Iceberg with Trino."
+  }
+]
