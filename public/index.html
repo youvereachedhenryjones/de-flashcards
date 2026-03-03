@@ -68,6 +68,19 @@ header h1 span{color:var(--teal)}
 
 /* Empty state */
 .empty{text-align:center;padding:48px 24px;color:var(--slate)}
+.session-summary{background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:16px;margin:16px auto;max-width:360px;text-align:left}
+.session-summary h3{color:var(--teal);margin-bottom:10px;font-size:15px}
+.session-summary .ss-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(100,116,139,.1);font-size:13px}
+.session-summary .ss-row:last-child{border-bottom:none}
+.session-summary .ss-label{color:var(--slate)}
+.session-summary .ss-val{color:var(--text);font-weight:600}
+.progress-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.progress-table th{text-align:left;padding:8px 10px;color:var(--slate);border-bottom:1px solid rgba(100,116,139,.2);font-weight:600}
+.progress-table td{padding:7px 10px;border-bottom:1px solid rgba(100,116,139,.1)}
+.progress-table tr:last-child td{border-bottom:none}
+.conf-bar{display:inline-block;height:6px;border-radius:3px;background:var(--teal);min-width:4px}
+.mode-btn{background:var(--card);border:1px solid rgba(100,116,139,.2);color:var(--slate);padding:5px 12px;border-radius:999px;cursor:pointer;font-size:12px;white-space:nowrap;transition:.2s}
+.mode-btn.active,.mode-btn:hover{color:var(--text);border-color:rgba(99,102,241,.7);background:rgba(99,102,241,.12)}
 .empty h2{font-size:20px;margin-bottom:8px;color:var(--text)}
 
 /* Manage view */
@@ -129,12 +142,20 @@ textarea{min-height:80px;resize:vertical}
 
   <div class="tabs">
     <div class="tab active" onclick="showView('study')">Study</div>
+    <div class="tab" onclick="showView('progress')">Progress</div>
     <div class="tab" onclick="showView('manage')">Manage</div>
     <div class="tab" onclick="showView('add')">+ Add</div>
   </div>
 
+  <!-- Progress View -->
+  <div id="progress-view" class="hidden">
+    <h3 style="text-align:center;margin-bottom:16px;color:var(--text)">Topic Mastery</h3>
+    <div id="progress-table"></div>
+  </div>
+
   <!-- Study View -->
   <div id="study-view">
+    <div class="filters" id="study-modes"></div>
     <div class="filters" id="category-filters"></div>
     <div class="filters" id="filter-utils"></div>
     <div class="card-container" id="card-container">
@@ -153,13 +174,14 @@ textarea{min-height:80px;resize:vertical}
     <div class="card-count" id="card-count"></div>
     <div class="ratings hidden" id="ratings">
       <button class="rate-btn again" onclick="rate(0)">Again<span class="interval" id="int-again"></span></button>
-      <button class="rate-btn hard" onclick="rate(3)">Hard<span class="interval" id="int-hard"></span></button>
+      <button class="rate-btn hard" onclick="rate(2)">Hard<span class="interval" id="int-hard"></span></button>
       <button class="rate-btn good" onclick="rate(4)">Good<span class="interval" id="int-good"></span></button>
       <button class="rate-btn easy" onclick="rate(5)">Easy<span class="interval" id="int-easy"></span></button>
     </div>
     <div class="empty hidden" id="empty-state">
-      <h2>🎉 All caught up!</h2>
-      <p>No cards due for review. Come back later or add new cards.</p>
+      <h2 id="empty-title">🎉 All caught up!</h2>
+      <div id="session-summary"></div>
+      <p id="empty-msg">No cards due for review. Come back later or add new cards.</p>
     </div>
   </div>
 
@@ -257,12 +279,27 @@ const FILTERS=["All","Original","dbt","Airflow","Spark","Data Modeling","kafka",
 let specialFilter='All';
 let activeFilters=new Set();
 let categoryTotals={};
+let studyMode="all"; // all|weak|review|new
+let sessionReviewAgain=new Set();
+let sessionStats={reviewed:0,easy:0,good:0,hard:0,again:0,topicCounts:{},confidenceStart:{}};
 let cards=[], currentCard=null, currentIdx=-1, currentDueIdx=0;
 
 function loadCards(){
   const raw=localStorage.getItem(STORAGE_KEY);
-  if(raw){cards=JSON.parse(raw)}
-  else{cards=DEFAULT_CARDS.map((c,i)=>({id:i+1,...c,ef:2.5,interval:0,reps:0,due:Date.now()}));saveCards()}
+  if(raw){
+    cards=JSON.parse(raw);
+    let updated=false;
+    cards.forEach(c=>{
+      if(c.confidence==null){
+        c.confidence=50;
+        updated=true;
+      }
+    });
+    if(updated)saveCards();
+  }else{
+    cards=DEFAULT_CARDS.map((c,i)=>({id:i+1,...c,ef:2.5,interval:0,reps:0,due:Date.now(),confidence:50}));
+    saveCards();
+  }
 }
 function saveCards(){localStorage.setItem(STORAGE_KEY,JSON.stringify(cards))}
 
@@ -272,10 +309,95 @@ function getDueCards(){
 }
 
 function getFilteredDueCards(){
-  const due=getDueCards();
-  if(specialFilter==='Original')return due.filter(c=>DEFAULT_QUESTIONS.has(normalizeQuestion(c.q)));
-  if(activeFilters.size===0)return due;
-  return due.filter(c=>activeFilters.has(c.cat));
+  let due=getDueCards();
+  // Apply topic filter
+  if(specialFilter==='Original')due=due.filter(c=>DEFAULT_QUESTIONS.has(normalizeQuestion(c.q)));
+  else if(activeFilters.size>0)due=due.filter(c=>activeFilters.has(c.cat));
+  // Apply study mode
+  if(studyMode==='weak')due=due.filter(c=>(c.confidence??50)<60);
+  else if(studyMode==='review')due=due.filter(c=>sessionReviewAgain.has(c.id));
+  else if(studyMode==='new')due=due.filter(c=>c.reps===0);
+  return due;
+}
+
+const STUDY_MODES=[
+  {id:'all',label:'All Cards'},
+  {id:'weak',label:'Weak Cards'},
+  {id:'review',label:'Review Again'},
+  {id:'new',label:'New Cards'}
+];
+
+function renderStudyModes(){
+  const wrap=document.getElementById('study-modes');
+  if(!wrap)return;
+  wrap.innerHTML=STUDY_MODES.map(m=>
+    `<button class="filter-btn${m.id===studyMode?' active':''}" data-mode="${m.id}">${m.label}</button>`
+  ).join('');
+  wrap.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      studyMode=btn.dataset.mode;
+      renderStudyModes();
+      showCard();
+    });
+  });
+}
+
+function renderProgress(){
+  const el=document.getElementById('progress-table');
+  if(!el)return;
+  const byTopic={};
+  cards.forEach(c=>{
+    const cat=c.cat||'Unknown';
+    if(!byTopic[cat])byTopic[cat]={total:0,mastered:0,weak:0,confSum:0};
+    byTopic[cat].total++;
+    const conf=c.confidence??50;
+    byTopic[cat].confSum+=conf;
+    if(conf>=80)byTopic[cat].mastered++;
+    if(conf<60)byTopic[cat].weak++;
+  });
+  const rows=Object.entries(byTopic).sort((a,b)=>b[1].total-a[1].total).map(([cat,s])=>{
+    const avg=Math.round(s.confSum/s.total);
+    return `<tr>
+      <td style="color:var(--text);font-weight:500">${cat}</td>
+      <td style="text-align:center">${s.total}</td>
+      <td style="text-align:center;color:#10b981">${s.mastered}</td>
+      <td style="text-align:center;color:#ef4444">${s.weak}</td>
+      <td><span class="conf-bar" style="width:${avg}px"></span> <span style="font-size:11px;color:var(--slate)">${avg}%</span></td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<table class="progress-table">
+    <thead><tr>
+      <th>Topic</th><th style="text-align:center">Total</th>
+      <th style="text-align:center">Mastered</th><th style="text-align:center">Weak</th>
+      <th>Avg Confidence</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderSessionSummary(){
+  const s=sessionStats;
+  if(s.reviewed===0){
+    document.getElementById('session-summary').innerHTML='';
+    document.getElementById('empty-title').textContent='🎉 All caught up!';
+    document.getElementById('empty-msg').textContent='No cards due for review. Come back later or add new cards.';
+    return;
+  }
+  const accuracy=Math.round(((s.easy+s.good)/s.reviewed)*100);
+  const topicsText=Object.entries(s.topicCounts)
+    .sort((a,b)=>b[1]-a[1]).slice(0,4)
+    .map(([t,n])=>`${t} (${n})`).join(', ');
+  const tomorrow=cards.filter(c=>c.due>Date.now()&&c.due<=Date.now()+86400000).length;
+  document.getElementById('empty-title').textContent='Session Complete!';
+  document.getElementById('empty-msg').textContent='';
+  document.getElementById('session-summary').innerHTML=`<div class="session-summary">
+    <h3>📊 Session Summary</h3>
+    <div class="ss-row"><span class="ss-label">Cards reviewed</span><span class="ss-val">${s.reviewed}</span></div>
+    <div class="ss-row"><span class="ss-label">Accuracy</span><span class="ss-val">${accuracy}% (${s.easy+s.good} / ${s.reviewed})</span></div>
+    <div class="ss-row"><span class="ss-label">Again / Hard</span><span class="ss-val">${s.again} / ${s.hard}</span></div>
+    ${topicsText?`<div class="ss-row"><span class="ss-label">Topics covered</span><span class="ss-val" style="font-size:11px">${topicsText}</span></div>`:''}
+    <div class="ss-row"><span class="ss-label">Due tomorrow</span><span class="ss-val">${tomorrow} cards</span></div>
+  </div>`;
 }
 
 function renderFilters(){
@@ -354,6 +476,18 @@ function sm2(card,quality){
   return{...card,ef:Math.round(ef*100)/100,interval,reps,due};
 }
 
+function updateConfidence(card,quality){
+  const current=card.confidence??50;
+  let next=current;
+  if(quality===5)next=current+10;
+  else if(quality===4)next=current+5;
+  else if(quality===2)next=current-10;
+  else if(quality===0)next=current-20;
+  if(next<0)next=0;
+  if(next>100)next=100;
+  return next;
+}
+
 function previewInterval(card,q){
   const r=sm2(card,q);
   if(r.interval===0)return'<1m';
@@ -409,6 +543,7 @@ function showCard(){
     container.classList.add('hidden');
     empty.classList.remove('hidden');
     counter.textContent='';
+    renderSessionSummary();
     return;
   }
   container.classList.remove('hidden');
@@ -423,7 +558,7 @@ function showCard(){
   counter.textContent=`Card ${currentDueIdx} of ${due.length}`;
 
   document.getElementById('int-again').textContent=previewInterval(currentCard,0);
-  document.getElementById('int-hard').textContent=previewInterval(currentCard,3);
+  document.getElementById('int-hard').textContent=previewInterval(currentCard,2);
   document.getElementById('int-good').textContent=previewInterval(currentCard,4);
   document.getElementById('int-easy').textContent=previewInterval(currentCard,5);
 }
@@ -438,7 +573,22 @@ function flipCard(){
 
 function rate(quality){
   if(currentIdx<0)return;
-  cards[currentIdx]=sm2(cards[currentIdx],quality);
+  const card=cards[currentIdx];
+  // Track session stats
+  if(!(card.id in sessionStats.confidenceStart)){
+    sessionStats.confidenceStart[card.id]=card.confidence??50;
+  }
+  sessionStats.reviewed++;
+  if(quality===5)sessionStats.easy++;
+  else if(quality===4)sessionStats.good++;
+  else if(quality===2){sessionStats.hard++;sessionReviewAgain.add(card.id);}
+  else if(quality===0){sessionStats.again++;sessionReviewAgain.add(card.id);}
+  const cat=card.cat||'Unknown';
+  sessionStats.topicCounts[cat]=(sessionStats.topicCounts[cat]||0)+1;
+  // Update card
+  const updatedCard=sm2(card,quality);
+  updatedCard.confidence=updateConfidence(updatedCard,quality);
+  cards[currentIdx]=updatedCard;
   saveCards();
   syncCardToSupabase(cards[currentIdx]);
   updateStreak();
@@ -449,12 +599,18 @@ function rate(quality){
 
 // Views
 function showView(v){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['study','manage','add'][i]===v));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['study','progress','manage','add'][i]===v));
   document.getElementById('study-view').classList.toggle('hidden',v!=='study');
+  document.getElementById('progress-view').classList.toggle('hidden',v!=='progress');
   document.getElementById('manage-view').classList.toggle('hidden',v!=='manage');
   document.getElementById('add-view').classList.toggle('hidden',v!=='add');
-  if(v==='study')showCard();
+  if(v==='study'){
+    sessionStats={reviewed:0,easy:0,good:0,hard:0,again:0,topicCounts:{},confidenceStart:{}};
+    sessionReviewAgain=new Set();
+    showCard();
+  }
   if(v==='manage')renderManage();
+  if(v==='progress')renderProgress();
 }
 
 function renderManage(){
@@ -474,7 +630,7 @@ function addCard(){
   const a=document.getElementById('new-a').value.trim();
   if(!q||!a){alert('Both fields required');return}
   const id=Math.max(0,...cards.map(c=>c.id))+1;
-  cards.push({id,cat,q,a,ef:2.5,interval:0,reps:0,due:Date.now()});
+  cards.push({id,cat,q,a,ef:2.5,interval:0,reps:0,due:Date.now(),confidence:50});
   saveCards();updateCategoryTotals();renderFilters();updateStats();
   document.getElementById('new-q').value='';
   document.getElementById('new-a').value='';
@@ -535,7 +691,8 @@ async function mergePackCards(){
         ef:2.5,
         interval:0,
         reps:0,
-        due:Date.now()
+        due:Date.now(),
+        confidence:50
       });
     });
     if(toAdd.length){
@@ -688,6 +845,7 @@ async function initApp(){
   loadCards();
   try{await Promise.race([mergePackCards(),new Promise((_,r)=>setTimeout(()=>r('timeout'),5000))])}catch(e){console.warn('Pack cards load failed:',e)}
   updateCategoryTotals();
+  renderStudyModes();
   renderFilters();
   updateStats();
   showCard();
