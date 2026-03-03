@@ -352,7 +352,7 @@ function renderProgress(){
     byTopic[cat].total++;
     const conf=c.confidence??50;
     byTopic[cat].confSum+=conf;
-    if(conf>=80)byTopic[cat].mastered++;
+    if(conf>80)byTopic[cat].mastered++;
     if(conf<60)byTopic[cat].weak++;
   });
   const rows=Object.entries(byTopic).sort((a,b)=>b[1].total-a[1].total).map(([cat,s])=>{
@@ -387,16 +387,33 @@ function renderSessionSummary(){
   const topicsText=Object.entries(s.topicCounts)
     .sort((a,b)=>b[1]-a[1]).slice(0,4)
     .map(([t,n])=>`${t} (${n})`).join(', ');
-  const tomorrow=cards.filter(c=>c.due>Date.now()&&c.due<=Date.now()+86400000).length;
+  const trackedIds=Object.keys(s.confidenceStart).map(id=>Number(id)).filter(id=>Number.isFinite(id));
+  let deltaSum=0;
+  let deltaCount=0;
+  trackedIds.forEach(id=>{
+    const card=cards.find(c=>c.id===id);
+    if(!card)return;
+    const start=s.confidenceStart[id];
+    const current=card.confidence??50;
+    if(start==null)return;
+    deltaSum+=current-start;
+    deltaCount++;
+  });
+  const avgDelta=Math.round(deltaCount?deltaSum/deltaCount:0);
+  const avgDeltaText=`${avgDelta>0?'+':''}${avgDelta}%`;
+  const now=Date.now();
+  const tomorrow=cards.filter(c=>c.due>now&&c.due<=now+86400000).length;
+  const in3days=cards.filter(c=>c.due>now+2*86400000&&c.due<=now+3*86400000).length;
   document.getElementById('empty-title').textContent='Session Complete!';
   document.getElementById('empty-msg').textContent='';
   document.getElementById('session-summary').innerHTML=`<div class="session-summary">
     <h3>📊 Session Summary</h3>
     <div class="ss-row"><span class="ss-label">Cards reviewed</span><span class="ss-val">${s.reviewed}</span></div>
     <div class="ss-row"><span class="ss-label">Accuracy</span><span class="ss-val">${accuracy}% (${s.easy+s.good} / ${s.reviewed})</span></div>
+    <div class="ss-row"><span class="ss-label">Confidence gained</span><span class="ss-val">${avgDeltaText}</span></div>
     <div class="ss-row"><span class="ss-label">Again / Hard</span><span class="ss-val">${s.again} / ${s.hard}</span></div>
     ${topicsText?`<div class="ss-row"><span class="ss-label">Topics covered</span><span class="ss-val" style="font-size:11px">${topicsText}</span></div>`:''}
-    <div class="ss-row"><span class="ss-label">Due tomorrow</span><span class="ss-val">${tomorrow} cards</span></div>
+    <div class="ss-row"><span class="ss-label">Next review</span><span class="ss-val">${tomorrow} cards due tomorrow, ${in3days} cards due in 3 days</span></div>
   </div>`;
 }
 
@@ -579,8 +596,8 @@ function rate(quality){
     sessionStats.confidenceStart[card.id]=card.confidence??50;
   }
   sessionStats.reviewed++;
-  if(quality===5)sessionStats.easy++;
-  else if(quality===4)sessionStats.good++;
+  if(quality===5){sessionStats.easy++;sessionReviewAgain.delete(card.id);}
+  else if(quality===4){sessionStats.good++;sessionReviewAgain.delete(card.id);}
   else if(quality===2){sessionStats.hard++;sessionReviewAgain.add(card.id);}
   else if(quality===0){sessionStats.again++;sessionReviewAgain.add(card.id);}
   const cat=card.cat||'Unknown';
@@ -842,6 +859,8 @@ async function onAuthStateChange(session){
 }
 
 async function initApp(){
+  sessionStats={reviewed:0,easy:0,good:0,hard:0,again:0,topicCounts:{},confidenceStart:{}};
+  sessionReviewAgain=new Set();
   loadCards();
   try{await Promise.race([mergePackCards(),new Promise((_,r)=>setTimeout(()=>r('timeout'),5000))])}catch(e){console.warn('Pack cards load failed:',e)}
   updateCategoryTotals();
