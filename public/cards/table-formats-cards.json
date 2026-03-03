@@ -1,0 +1,152 @@
+[
+  {
+    "id": "tf-001",
+    "cat": "Table Formats",
+    "q": "What problem do open table formats like Delta Lake, Iceberg, and Hudi solve that raw Parquet/ORC files don't?",
+    "a": "Raw Parquet files have no ACID guarantees: concurrent writers corrupt data, deletes require full rewrites, schema evolution breaks readers, no versioning/time travel. Table formats add: 1) Transaction logs for ACID commits, 2) Manifest files tracking data files + statistics, 3) Partition pruning without listing all files, 4) Time travel via snapshot history, 5) Schema evolution without rewrites, 6) Upserts and deletes at row level. They turn a directory of files into a proper table with database-grade reliability."
+  },
+  {
+    "id": "tf-002",
+    "cat": "Table Formats",
+    "q": "How does the Delta Lake transaction log (_delta_log) work and how does it provide ACID guarantees?",
+    "a": "The _delta_log is a directory of JSON files (00000000000000000000.json, 00000000000000000001.json, etc.) sitting alongside your Parquet data files. Every write operation — whether an INSERT, UPDATE, DELETE, or schema change — appends a new JSON commit file describing what changed: which files were added, which were removed, stats, metadata. ACID is achieved via: Atomicity (a commit either fully appears or doesn't), Consistency (schema validation on every write), Isolation (optimistic concurrency — writers attempt commits and fail if another committed first), Durability (commit files are written to object storage before success is returned). Every 10 commits, Delta checkpoints the log into a Parquet file for faster reads. To read the table, you replay the log from the latest checkpoint forward to reconstruct the current state."
+  },
+  {
+    "id": "tf-003",
+    "cat": "Table Formats",
+    "q": "How does Delta Lake time travel work? What's the syntax and when would you use it?",
+    "a": "Delta Lake time travel lets you query any historical version of a table by replaying the transaction log up to a given point. Two syntax forms in SQL: VERSION AS OF — `SELECT * FROM my_table VERSION AS OF 42` — goes to a specific commit number. TIMESTAMP AS OF — `SELECT * FROM my_table TIMESTAMP AS OF '2024-01-15 10:00:00'` — finds the version at that point in time. In PySpark: `spark.read.format('delta').option('versionAsOf', 42).load('/path')`. Use cases: 1) Auditing — what did the data look like before a bad load? 2) Debugging — compare current vs historical state, 3) Reproducing ML training sets, 4) Rolling back a bad write via `RESTORE TABLE my_table TO VERSION AS OF 5`. Data is available as long as it hasn't been deleted by VACUUM."
+  },
+  {
+    "id": "tf-004",
+    "cat": "Table Formats",
+    "q": "What is Delta Lake Z-ordering and when should you use it?",
+    "a": "Z-ordering is a multi-dimensional locality optimization that co-locates related data in the same set of files. Instead of sorting by one column, Z-order interleaves multiple column orderings using a space-filling curve, so rows with similar values across multiple columns end up in the same files. Syntax: `OPTIMIZE my_table ZORDER BY (country, event_type)`. This enables file skipping — when you filter on `WHERE country = 'US' AND event_type = 'click'`, Delta reads only the files whose stats overlap those values. When to use: high-cardinality columns frequently used together in WHERE clauses, especially when your data is too large to fully scan. Limitations: 1) Only helps columns with high cardinality (low-cardinality columns like boolean offer little benefit), 2) Must re-run after new data arrives, 3) Not the same as sorting — it's a best-effort layout optimization, 4) Expensive — rewrites files."
+  },
+  {
+    "id": "tf-005",
+    "cat": "Table Formats",
+    "q": "What does the Delta Lake OPTIMIZE command do and when should you run it?",
+    "a": "OPTIMIZE performs bin-packing: it reads many small Parquet files and rewrites them into fewer, larger files (default target: 1 GB). Small files are the enemy of query performance because each file requires a separate read operation, and object storage has high per-request overhead. Syntax: `OPTIMIZE my_table` or with predicate `OPTIMIZE my_table WHERE date >= '2024-01-01'`. Combine with Z-ordering: `OPTIMIZE my_table ZORDER BY (user_id)`. When to run: 1) After streaming jobs that land many micro-batch files, 2) After incremental loads that write many small partitions, 3) On a schedule (nightly or weekly depending on ingest rate). In Databricks, auto-optimize can handle this automatically. The trade-off: OPTIMIZE rewrites data, consuming compute, so run it on off-peak schedules or only on recently written partitions."
+  },
+  {
+    "id": "tf-006",
+    "cat": "Table Formats",
+    "q": "What does Delta Lake VACUUM do, what's the default retention, and what are the risks of running it aggressively?",
+    "a": "VACUUM deletes Parquet data files that are no longer referenced by the current version of the Delta table — specifically files older than the retention threshold that were removed by previous DELETE, UPDATE, MERGE, or OPTIMIZE operations. Default retention: 7 days (168 hours). Syntax: `VACUUM my_table` or `VACUUM my_table RETAIN 24 HOURS`. Risks of aggressive VACUUM: 1) Time travel breaks — any `VERSION AS OF` or `TIMESTAMP AS OF` query referencing vacuumed files will fail with a FileNotFoundException, 2) Concurrent readers using stale snapshots may fail mid-query if their files get vacuumed, 3) If you're using Delta Sharing or have long-running read queries, files may disappear while they're being read. Best practice: never go below 7 days unless you've confirmed no active time-travel queries, and always check for streaming jobs that might hold references to old checkpoints."
+  },
+  {
+    "id": "tf-007",
+    "cat": "Table Formats",
+    "q": "Describe Apache Iceberg's metadata structure: snapshots, manifest lists, manifests, and data files.",
+    "a": "Iceberg has a 4-layer metadata hierarchy. Data Files are the actual Parquet/ORC/Avro files on storage. Manifest Files (.avro) are lists of data files, each manifest tracking a subset of files with per-file statistics (row counts, column min/max, null counts) — this is what enables file skipping. Manifest Lists (also called snapshot files) list all the manifests that make up a given snapshot — one entry per manifest with partition-level summaries. Snapshots represent the complete state of the table at a point in time; each snapshot points to a manifest list. The table's metadata.json file is the entry point, tracking the current snapshot, schema history, partition spec history, and all previous snapshots. When you write, Iceberg creates new manifest files and a new snapshot pointing to them — old snapshots remain until expiration. This tree structure means reads only touch the metadata they need."
+  },
+  {
+    "id": "tf-008",
+    "cat": "Table Formats",
+    "q": "What is Iceberg hidden partitioning and why is it better than Hive-style partitioning?",
+    "a": "In Hive-style partitioning, the partition value is physically embedded in the directory path (`/year=2024/month=01/day=15/`) and queries must explicitly filter on those exact partition columns with the exact stored values. If data is stored as `year=2024` but you filter `WHERE event_time >= '2024-01-01'`, Hive won't prune partitions. Iceberg hidden partitioning separates partition transforms from the physical layout. You define: `PARTITIONED BY (days(event_time), bucket(16, user_id))` — Iceberg derives the partition value by applying the transform to the column, stores it in metadata, and the query engine uses it for pruning automatically. Hidden means users just filter on `event_time` — they don't need to know how data is partitioned. Supported transforms: identity, year, month, day, hour, bucket(N, col), truncate(N, col). Major win: no partition column leaking into user queries, no silent full-scans from mismatched filter types."
+  },
+  {
+    "id": "tf-009",
+    "cat": "Table Formats",
+    "q": "What is Iceberg partition evolution and how does it work without rewriting data?",
+    "a": "Partition evolution allows you to change how a table is partitioned over time without rewriting existing data files. In Hive, changing partition structure means rewriting everything. In Iceberg, the partition spec is stored per-snapshot in metadata. When you run `ALTER TABLE orders REPLACE PARTITION FIELD month(order_date) WITH day(order_date)`, Iceberg creates a new partition spec version. New data is written using the new spec; old data files retain their original partition metadata. At query time, the engine handles both partition specs simultaneously: files written under the old monthly spec are queried with the old pruning logic, new files with the new daily logic. This means you get zero-downtime partition evolution with no ETL migration job. The same applies for adding or dropping partition fields. This is one of Iceberg's strongest differentiators — Hive tables often require painful partition migration projects."
+  },
+  {
+    "id": "tf-010",
+    "cat": "Table Formats",
+    "q": "What schema evolution operations does Apache Iceberg support?",
+    "a": "Iceberg supports safe schema evolution with five operations, each with strong compatibility guarantees: 1) Add — add new columns (possibly with defaults), safe for readers since old readers ignore unknown columns, 2) Drop — remove columns; Iceberg marks them deleted in metadata, existing files still have the data but it won't be read, 3) Rename — rename a column; tracked by column ID, not name, so old files are still readable, 4) Update type — widen column types: int→long, float→double, decimal precision increase; narrowing is not allowed, 5) Reorder — change column order in the schema without touching files. The key design: Iceberg tracks columns by integer IDs, not names. So renaming a column doesn't break existing files — the engine maps old column IDs to new names. This is fundamentally better than formats that track by name, where a rename forces a full rewrite to avoid 'column not found' errors."
+  },
+  {
+    "id": "tf-011",
+    "cat": "Table Formats",
+    "q": "How does Apache Iceberg time travel work? What's the syntax for snapshot-based vs timestamp-based queries?",
+    "a": "Iceberg time travel works via snapshots — each write creates an immutable snapshot with a unique snapshot ID and a timestamp. Snapshots are listed in the table's metadata.json and retained until explicitly expired. Snapshot-based: `SELECT * FROM orders FOR VERSION AS OF 8271982349823` (Spark SQL) or in Spark DataFrame: `spark.read.option('snapshot-id', '8271982349823').table('orders')`. Timestamp-based: `SELECT * FROM orders FOR TIMESTAMP AS OF '2024-01-15 10:00:00'` — Iceberg finds the snapshot that was current at that timestamp. In Trino/Presto: `SELECT * FROM orders FOR TIMESTAMP AS OF TIMESTAMP '2024-01-15 10:00:00'`. Use cases: regulatory audits, debugging bad loads, comparing before/after a pipeline run, reproducible ML training data. Iceberg also exposes `iceberg.snapshots` and `iceberg.history` metadata tables to browse available snapshots. Snapshots are retained by `expire_snapshots` procedure, which you call explicitly — unlike Delta's VACUUM which runs on time-based retention."
+  },
+  {
+    "id": "tf-012",
+    "cat": "Table Formats",
+    "q": "What are Iceberg incremental reads and how are they used in CDC pipelines?",
+    "a": "Iceberg incremental reads let you query only the data files added between two snapshots, without scanning the entire table. This is a first-class API: `spark.read.format('iceberg').option('start-snapshot-id', '123').option('end-snapshot-id', '456').load('db.orders')` — returns only rows in files added between those two snapshots. Why this matters for CDC: instead of tracking watermarks by timestamp and re-scanning partitions, you can track the last processed snapshot ID, and each incremental read gives you exactly the new files. This is cheaper and more precise than timestamp-based watermarking. Use case: Iceberg table as a CDC source feeding a streaming pipeline. You get the new data, process it, commit your snapshot ID, repeat. Combined with Iceberg's row-level delete support, you can also capture DELETEs and UPDATEs in your incremental reads (via delete files). This makes Iceberg competitive with Kafka as a reliable change stream source."
+  },
+  {
+    "id": "tf-013",
+    "cat": "Table Formats",
+    "q": "Compare Apache Hudi Copy-on-Write (CoW) vs Merge-on-Read (MoR) — what are the tradeoffs?",
+    "a": "CoW (Copy-on-Write): On every upsert/delete, Hudi rewrites entire Parquet files containing affected records. Result: reads are fast (pure Parquet, no merge needed), but writes are expensive and slow — every update causes file rewrites. Best for: read-heavy workloads where write latency is acceptable, BI dashboards, batch ETL scenarios. MoR (Merge-on-Read): On write, Hudi appends delta files (Avro-based log files) alongside existing base Parquet files. Reads must merge the base file with the delta log on the fly. Result: writes are fast (just append to log), but reads are slower without compaction. Two read modes: Read-Optimized (only base files — fast but potentially stale), Snapshot read (merges base + log — current but slower). Compaction periodically merges logs into new base files to restore read performance. Best for: write-heavy workloads, near-real-time ingestion, cases where write throughput matters more than read latency."
+  },
+  {
+    "id": "tf-014",
+    "cat": "Table Formats",
+    "q": "How do Hudi upserts work? What are record keys and precombine fields?",
+    "a": "Hudi upserts require two mandatory config fields: Record Key is the column(s) that uniquely identify a record (like a primary key) — `hoodie.datasource.write.recordkey.field = 'order_id'`. Precombine Field is the column used to deduplicate records with the same record key within a single batch — typically a timestamp or version: `hoodie.datasource.write.precombine.field = 'updated_at'`. If two rows have the same order_id in your input, Hudi keeps the one with the higher updated_at. The upsert process: 1) Hudi reads the index to locate which existing files contain records with matching keys (HoodieIndex — Bloom filter-based, HBase, or Bucket index), 2) New records with existing keys trigger updates to those files (CoW: rewrite; MoR: append to log), 3) New records without existing keys are inserted as new rows. The index is critical for performance — with millions of records, a Bloom filter index quickly identifies which files to check, avoiding a full table scan."
+  },
+  {
+    "id": "tf-015",
+    "cat": "Table Formats",
+    "q": "What is Hudi compaction, when does it run in MoR tables, and what's the difference between inline and async compaction?",
+    "a": "Compaction is the process of merging MoR delta log files (Avro) with base Parquet files into new clean Parquet files, restoring fast read performance. Without compaction, reads must merge increasingly large log chains, getting slower over time. When it runs: only on Merge-on-Read tables — CoW has no compaction because it rewrites on every write. Two modes: Inline compaction runs during the write job itself — after writing delta logs, the same job triggers compaction on affected file groups. Simpler to set up but adds latency to write jobs. Async compaction separates the compaction job — a dedicated compaction job runs on a schedule (e.g., every hour) independently of the write pipeline. Preferred for production because writes stay fast and compaction doesn't block ingestion. Configure via `hoodie.compact.inline=false` and `hoodie.compact.inline.max.delta.commits=5` (trigger compaction after N delta commits). Compaction plans are stored in the Hudi timeline so they're transactionally safe."
+  },
+  {
+    "id": "tf-016",
+    "cat": "Table Formats",
+    "q": "How do you choose between Delta Lake, Apache Iceberg, and Apache Hudi? What's the decision framework?",
+    "a": "Delta Lake: choose when you're on Databricks or Azure Synapse — it's the native format and deeply integrated. Best ecosystem support in that stack. Good for batch ETL, SQL analytics, ML feature tables. Open source version has some feature lag vs Databricks-managed. Iceberg: choose when you need engine agnosticism — Spark, Trino, Flink, Hive, Dremio, Snowflake (external tables) all support it well. Best for multi-engine lakehouses. Strongest metadata structure, best partition evolution, best catalog integration (Nessie, REST catalog). Growing fast as the community standard. Hudi: choose when you have a streaming upsert-heavy workload requiring near-real-time freshness — Hudi's MoR gives the fastest write path for high-frequency upserts, and it originated at Uber for exactly this use case. Best Kafka-to-lakehouse integration via Hudi DeltaStreamer. Rule of thumb: Databricks shop → Delta; multi-engine or cloud-neutral → Iceberg; real-time CDC upserts at scale → Hudi. All three solve the same core problems; the ecosystem and write pattern drive the decision."
+  },
+  {
+    "id": "tf-017",
+    "cat": "Table Formats",
+    "q": "How do open table formats integrate with data catalogs like AWS Glue, Hive Metastore, Nessie, and Unity Catalog?",
+    "a": "A catalog stores table metadata (location, schema, snapshot pointer) so engines can find tables without knowing file paths. Hive Metastore (HMS): the original — stores table definitions in a relational DB (MySQL/Postgres). All three formats support HMS as the catalog backend. AWS Glue: a managed Hive-compatible metastore on AWS. Delta and Iceberg both integrate; Glue also has native Iceberg support (Lake Formation). Nessie (Project Nessie): a Git-like catalog specifically for Iceberg and Delta. Supports branching and merging of table versions — you can create a branch, test schema changes, and merge without affecting production. Used with Dremio's Arctic. REST Catalog (Iceberg spec): Iceberg defines a REST API spec for catalogs; any catalog implementing it works — Tabular, AWS S3Tables, Polaris, etc. This is becoming the standard. Unity Catalog (Databricks): supports Delta natively and added Iceberg REST catalog support, so external engines can read Unity-managed Iceberg tables. Best practice: use REST catalog or Nessie for new Iceberg deployments to avoid HMS lock-in."
+  },
+  {
+    "id": "tf-018",
+    "cat": "Table Formats",
+    "q": "What is the Lakehouse architecture and how do Bronze/Silver/Gold layers map to table formats?",
+    "a": "The Lakehouse combines the scalability and cost of a data lake (cheap object storage, open formats) with the reliability and performance of a data warehouse (ACID, schema enforcement, SQL query engines). Table formats are the enabling technology — they add warehouse-grade features on top of lake storage. Bronze/Silver/Gold (Medallion Architecture): Bronze is the raw ingestion layer — data lands as-is from source systems, often in table format but with minimal transformation. Schema-on-write with wide schemas. Append-only. Silver is the cleaned, validated, deduplicated layer — Bronze data is parsed, types are enforced, bad records are filtered, upserts applied. This is where CDC merges happen. Gold is the business-level aggregated layer — star schema facts and dimensions, aggregations, metrics ready for BI tools and analysts. Table format role: Bronze can use MoR Hudi or append-only Delta for high write throughput. Silver uses MERGE INTO for upserts (Delta/Iceberg/Hudi all support this). Gold is typically optimized (OPTIMIZE + ZORDER in Delta, or sorted Iceberg tables) for fast analytical queries. Each layer is a proper table — queryable, versioned, schema-enforced."
+  },
+  {
+    "id": "tf-019",
+    "cat": "Table Formats",
+    "q": "How do open table formats help with GDPR right-to-erasure (the 'right to be forgotten')?",
+    "a": "GDPR requires that on user request, all their personal data must be deleted within 30 days. For raw Parquet on S3, deletion means rewriting every file containing that user's rows — expensive and error-prone. Table formats enable row-level deletes: `DELETE FROM users WHERE user_id = 12345` — Delta, Iceberg, and Hudi all support this as a first-class operation. In Delta: the DELETE command rewrites the affected Parquet files without the matching rows and logs the removed files in the transaction log. After deletion, you must VACUUM to actually remove the old physical files that contain the PII. Until VACUUM runs, time travel can still expose deleted data. VACUUM with a short retention (e.g., 24 hours) purges those files but breaks time travel for that window. Iceberg uses delete files (position or equality) and eventually merges them during compaction. Hudi supports row-level deletes natively via its upsert mechanism. Best practice: maintain a deletion log, run automated DELETE + VACUUM/cleanup jobs on a SLA-bound schedule, and document your retention policy for audit evidence."
+  },
+  {
+    "id": "tf-020",
+    "cat": "Table Formats",
+    "q": "How do Iceberg row-level deletes work? What's the difference between position deletes and equality deletes?",
+    "a": "Instead of immediately rewriting Parquet files on DELETE, Iceberg can write small delete files that record which rows are deleted. These are merged at read time. Two types: Position Delete Files store (file_path, row_position) pairs — 'row 42 in file s3://bucket/data/file-001.parquet is deleted'. The engine reads the data file and skips those row positions. Very precise and efficient for targeted deletes but requires knowing the exact file + offset of each row. Equality Delete Files store column-value predicates — 'delete all rows where user_id = 12345'. The engine applies the filter at read time across all data files in the snapshot. Simpler to write (no file path knowledge needed) but more expensive to read since every scan applies the filter. Compaction (via `rewrite_data_files`) merges delete files with base data, producing clean Parquet files with deletes applied. Until compaction, deletes accumulate as delete files, which can slow reads. Iceberg v2 (row-level operations spec) introduced this; all modern Iceberg engines support both delete file types."
+  },
+  {
+    "id": "tf-021",
+    "cat": "Table Formats",
+    "q": "What is Delta Lake Change Data Feed (CDF) and how do you enable and query it?",
+    "a": "Change Data Feed captures row-level changes (INSERT, UPDATE, DELETE) as they happen and makes them queryable as a CDC stream. Instead of comparing full table snapshots to find what changed, CDF records the change type for each affected row. Enable on an existing table: `ALTER TABLE my_table SET TBLPROPERTIES (delta.enableChangeDataFeed = true)` or at creation: `CREATE TABLE ... TBLPROPERTIES (delta.enableChangeDataFeed = true)`. Query changes: `SELECT * FROM table_changes('my_table', 2, 5)` — returns rows changed between versions 2 and 5. Or by timestamp: `SELECT * FROM table_changes('my_table', '2024-01-01', '2024-01-02')`. Each row gets extra metadata columns: `_change_type` (insert, update_preimage, update_postimage, delete), `_commit_version`, `_commit_timestamp`. Use case: downstream pipelines consume CDF as a micro-batch CDC source — much cheaper than MERGE-based full scans, and more structured than comparing snapshots. Also works in Structured Streaming with `readChangeData` option. CDF stores additional data files in `_change_data/` directory — adds storage overhead, usually small."
+  },
+  {
+    "id": "tf-022",
+    "cat": "Table Formats",
+    "q": "What causes the small file problem in data lakehouses, and how do Delta Lake, Iceberg, and Hudi handle compaction?",
+    "a": "Small files accumulate when: streaming jobs write micro-batches (each trigger = new files), partitioned tables get many writes to many partitions, frequent upserts create small replacement files. Object storage performs poorly with small files — each file is a separate API call, and many small Parquet files miss compression and encoding efficiency. The problem compounds: a 1 TB table split into 1 million 1 MB files reads 100x slower than 1000 1 GB files. Delta Lake: `OPTIMIZE` command does bin-packing — reads small files in a partition, rewrites them into ~1 GB target files. Run manually or configure auto-optimize on Databricks. Iceberg: `rewrite_data_files` stored procedure with bin-pack or sort strategy: `CALL catalog.system.rewrite_data_files(table => 'db.orders', strategy => 'binpack')`. Hudi CoW: compaction on write rewrites affected file groups. Hudi MoR: compaction merges log files into base files, indirectly solving small file issues. Best practice: run compaction on a schedule targeting recently written partitions to avoid full-table rewrites."
+  },
+  {
+    "id": "tf-023",
+    "cat": "Table Formats",
+    "q": "How do Delta Lake and Iceberg use column statistics for data skipping?",
+    "a": "Both formats store per-file column statistics in their metadata layers — these stats let the query engine skip entire files when they can't contain rows matching the WHERE clause. Statistics collected per file: min value, max value, null count, row count (Iceberg also tracks per-column NDV in some engines). How it works: when you run `SELECT * FROM orders WHERE amount > 1000`, the engine checks each file's max(amount). If a file's max is 800, the engine skips it entirely — no read, no decompression. Delta Lake: stats stored as JSON in the _delta_log commit files. Delta collects stats for the first 32 columns by default (configurable). Z-ordering maximizes the effectiveness of stats by clustering related data. Iceberg: stats stored in manifest files per data file. More structured than Delta's JSON — each manifest entry has per-column bounds as typed values. Iceberg also supports Puffin files for advanced sketches (Theta sketches for NDV, bloom filters). Key insight: column stats only skip files if data is physically ordered or clustered — random data has overlapping ranges and stats provide little benefit. This is why OPTIMIZE + ZORDER (Delta) or sort-on-write (Iceberg) are companions to statistics-based skipping."
+  },
+  {
+    "id": "tf-024",
+    "cat": "Table Formats",
+    "q": "How do Delta Lake and Apache Iceberg handle concurrent write conflicts differently?",
+    "a": "Both use optimistic concurrency — writers proceed without locks and check for conflicts at commit time. Delta Lake: uses the transaction log as a single serialization point. Writer reads the current log version, performs work, then attempts to write the next version JSON file. If another writer committed first (version N+1 already exists), the writer must retry: it checks if the concurrent commit touched the same files or partitions. If no overlap (e.g., two writers wrote to different partitions), Delta allows both — this is 'optimistic concurrency with conflict detection'. If there's a true conflict (both modified the same file), one fails with a ConcurrentModificationException. Delta uses file-level conflict detection — two writers to the same partition may conflict. Iceberg: uses snapshot isolation with optimistic locking, but conflict detection is at the partition or data file level, similar to Delta. However, Iceberg's catalog integration (REST catalog, Nessie) can provide stronger isolation via compare-and-swap on the metadata pointer, making conflicts more precisely detectable. Iceberg also supports serializable isolation mode. Both support row-level conflict detection for MERGE operations in newer versions. For high-concurrency scenarios, partition your writes to minimize overlap."
+  },
+  {
+    "id": "tf-025",
+    "cat": "Table Formats",
+    "q": "What is the recommended approach for migrating from raw Parquet to a table format, and what are the risks?",
+    "a": "Recommended approach for Delta Lake: run `CONVERT TO DELTA parquet.'/path/to/table'` — this creates a _delta_log without rewriting data files, making it low-risk and fast. For Iceberg: use `spark.sql(\"CALL catalog.system.migrate('db.table')\")` or the snapshot procedure which creates an Iceberg table pointing at existing Parquet files. Hudi requires writing data through Hudi's writer (no in-place conversion), so migration means a full rewrite job. Step-by-step recommended pattern: 1) Freeze writes to the Parquet table, 2) Run conversion (Delta/Iceberg) or full rewrite (Hudi), 3) Validate row counts and spot-check data, 4) Update downstream readers to use new table format path/catalog, 5) Monitor for a period, then decommission old Parquet. Risks: 1) Downstream jobs using hardcoded Parquet paths break — they need to use the table format reader, 2) Partition structure may need adjustment post-migration, 3) Schema types may need normalization (Parquet sometimes stores timestamps as int96 which doesn't map cleanly), 4) For Hudi, a full rewrite is a long-running job that may drift from source if it's still active, 5) Storage costs temporarily double during migration."
+  }
+]
