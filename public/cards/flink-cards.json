@@ -1,0 +1,177 @@
+[
+  {
+    "id": "flink-001",
+    "category": "Apache Flink",
+    "question": "How does Apache Flink differ from Spark Structured Streaming, and when would you choose Flink?",
+    "answer": "Flink is a true streaming engine — it processes events one at a time with low latency (milliseconds), while Spark Structured Streaming uses micro-batches (seconds-level latency by default). Key differences: (1) Flink has richer, more expressive windowing and time semantics; (2) Flink's stateful processing is more mature with RocksDB-backed state that survives restarts; (3) Flink's exactly-once is natively transactional, not just idempotent retry. Choose Flink when: sub-second latency matters, complex event processing is needed, or stateful aggregations span long windows. Choose Spark Streaming when: your team already uses Spark, batch/streaming code unification is a priority, or you're on Databricks.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-002",
+    "category": "Apache Flink",
+    "question": "What are watermarks in Flink and why are they necessary for event-time processing?",
+    "answer": "Watermarks are timestamps injected into the data stream that signal 'I have seen all events with timestamp ≤ T.' They're necessary because events arrive out of order — a mobile app may buffer events offline, network delays vary, etc. Without watermarks, Flink can't know when a time window is 'complete' and safe to emit. A watermark W(t) tells downstream operators to close windows with end time ≤ t. You define a WatermarkStrategy with a max-out-of-orderness (e.g., 5s) to tolerate late arrivals. The watermark advances as events arrive; if no events arrive, watermarks stall — requiring periodic idle watermarks for sources that can go quiet.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-003",
+    "category": "Apache Flink",
+    "question": "Explain Flink's three time semantics: event time, ingestion time, and processing time.",
+    "answer": "Event time: the timestamp embedded in the data (when the event actually occurred). Most correct for business logic — requires watermarks to handle out-of-order events. Results are deterministic and reproducible. Ingestion time: when the event enters the Flink source operator. Auto-assigned watermarks, no out-of-order events, but less accurate than event time. Processing time: wall-clock time of the processing machine. Lowest latency, no watermark overhead, but non-deterministic — reprocessing gives different results. Best for low-latency use cases where accuracy isn't critical. Most production pipelines use event time despite its complexity.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "flink-004",
+    "category": "Apache Flink",
+    "question": "Describe Flink's three window types: Tumbling, Sliding, and Session windows.",
+    "answer": "Tumbling windows: fixed-size, non-overlapping. Every event belongs to exactly one window. E.g., count events per 1-minute bucket. Sliding windows: fixed-size but overlap — defined by size and slide interval. E.g., a 10-min window sliding every 1 min means each event can appear in up to 10 windows. Higher compute cost. Session windows: gaps-based — a window opens on first event and closes after a configurable inactivity gap. Great for user session analytics. All window types work across event time, ingestion time, and processing time. Flink also supports Global windows (entire stream, with custom triggers) and count-based windows.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-005",
+    "category": "Apache Flink",
+    "question": "What is exactly-once semantics in Flink and how does it work end-to-end?",
+    "answer": "Exactly-once guarantees each record affects state and outputs exactly once, even during failures. Flink uses the Chandy-Lamport distributed snapshot algorithm: the JobManager periodically injects checkpoint barriers into all source partitions. When an operator receives barriers from all its inputs, it snapshots its state and forwards the barrier downstream. On failure, Flink restores all operator states from the last complete checkpoint and replays input from that offset. For end-to-end exactly-once (including sinks), sources must support offset replay (e.g., Kafka) and sinks must support two-phase commit (2PC) — Flink's KafkaProducer sink uses 2PC transactions to atomically commit output only after checkpoint completion.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-006",
+    "category": "Apache Flink",
+    "question": "What are checkpoints vs savepoints in Flink — when do you use each?",
+    "answer": "Checkpoints are automatic, periodic state snapshots taken by Flink for fault tolerance. They're triggered by the JobManager, stored in a configurable backend (HDFS, S3, RocksDB), and deleted automatically (by default, only the latest N are retained). Savepoints are manually triggered, user-managed checkpoints. They're semantically identical to checkpoints but intended for planned operations: upgrading job logic, changing parallelism, migrating to new infrastructure, or A/B testing. Savepoints are never auto-deleted. Key difference: for failover, Flink uses the latest checkpoint; for intentional restarts with code changes, you trigger a savepoint before stopping and restore from it on the new job version.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-007",
+    "category": "Apache Flink",
+    "question": "What state backends does Flink support, and when would you choose RocksDB over the heap backend?",
+    "answer": "Flink has three state backends: (1) HashMapStateBackend (formerly MemoryStateBackend): stores state as Java heap objects in TaskManager JVM. Fast reads/writes but limited by heap size and GC pressure. (2) EmbeddedRocksDBStateBackend: stores state in RocksDB on local disk, checkpoints to remote storage (S3/HDFS). Supports state much larger than available memory via on-disk storage with LRU cache. (3) Legacy MemoryStateBackend: state in TM heap, checkpoints to JobManager memory. Deprecated. Choose RocksDB when: state is large (GBs per task), you need incremental checkpoints (only changed state is uploaded), or you're doing complex stateful aggregations. Use heap backend for small state where latency is critical — RocksDB adds serialization overhead.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-008",
+    "category": "Apache Flink",
+    "question": "How does Flink handle late data, and what is 'allowed lateness'?",
+    "answer": "Late data is events arriving after the watermark has advanced past the event's window end time. By default, late data is dropped. Flink provides two mechanisms: (1) Allowed lateness: you specify a duration (e.g., 1 minute) during which late events still update the window and trigger re-emission with updated results. The window is held open until watermark > window_end + allowed_lateness. (2) Side outputs: events arriving even after allowed lateness are routed to a side output stream for separate handling (dead-letter queue, manual review, or delayed aggregation). In practice: set allowed lateness equal to your data SLA, and use side outputs to capture anything beyond that for auditing.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-009",
+    "category": "Apache Flink",
+    "question": "Explain Flink's job graph: what are operators, tasks, and task slots?",
+    "answer": "A Flink job is compiled into a JobGraph of operators (transformations like map, filter, window). Operators are chained into tasks when data flows directly between them without shuffle (operator chaining reduces serialization overhead). Tasks are the units of execution deployed to TaskManagers. Each TaskManager has a configurable number of task slots — isolated thread pools that share the TM's memory. A slot can run one parallel slice of the entire job pipeline (operator chain). Parallelism is set per-operator or globally; a job with parallelism=4 runs 4 parallel instances of each operator, each in a separate slot. Slots from different TMs are used to distribute work — Flink tries to co-locate a full pipeline slice in one slot via slot sharing.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-010",
+    "category": "Apache Flink",
+    "question": "What is backpressure in Flink and how does Flink handle it?",
+    "answer": "Backpressure occurs when a downstream operator processes data slower than an upstream operator produces it. In Flink, the network buffer system propagates backpressure naturally: if downstream input buffers are full, upstream cannot write and slows down. Unlike systems that drop data or use an explicit signal queue, Flink's credit-based flow control means the entire pipeline self-throttles to the slowest operator's pace — preserving exactly-once guarantees without data loss. The Flink UI shows backpressure metrics per task. Remedies: increase downstream parallelism, optimize slow operators, use async I/O for external lookups, or pre-aggregate before bottleneck operators.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-011",
+    "category": "Apache Flink",
+    "question": "What is Flink SQL and the Table API — how do they relate to the DataStream API?",
+    "answer": "The Table API is a relational API on top of Flink's core that expresses transformations as table operations (select, filter, join, window aggregations). Flink SQL is a standard SQL interface that compiles to the same Table API plan. Both unify batch and stream processing: the same SQL query runs on bounded (batch) or unbounded (stream) input, with streaming semantics like windowed aggregations handled transparently. The Table API / SQL planner compiles to a DataStream job under the hood. In practice, Flink SQL is preferred for analytics-style queries; the DataStream API is used for complex logic (custom state, pattern matching via CEP, fine-grained windowing) that doesn't map cleanly to SQL.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-012",
+    "category": "Apache Flink",
+    "question": "How does Flink integrate with Kafka — describe the source and sink connector behavior.",
+    "answer": "Flink's KafkaSource (new Source API) reads from Kafka topics with configurable offset strategies (latest, earliest, committed offsets, or specific offsets). It participates in Flink checkpoints: when a checkpoint is triggered, the source saves the current Kafka partition offsets as state, enabling exactly-once by replaying from the checkpointed offset on recovery. The KafkaSink uses two-phase commit (2PC) to achieve end-to-end exactly-once: on checkpoint, it pre-commits a Kafka transaction; only on checkpoint completion does it call commitTransaction. If a failure occurs between pre-commit and commit, Flink aborts the transaction on recovery. This requires Kafka broker transaction support (Kafka 0.11+). At-least-once is simpler — no 2PC needed.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-013",
+    "category": "Apache Flink",
+    "question": "What is Flink CDC and what use cases does it enable?",
+    "answer": "Flink CDC (Change Data Capture) allows Flink to read database change logs (INSERT, UPDATE, DELETE) as a streaming source using the Debezium engine embedded in Flink connectors. Supported sources include MySQL, PostgreSQL, Oracle, MongoDB, and more. Unlike polling-based approaches, CDC captures row-level changes in real time from the database's transaction log (binlog for MySQL). Use cases: (1) Real-time data synchronization from OLTP to data warehouse/lake; (2) Cache invalidation — stream DB changes to Redis/Elasticsearch; (3) Event sourcing — react to DB mutations in downstream streaming jobs; (4) Building materialized views or denormalized tables that stay in sync. Flink CDC includes snapshot mode to load initial table state before streaming live changes.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-014",
+    "category": "Apache Flink",
+    "question": "Compare Flink's session mode vs application mode on Kubernetes.",
+    "answer": "Session mode: a long-running Flink cluster is pre-deployed on K8s; multiple jobs are submitted to it and share JobManager/TaskManagers. Lower startup latency per job, but resource isolation is poor — one noisy job can starve others, and a JobManager crash affects all jobs. Application mode: each Flink job gets its own dedicated K8s cluster (JobManager pod + TaskManager pods). The cluster spins up, runs the job, and tears down. Resource isolation is complete, blast radius is contained, and the main() method runs on the cluster (not the client). Best practice for production: application mode. Session mode is useful for development or bursty workloads where cluster cold-start time is a concern.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-015",
+    "category": "Apache Flink",
+    "question": "How would you implement a stateful deduplication job in Flink?",
+    "answer": "Use a KeyedProcessFunction on the dedup key (e.g., event_id). Maintain a ValueState<Boolean> (or a MapState<String, Long> with TTL for the seen timestamp). On each event: check state — if key is already seen, drop the event; if not, emit it and set state to true. Add state TTL (StateTtlConfig) to auto-expire seen keys after a time window (e.g., 24h), preventing unbounded state growth. For very high cardinality, use RocksDB backend. For approximate deduplication with bounded memory, a Bloom filter in ValueState<byte[]> works. Key production consideration: state TTL means events with the same ID arriving more than TTL apart will be treated as new — ensure TTL aligns with your dedup SLA.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-016",
+    "category": "Apache Flink",
+    "question": "What is Flink's shuffle service and why does it matter for large-scale batch jobs?",
+    "answer": "The shuffle service manages data exchange between operators in different pipeline stages (hash partitioning, range partitioning, broadcast). In streaming mode, data flows through network buffers in-memory with backpressure. For batch mode, Flink uses a blocking shuffle: upstream operators write shuffle data to disk (via the external shuffle service), then downstream operators read it — this allows intermediate results to be decoupled and re-read without re-computing. The external shuffle service (similar to Spark's) stores shuffle data on TaskManager disks or remote storage (S3 with remote shuffle). This improves fault tolerance in batch pipelines: a failed downstream stage can re-read shuffle data without re-running the full upstream lineage.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-017",
+    "category": "Apache Flink",
+    "question": "How does parallelism work in Flink — what is the relationship between parallelism, slots, and partitions?",
+    "answer": "Parallelism is the number of parallel instances of an operator. A Flink job with operator parallelism=4 creates 4 parallel subtasks per operator, each processing a partition of the input. Slots are the execution units in TaskManagers — each slot runs one full pipeline slice (all chained operators for one parallel instance). Total required slots = max parallelism across all operators. Data partitioning between operators uses keyBy (hash), shuffle (random round-robin), rebalance, or broadcast. keyBy ensures all events with the same key go to the same parallel subtask, enabling consistent stateful operations. If Kafka is the source, Flink typically sets source parallelism = number of Kafka partitions to ensure even distribution.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-018",
+    "category": "Apache Flink",
+    "question": "What is the ProcessFunction in Flink and when would you use it over a simple map/filter?",
+    "answer": "ProcessFunction is Flink's lowest-level streaming primitive — it gives you access to event data, event timestamps, watermarks, timers, and arbitrary keyed state. You'd use it when higher-level APIs (map, window, flatMap) aren't expressive enough. Use cases: (1) Custom windowing logic — register event-time or processing-time timers to trigger computation at specific times; (2) Pattern detection without CEP — e.g., detect inactivity when no event arrives within X minutes; (3) State-driven enrichment — load reference data into state on first key, then join on subsequent events; (4) Out-of-order event correction — buffer events in MapState until a condition is met. KeyedProcessFunction is the keyed version — required for state scoped to a key.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-019",
+    "category": "Apache Flink",
+    "question": "How would you implement a real-time stream enrichment pattern in Flink?",
+    "answer": "Two main approaches: (1) Async I/O: use AsyncDataStream.unorderedWait() to issue async lookups to an external service (Redis, REST API, database) for each event. Flink manages an async pool — multiple requests are in-flight simultaneously — so one slow lookup doesn't block the operator. You define onSuccess/onFailure callbacks. Best for high-throughput enrichment with external calls. (2) Broadcast state: broadcast a small, slowly-changing reference dataset to all operator instances using a BroadcastStream. Each task maintains a BroadcastState in memory, enriching events locally without external calls. Best for rule tables, configuration, or small dimension tables. For large dimension tables that don't fit in memory, consider a lookup join in Flink SQL with a JDBC or Redis lookup table, which uses Flink's built-in caching.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-020",
+    "category": "Apache Flink",
+    "question": "What is Flink's operator chaining and why does it matter for performance?",
+    "answer": "Operator chaining fuses consecutive operators into a single task running in one thread, eliminating intermediate serialization/deserialization and network overhead. Flink automatically chains operators when: they have the same parallelism, connected by a local (non-shuffle) edge, and not explicitly disabled. Example: source → map → filter can be chained into one task. Benefits: less network I/O, fewer threads, lower GC pressure. To break a chain (e.g., for profiling or to assign different resource profiles): use .disableChaining() on an operator or startNewChain(). Operator chaining is one of the key reasons Flink achieves lower latency than micro-batch systems — the hot path for simple transformations runs entirely in-memory without serialization.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-021",
+    "category": "Apache Flink",
+    "question": "What is a Flink Table/SQL dynamic table and how does it model streaming data?",
+    "answer": "A dynamic table is Flink's abstraction for an unbounded, continuously updated relational table over a stream. Unlike static SQL tables, a dynamic table changes over time as new events arrive. Flink defines two changelog modes: (1) Append-only: new rows are only inserted (e.g., a log stream). (2) Updating table: supports INSERT, UPDATE, DELETE via changelog (e.g., a materialized view with GROUP BY). SQL operations on dynamic tables produce new dynamic tables — e.g., a SELECT ... GROUP BY ... TUMBLE WINDOW produces a dynamic table that emits aggregate results at each window boundary. This lets you write standard SQL that compiles to a stateful streaming job transparently.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-022",
+    "category": "Apache Flink",
+    "question": "How do you tune Flink for high-throughput scenarios — what are the key configuration levers?",
+    "answer": "Key tuning areas: (1) Parallelism: match source parallelism to Kafka partition count; scale operator parallelism to CPU. (2) Checkpointing: use asynchronous snapshots, incremental checkpoints (RocksDB), and tune checkpoint interval (longer = less overhead but slower recovery). (3) Network buffers: increase taskmanager.network.memory.fraction and buffer timeout (batch writes to network instead of per-record). (4) State backend: RocksDB with block cache tuning for large state; reduce write amplification with compaction settings. (5) Operator chaining: ensure hot paths are chained. (6) Object reuse: enable ExecutionConfig.enableObjectReuse() for non-mutating pipelines to avoid object allocation. (7) Managed memory: allocate more managed memory for RocksDB vs JVM heap to reduce GC.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-023",
+    "category": "Apache Flink",
+    "question": "What is Flink's CEP (Complex Event Processing) library and when would you use it?",
+    "answer": "Flink CEP allows you to detect patterns across event sequences in a stream. You define a Pattern object with conditions and ordering constraints (e.g., 'a login event followed by 3 failed transactions within 5 minutes'). The CEP engine maintains state for partial pattern matches. Use cases: fraud detection (unusual transaction sequences), IoT anomaly detection (sensor readings crossing thresholds in sequence), user journey analysis (funnel completion), and security alerting (login → privilege escalation → data access). CEP is a cleaner alternative to hand-rolling pattern detection with ProcessFunction and MapState. It integrates with event time and handles out-of-order events. Patterns can be strict (consecutive events), relaxed (events in order with anything in between), or non-deterministic.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "flink-024",
+    "category": "Apache Flink",
+    "question": "How does Flink handle schema evolution — what happens when you update a job with state?",
+    "answer": "Flink serializes state using its own TypeSerializer framework. When you update a job (e.g., add a field to a POJO in state), the new serializer must be compatible with the stored snapshot. Flink uses a serializer snapshot for compatibility checks on restore. For POJOs and Avro (with schema registry), field addition is generally compatible. For custom serializers, you must implement TypeSerializerUpgradeSnapshot. Best practices: (1) Use Avro or Protobuf for state types — they handle evolution natively. (2) Take a savepoint before deploying schema changes. (3) Test restore compatibility in staging. (4) If incompatible, restore from savepoint with a migration job, or bootstrap new state from a batch source. Incompatible schema changes require a stateless restart with a full reprocessing from source.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "flink-025",
+    "category": "Apache Flink",
+    "question": "What monitoring metrics and operational practices are essential for production Flink jobs?",
+    "answer": "Key metrics to monitor: (1) numRecordsInPerSecond / numRecordsOutPerSecond — throughput; (2) backpressuredTimeMsPerSecond — identifies bottleneck operators; (3) currentInputWatermark — watermark lag, signals late data risk; (4) lastCheckpointDuration / lastCheckpointSize — checkpoint health; (5) numRestarts — instability indicator; (6) heap/managed memory usage — GC and OOM risk. Operational practices: set up alerting on checkpoint failures (auto-disable is dangerous in production), configure checkpoint retention (keep at least 2), use Flink's REST API or Prometheus+Grafana for dashboards, set restart strategies (fixed-delay or exponential-backoff), enable job-level exception history in Flink UI. For Kafka sinks, monitor consumer lag on the output topic as a proxy for end-to-end latency.",
+    "difficulty": "advanced"
+  }
+]
