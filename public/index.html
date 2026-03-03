@@ -46,6 +46,11 @@ header h1 span{color:var(--teal)}
 .card-category[data-cat="Python"]{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.6)}
 .card-category[data-cat="kafka"]{background:rgba(220,38,38,.2);border-color:rgba(220,38,38,.6)}
 .card-category[data-cat="dagster"]{background:rgba(124,58,237,.2);border-color:rgba(124,58,237,.6)}
+.card-category[data-cat="SQL for DE"]{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.6)}
+.card-category[data-cat="Python for DE"]{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.6)}
+.card-category[data-cat="Cloud/AWS for DE"]{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.6)}
+.card-category[data-cat="Snowflake"]{background:rgba(14,116,144,.25);border-color:rgba(14,116,144,.7)}
+.card-category[data-cat="Data Quality"]{background:rgba(217,119,6,.2);border-color:rgba(217,119,6,.6)}
 .card-text{font-size:18px;line-height:1.6;font-weight:400}
 .card-back .card-text{font-size:16px;color:var(--slate)}
 .card-hint{font-size:13px;color:var(--slate-dark);margin-top:16px}
@@ -131,6 +136,7 @@ textarea{min-height:80px;resize:vertical}
   <!-- Study View -->
   <div id="study-view">
     <div class="filters" id="category-filters"></div>
+    <div class="filters" id="filter-utils"></div>
     <div class="card-container" id="card-container">
       <div class="card" id="flashcard" onclick="flipCard()">
         <div class="card-face card-front">
@@ -247,8 +253,10 @@ const DEFAULT_CARDS=[
 
 function normalizeQuestion(q){return(q||'').trim();}
 const DEFAULT_QUESTIONS=new Set(DEFAULT_CARDS.map(c=>normalizeQuestion(c.q)));
-const FILTERS=['All','Original','dbt','Airflow','Spark','Data Modeling','kafka','dagster'];
-let activeFilter='All';
+const FILTERS=["All","Original","dbt","Airflow","Spark","Data Modeling","kafka","dagster","SQL for DE","Python for DE","Cloud/AWS for DE","Snowflake","Data Quality"];
+let specialFilter='All';
+let activeFilters=new Set();
+let categoryTotals={};
 let cards=[], currentCard=null, currentIdx=-1, currentDueIdx=0;
 
 function loadCards(){
@@ -265,21 +273,60 @@ function getDueCards(){
 
 function getFilteredDueCards(){
   const due=getDueCards();
-  if(activeFilter==='All')return due;
-  if(activeFilter==='Original')return due.filter(c=>DEFAULT_QUESTIONS.has(normalizeQuestion(c.q)));
-  return due.filter(c=>c.cat===activeFilter);
+  if(specialFilter==='Original')return due.filter(c=>DEFAULT_QUESTIONS.has(normalizeQuestion(c.q)));
+  if(activeFilters.size===0)return due;
+  return due.filter(c=>activeFilters.has(c.cat));
 }
 
 function renderFilters(){
   const wrap=document.getElementById('category-filters');
-  wrap.innerHTML=FILTERS.map(f=>`<button class="filter-btn${f===activeFilter?' active':''}" data-filter="${f}">${f}</button>`).join('');
+  const utils=document.getElementById('filter-utils');
+  const topicFilters=FILTERS.filter(f=>!['All','Original'].includes(f));
+  wrap.innerHTML=FILTERS.map(f=>{
+    const isActive=(f==='All'&&specialFilter==='All'&&activeFilters.size===0)
+      ||(f==='Original'&&specialFilter==='Original')
+      ||activeFilters.has(f);
+    const label=(f==='All'||f==='Original')?f:`${f} (${categoryTotals[f]||0})`;
+    return `<button class="filter-btn${isActive?' active':''}" data-filter="${f}">${label}</button>`;
+  }).join('');
   wrap.querySelectorAll('.filter-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      activeFilter=btn.dataset.filter;
+      const next=btn.dataset.filter;
+      if(next==='All'){
+        activeFilters.clear();
+        specialFilter='All';
+      }else if(next==='Original'){
+        activeFilters.clear();
+        specialFilter='Original';
+      }else{
+        if(activeFilters.has(next))activeFilters.delete(next);
+        else activeFilters.add(next);
+        specialFilter='All';
+      }
       renderFilters();
       showCard();
     });
   });
+  if(utils){
+    utils.innerHTML=`
+      <button class="filter-btn" data-util="select-all">Select All</button>
+      <button class="filter-btn" data-util="clear">Clear</button>
+    `;
+    utils.querySelectorAll('.filter-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const action=btn.dataset.util;
+        if(action==='select-all'){
+          activeFilters=new Set(topicFilters);
+          specialFilter='All';
+        }else if(action==='clear'){
+          activeFilters.clear();
+          specialFilter='All';
+        }
+        renderFilters();
+        showCard();
+      });
+    });
+  }
 }
 
 function applyCategoryBadge(cat){
@@ -337,6 +384,14 @@ function updateStats(){
   document.getElementById('due-count').textContent=getDueCards().length;
   document.getElementById('total-count').textContent=cards.length;
   document.getElementById('streak-count').textContent=getStreak().count;
+}
+
+function updateCategoryTotals(){
+  categoryTotals={};
+  cards.forEach(c=>{
+    if(!c.cat)return;
+    categoryTotals[c.cat]=(categoryTotals[c.cat]||0)+1;
+  });
 }
 
 function showCard(){
@@ -420,7 +475,7 @@ function addCard(){
   if(!q||!a){alert('Both fields required');return}
   const id=Math.max(0,...cards.map(c=>c.id))+1;
   cards.push({id,cat,q,a,ef:2.5,interval:0,reps:0,due:Date.now()});
-  saveCards();updateStats();
+  saveCards();updateCategoryTotals();renderFilters();updateStats();
   document.getElementById('new-q').value='';
   document.getElementById('new-a').value='';
   alert('Card added!');
@@ -440,7 +495,7 @@ function importCards(e){
     try{
       const imported=JSON.parse(ev.target.result);
       if(!Array.isArray(imported)){alert('Invalid format');return}
-      cards=imported;saveCards();updateStats();showCard();
+      cards=imported;saveCards();updateCategoryTotals();renderFilters();updateStats();showCard();
       alert(`Imported ${imported.length} cards`);
     }catch(err){alert('Invalid JSON')}
   };
@@ -491,6 +546,7 @@ async function mergePackCards(){
   }catch(err){
     console.warn('Failed to load card packs',err);
   }
+  updateCategoryTotals();
 }
 
 function renderAuthBar(){
@@ -631,6 +687,7 @@ async function onAuthStateChange(session){
 async function initApp(){
   loadCards();
   try{await Promise.race([mergePackCards(),new Promise((_,r)=>setTimeout(()=>r('timeout'),5000))])}catch(e){console.warn('Pack cards load failed:',e)}
+  updateCategoryTotals();
   renderFilters();
   updateStats();
   showCard();
