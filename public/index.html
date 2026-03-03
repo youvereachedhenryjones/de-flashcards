@@ -65,6 +65,9 @@ header h1 span{color:var(--teal)}
 .rate-btn.good{background:var(--teal)}
 .rate-btn.easy{background:var(--blue)}
 .rate-btn .interval{display:block;font-size:10px;font-weight:400;opacity:.8;margin-top:2px}
+.kbd-hint{text-align:center;font-size:11px;color:var(--slate);padding:6px 0;opacity:.7}
+.session-progress-bar{width:100%;height:4px;background:rgba(100,116,139,.2);border-radius:2px;margin-bottom:12px}
+.session-progress-fill{height:4px;border-radius:2px;background:var(--teal);transition:width .3s ease}
 
 /* Empty state */
 .empty{text-align:center;padding:48px 24px;color:var(--slate)}
@@ -155,6 +158,9 @@ textarea{min-height:80px;resize:vertical}
 
   <!-- Study View -->
   <div id="study-view">
+    <div class="session-progress-bar" id="session-progress-bar" style="display:none">
+      <div class="session-progress-fill" id="session-progress-fill"></div>
+    </div>
     <div class="filters" id="study-modes"></div>
     <div class="filters" id="category-filters"></div>
     <div class="filters" id="filter-utils"></div>
@@ -183,6 +189,7 @@ textarea{min-height:80px;resize:vertical}
       <div id="session-summary"></div>
       <p id="empty-msg">No cards due for review. Come back later or add new cards.</p>
     </div>
+    <div class="kbd-hint">Space: flip &nbsp;·&nbsp; 1: Again &nbsp;·&nbsp; 2: Hard &nbsp;·&nbsp; 3: Good &nbsp;·&nbsp; 4: Easy</div>
   </div>
 
   <!-- Manage View -->
@@ -552,9 +559,15 @@ function showCard(){
   const empty=document.getElementById('empty-state');
   const container=document.getElementById('card-container');
   const counter=document.getElementById('card-count');
+  const progressBar=document.getElementById('session-progress-bar');
+  const progressFill=document.getElementById('session-progress-fill');
 
   fc.classList.remove('flipped');
   ratings.classList.add('hidden');
+  if(progressBar&&progressFill){
+    progressBar.style.display='none';
+    progressFill.style.width='0%';
+  }
 
   if(due.length===0){
     container.classList.add('hidden');
@@ -578,6 +591,13 @@ function showCard(){
   document.getElementById('int-hard').textContent=previewInterval(currentCard,2);
   document.getElementById('int-good').textContent=previewInterval(currentCard,4);
   document.getElementById('int-easy').textContent=previewInterval(currentCard,5);
+
+  const total=sessionStats.reviewed+due.length;
+  if(progressBar&&progressFill&&total>0&&sessionStats.reviewed>0){
+    const pct=Math.round((sessionStats.reviewed/total)*100);
+    progressBar.style.display='block';
+    progressFill.style.width=pct+'%';
+  }
 }
 
 function flipCard(){
@@ -587,6 +607,23 @@ function flipCard(){
     document.getElementById('ratings').classList.remove('hidden');
   }
 }
+
+document.addEventListener('keydown',e=>{
+  const study=document.getElementById('study-view');
+  const ratings=document.getElementById('ratings');
+  if(!study||study.classList.contains('hidden'))return;
+  if(!ratings||ratings.classList.contains('hidden')){
+    if(e.code==="Space"){
+      e.preventDefault();
+      flipCard();
+    }
+    return;
+  }
+  if(e.key==="1")rate(0);
+  else if(e.key==="2")rate(2);
+  else if(e.key==="3")rate(4);
+  else if(e.key==="4")rate(5);
+});
 
 function rate(quality){
   if(currentIdx<0)return;
@@ -879,6 +916,20 @@ async function initApp(){
     }catch(e){console.warn('Supabase auth failed:',e)}
   }
 }
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('study-view').classList.contains('hidden'))return;
+  const ratingsHidden=document.getElementById('ratings').classList.contains('hidden');
+  if(ratingsHidden){
+    if(e.code==='Space'){e.preventDefault();flipCard();}
+  }else{
+    if(e.key==='1')rate(0);
+    else if(e.key==='2')rate(2);
+    else if(e.key==='3')rate(4);
+    else if(e.key==='4')rate(5);
+  }
+});
 
 // Init
 initApp();
