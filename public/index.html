@@ -30,6 +30,7 @@ header h1 span{color:var(--teal)}
 .filters::-webkit-scrollbar{display:none}
 .filter-btn{background:var(--card);border:1px solid rgba(100,116,139,.15);color:var(--slate);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;white-space:nowrap}
 .filter-btn:hover,.filter-btn.active{color:var(--text);border-color:var(--teal);background:rgba(13,148,136,.1)}
+.filter-count{font-size:10px;opacity:0.7;margin-left:4px}
 
 /* Card */
 .card-container{perspective:1000px;margin-bottom:24px;min-height:280px}
@@ -431,11 +432,32 @@ function renderFilters(){
   const wrap=document.getElementById('category-filters');
   const utils=document.getElementById('filter-utils');
   const topicFilters=FILTERS.filter(f=>!['All','Original'].includes(f));
+  const dueCards=getDueCards();
+  const dueByTopic={};
+  const totalByTopic={};
+  cards.forEach(c=>{
+    if(!c.cat)return;
+    totalByTopic[c.cat]=(totalByTopic[c.cat]||0)+1;
+  });
+  dueCards.forEach(c=>{
+    if(!c.cat)return;
+    dueByTopic[c.cat]=(dueByTopic[c.cat]||0)+1;
+  });
+  const isOriginal=c=>DEFAULT_QUESTIONS.has(normalizeQuestion(c.q));
+  const totalOriginal=cards.filter(isOriginal).length;
+  const dueOriginal=dueCards.filter(isOriginal).length;
   wrap.innerHTML=FILTERS.map(f=>{
     const isActive=(f==='All'&&specialFilter==='All'&&activeFilters.size===0)
       ||(f==='Original'&&specialFilter==='Original')
       ||activeFilters.has(f);
-    const label=(f==='All'||f==='Original')?f:`${f} (${categoryTotals[f]||0})`;
+    let label='';
+    if(f==='All'){
+      label=`All <span class="filter-count">${dueCards.length} / ${cards.length}</span>`;
+    }else if(f==='Original'){
+      label=`Original <span class="filter-count">${dueOriginal} / ${totalOriginal}</span>`;
+    }else{
+      label=`${f} <span class="filter-count">${dueByTopic[f]||0} / ${totalByTopic[f]||0}</span>`;
+    }
     return `<button class="filter-btn${isActive?' active':''}" data-filter="${f}">${label}</button>`;
   }).join('');
   wrap.querySelectorAll('.filter-btn').forEach(btn=>{
