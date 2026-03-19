@@ -173,5 +173,208 @@
     "question": "How do you approach schema evolution in Snowflake — adding, removing, or changing column types?",
     "answer": "Snowflake supports non-breaking schema changes easily: ADD COLUMN (non-breaking, nulls for existing rows), RENAME COLUMN (check downstream dependencies), DROP COLUMN (destructive — check views, dbt models, dashboards). Type changes are restrictive: you generally can't change VARCHAR to INT directly; workaround is add new column, backfill, rename, drop old. For automated schema evolution from COPY INTO: use MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE option with Parquet/JSON to auto-map new columns. For dbt: run dbt run --full-refresh to rebuild models when column types change. Operational tip: treat schema changes as migrations (version-controlled SQL in a migration tool or dbt snapshot); never ALTER in production without a rollback plan.",
     "difficulty": "medium"
+  },
+  {
+    "id": "snowflake-026",
+    "category": "Snowflake",
+    "question": "What is the difference between a single-cluster and a multi-cluster warehouse in Snowflake?",
+    "answer": "A single-cluster warehouse has a fixed number of servers and can queue concurrent queries when all resources are busy. A multi-cluster warehouse automatically spins up additional clusters (up to a configured max) to handle concurrent query bursts, then scales back down when load drops. Multi-cluster is ideal for BI dashboards and mixed workloads with unpredictable concurrency spikes.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-027",
+    "category": "Snowflake",
+    "question": "How does Snowflake's separation of storage and compute work, and why does it matter?",
+    "answer": "Snowflake stores all data in a centralized cloud object store (S3, Azure Blob, or GCS) completely decoupled from compute. Virtual warehouses read data from this shared layer, meaning multiple warehouses can query the same data simultaneously without contention, and you can scale compute independently of storage. This eliminates the need to move or copy data for different workloads and lets you resize compute without downtime.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "snowflake-028",
+    "category": "Snowflake",
+    "question": "What are Snowflake's four editions and what are the key differences?",
+    "answer": "Standard includes core features (Time Travel up to 1 day, basic security). Enterprise adds multi-cluster warehouses, Time Travel up to 90 days, materialized views, and column-level security. Business Critical adds enhanced encryption, HIPAA/PCI compliance, AWS PrivateLink, and failover. Virtual Private Snowflake (VPS) is a fully isolated single-tenant deployment for the highest security requirements.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-029",
+    "category": "Snowflake",
+    "question": "What is micro-partitioning in Snowflake and how does columnar storage benefit query performance?",
+    "answer": "Snowflake automatically divides all table data into micro-partitions — immutable, compressed columnar files of 50–500MB (uncompressed). Each micro-partition stores metadata including min/max values per column, which enables partition pruning: Snowflake skips entire partitions that can't contain relevant data. Columnar storage also means only queried columns are read from disk, dramatically reducing I/O for analytical queries.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-030",
+    "category": "Snowflake",
+    "question": "What is Snowflake zero-copy cloning and when would you use it?",
+    "answer": "Zero-copy cloning creates an instant, near-cost-free copy of a table, schema, or database by pointing to the same underlying micro-partitions — no data is physically duplicated. Storage costs only grow as the clone diverges from the original. Use it for dev/test environments, safe schema migrations, quick data snapshots before destructive operations, or creating isolated sandboxes for data science experimentation.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-031",
+    "category": "Snowflake",
+    "question": "What is Snowflake Time Travel and how long can historical data be accessed?",
+    "answer": "Time Travel lets you query, clone, or restore data as it existed at any point within a retention window using AT or BEFORE clauses referencing a timestamp, offset, or query ID. Standard edition supports up to 1 day; Enterprise edition supports up to 90 days. Example: `SELECT * FROM orders AT(TIMESTAMP => '2024-01-15 09:00:00'::TIMESTAMP);` It's useful for recovering accidentally deleted data or auditing historical states.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "snowflake-032",
+    "category": "Snowflake",
+    "question": "What is Snowflake Fail-safe and how does it differ from Time Travel?",
+    "answer": "Fail-safe is a non-configurable, Snowflake-managed 7-day recovery window that begins after Time Travel expires. Unlike Time Travel, Fail-safe data cannot be queried or restored by users directly — only Snowflake Support can recover it, and recovery is not guaranteed quickly. It's a last-resort disaster recovery mechanism, not a self-service feature. Plan data recovery workflows around Time Travel, not Fail-safe.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-033",
+    "category": "Snowflake",
+    "question": "What is the difference between internal and external stages in Snowflake?",
+    "answer": "Internal stages are Snowflake-managed storage for staging files before loading (user stages, table stages, named internal stages). External stages reference cloud storage you control outside Snowflake — S3 buckets, Azure Blob containers, or GCS buckets — with credentials managed via a storage integration. Use internal stages for simple loads where you don't need persistent external access; use external stages when data already lives in cloud storage or when other systems also read the same files.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "snowflake-034",
+    "category": "Snowflake",
+    "question": "How does the COPY INTO command work and what are common loading patterns?",
+    "answer": "COPY INTO loads data from a stage into a table, supporting CSV, JSON, Parquet, Avro, ORC, and XML formats. By default it skips already-loaded files using a metadata store (load history). Example: `COPY INTO orders FROM @my_stage/orders/ FILE_FORMAT = (TYPE = 'CSV' SKIP_HEADER = 1) ON_ERROR = 'CONTINUE';` Common patterns include full loads, incremental loads using FORCE=TRUE, and transformation during load via a SELECT clause inside COPY INTO.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-035",
+    "category": "Snowflake",
+    "question": "What is Snowpipe and how does it enable continuous data loading?",
+    "answer": "Snowpipe is Snowflake's serverless, event-driven data ingestion service that loads micro-batches of files as soon as they land in a stage — typically within minutes. It's triggered via cloud event notifications (S3 SQS, Azure Event Grid) or REST API calls, eliminating the need to schedule COPY INTO jobs. Snowpipe uses serverless compute billed per-second rather than warehouse credits, making it cost-effective for frequent small file arrivals.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-036",
+    "category": "Snowflake",
+    "question": "What are Snowflake Streams and how do they implement change data capture (CDC)?",
+    "answer": "A Stream is a change tracking object on a table (or view/external table) that records INSERT, UPDATE, and DELETE operations as they occur, including METADATA$ACTION and METADATA$ISUPDATE columns to identify the change type. You consume a stream by querying it inside a DML statement, which atomically advances the stream's offset. Example: `CREATE STREAM orders_stream ON TABLE orders;` then `INSERT INTO orders_audit SELECT *, CURRENT_TIMESTAMP FROM orders_stream;` Streams enable ELT pipelines that process only changed rows.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-037",
+    "category": "Snowflake",
+    "question": "What are Snowflake Tasks and how do they differ from streams?",
+    "answer": "Tasks are scheduled or trigger-based execution units that run a single SQL statement or stored procedure on a defined schedule (cron expression or interval) or when a predecessor task completes. Combined with streams, tasks create automated ELT pipelines: the task checks whether the stream has data (`SYSTEM$STREAM_HAS_DATA`) before executing. Unlike streams (which are passive observers), tasks are active executors. Example: `CREATE TASK process_orders WAREHOUSE = compute_wh SCHEDULE = '5 MINUTE' WHEN SYSTEM$STREAM_HAS_DATA('orders_stream') AS INSERT INTO orders_fact SELECT * FROM orders_stream;`",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-038",
+    "category": "Snowflake",
+    "question": "What are Snowflake Dynamic Tables and how do they work?",
+    "answer": "Dynamic Tables are declarative, continuously refreshed materialized results of a SQL query — you define the query and a target lag (how stale the result can be), and Snowflake automatically refreshes them on a schedule or incrementally. Unlike materialized views (which refresh on base table change triggers), dynamic tables support multi-table joins, aggregations, and complex transformations. Example: `CREATE DYNAMIC TABLE orders_summary TARGET_LAG = '10 minutes' WAREHOUSE = compute_wh AS SELECT customer_id, SUM(amount) FROM orders GROUP BY 1;`",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-039",
+    "category": "Snowflake",
+    "question": "When would you choose a Materialized View over a Dynamic Table in Snowflake?",
+    "answer": "Materialized Views are best for simple aggregations on a single base table where you need automatic, background refresh without managing a separate pipeline. Dynamic Tables are better for complex multi-table joins, chained transformations, or when you want explicit control over refresh lag and cost. Materialized Views integrate transparently with query rewrite (Snowflake may serve queries from the MV without you specifying it), while Dynamic Tables are always queried explicitly. As of 2024, Snowflake recommends Dynamic Tables as the forward-looking approach for most pipeline use cases.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-040",
+    "category": "Snowflake",
+    "question": "What are clustering keys in Snowflake and when should you use them?",
+    "answer": "A clustering key is one or more columns (or expressions) that Snowflake uses to co-locate related rows in the same micro-partitions, improving pruning efficiency for large tables where natural insertion order doesn't match query filter patterns. Example: `ALTER TABLE orders CLUSTER BY (order_date, region);` Use clustering when a table exceeds ~1TB, queries consistently filter on the same columns, and the table's natural sort order doesn't match those filters. Avoid it on smaller tables or tables with many low-cardinality columns — Automatic Clustering (a paid service) handles re-clustering as data changes.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-041",
+    "category": "Snowflake",
+    "question": "How do you use the Query Profile in Snowflake to diagnose slow queries?",
+    "answer": "The Query Profile (accessible via Snowsight or ACCOUNT_USAGE.QUERY_HISTORY) shows an operator tree of execution steps with time, rows processed, and bytes scanned per node. Key things to look for: high 'Bytes scanned' with low pruning efficiency (indicating missing clustering), 'Spilling to local/remote storage' (warehouse is undersized), and long 'Queue' times (concurrency contention). Use it to identify the most expensive operator, then address root causes — clustering, warehouse sizing, or query restructuring.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-042",
+    "category": "Snowflake",
+    "question": "What is Snowflake's result cache and how does it work?",
+    "answer": "The result cache stores the output of every successfully completed query for 24 hours. If the exact same query is resubmitted by the same role against unchanged underlying data, Snowflake returns the cached result instantly at zero compute cost — no warehouse needed. The cache is invalidated if the underlying data changes or if 24 hours elapse. To bypass it during testing, use `ALTER SESSION SET USE_CACHED_RESULT = FALSE;`",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "snowflake-043",
+    "category": "Snowflake",
+    "question": "What is the virtual warehouse (data) cache and how does it affect query performance?",
+    "answer": "Each virtual warehouse maintains a local SSD cache of recently accessed micro-partitions. When the same warehouse re-executes a query touching overlapping data, it reads from this local cache instead of remote cloud storage, significantly reducing latency. This cache is lost when the warehouse is suspended, which is why suspending and resuming warehouses incurs a 'cold start' penalty for the first query. Keeping a warehouse running (at the cost of credits) can be justified for latency-sensitive workloads.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-044",
+    "category": "Snowflake",
+    "question": "What is Snowflake's metadata cache and what queries does it accelerate?",
+    "answer": "Snowflake maintains a metadata layer (the Cloud Services layer) that stores micro-partition statistics — min, max, count, null count, distinct count — for every column in every table. Queries that can be answered purely from metadata (e.g., `SELECT COUNT(*), MIN(created_at), MAX(created_at) FROM orders`) run against the metadata cache with zero warehouse compute cost. This makes simple aggregations nearly instant regardless of table size.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-045",
+    "category": "Snowflake",
+    "question": "How does partition pruning work in Snowflake and what makes it effective?",
+    "answer": "When a query has WHERE clause filters, Snowflake consults the micro-partition metadata (min/max values per column per partition) to identify which partitions could possibly contain matching rows and skips the rest entirely — without scanning any data. Pruning is most effective when the filter column has a strong correlation with natural insertion order (e.g., created_at for append-heavy tables) or when an explicit clustering key is defined. You can check pruning effectiveness in the Query Profile's 'Partitions scanned vs. total' metric.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-046",
+    "category": "Snowflake",
+    "question": "What is the Snowflake Search Optimization Service and when should you use it over clustering keys?",
+    "answer": "Search Optimization Service builds an auxiliary search access path that accelerates point lookup queries (equality and IN predicates) on columns that are not well-served by clustering — such as high-cardinality string fields like email, UUID, or device ID. Use it when queries filter on non-date columns with selective predicates but clustering on those columns would be impractical. It's a paid add-on billed separately. Choose clustering keys for range/date filters on large tables; choose Search Optimization for ad-hoc point lookups on high-cardinality non-clustered columns.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-047",
+    "category": "Snowflake",
+    "question": "What is Snowflake's Query Acceleration Service and what workloads benefit from it?",
+    "answer": "The Query Acceleration Service (QAS) offloads portions of eligible queries (large scans, aggregations) to serverless compute resources, reducing the load on the virtual warehouse and improving performance for queries with highly variable data skew. It's most beneficial for ad-hoc analytical queries that return small result sets from large scans — like dashboards or exploratory analytics. You enable it per warehouse: `ALTER WAREHOUSE my_wh SET ENABLE_QUERY_ACCELERATION = TRUE;` and it's billed on top of warehouse credits.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-048",
+    "category": "Snowflake",
+    "question": "How does Snowflake's role-based access control (RBAC) model work?",
+    "answer": "In Snowflake, all access is controlled through roles, not users directly. Privileges (SELECT, INSERT, CREATE TABLE, etc.) are granted to roles, roles are granted to other roles (forming a hierarchy), and roles are granted to users. Ownership of an object gives a role full control and the ability to grant privileges on it. The key system roles are ACCOUNTADMIN (full control), SYSADMIN (object management), SECURITYADMIN (user/role management), and PUBLIC (default for all users). Best practice: use custom functional roles for workloads and assign them to users via role hierarchies.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "snowflake-049",
+    "category": "Snowflake",
+    "question": "What is dynamic data masking in Snowflake and how does it implement column-level security?",
+    "answer": "Dynamic data masking applies a masking policy to a column that conditionally transforms data based on the querying role — without modifying stored data. For example, analysts see a masked SSN while data engineers see the full value. Example: `CREATE MASKING POLICY mask_ssn AS (val STRING) RETURNS STRING -> CASE WHEN CURRENT_ROLE() IN ('ANALYST') THEN 'XXX-XX-XXXX' ELSE val END;` then `ALTER TABLE customers MODIFY COLUMN ssn SET MASKING POLICY mask_ssn;` This is enforced transparently at query time.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-050",
+    "category": "Snowflake",
+    "question": "What are row access policies in Snowflake and how do they enable row-level security?",
+    "answer": "A row access policy is a schema-level object that returns a boolean expression — rows where it evaluates to FALSE are invisible to the querying user. Policies are attached to tables or views and evaluated dynamically at query time based on the user's role, session context, or a mapping table lookup. Example: `CREATE ROW ACCESS POLICY region_filter AS (region STRING) RETURNS BOOLEAN -> CURRENT_ROLE() = 'ADMIN' OR region = CURRENT_USER();` This enables multi-tenant data isolation, regional data segregation, or PII access controls without creating separate tables per user group.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-051",
+    "category": "Snowflake",
+    "question": "How does Snowflake's secure data sharing work and what is the Data Marketplace?",
+    "answer": "Snowflake's secure data sharing lets account holders share live, read-only access to their data with other Snowflake accounts — with no data copying. The consumer queries the provider's data in real time using their own compute, and the provider controls what's shared via a share object. The Snowflake Data Marketplace extends this to a public or private listing model where providers publish datasets that any Snowflake customer can discover and instantly 'get' — no ETL, no file transfer, data is always current.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-052",
+    "category": "Snowflake",
+    "question": "What are Snowflake Cortex AI functions and what operations do they support?",
+    "answer": "Snowflake Cortex provides SQL-callable LLM functions that run directly in-warehouse on your data without data leaving Snowflake. Key functions include COMPLETE (general text generation/summarization), CLASSIFY_TEXT (zero-shot classification), SUMMARIZE (structured summarization), SENTIMENT (returns -1 to 1 score), and TRANSLATE (language translation). Example: `SELECT SNOWFLAKE.CORTEX.SENTIMENT(review_text) FROM product_reviews;` These functions make it possible to enrich structured tables with AI-derived features using only SQL, without external API calls or Python.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-053",
+    "category": "Snowflake",
+    "question": "What are Snowflake network policies and how do they restrict account access?",
+    "answer": "Network policies allow you to restrict Snowflake access to specific IP address ranges (allowed list) and optionally block specific IPs (blocked list), providing an additional authentication layer on top of credentials. They can be applied at the account level (affects all users) or at the user level (user-specific override). Example: `CREATE NETWORK POLICY corporate_only ALLOWED_IP_LIST = ('203.0.113.0/24') BLOCKED_IP_LIST = ('203.0.113.99/32');` then `ALTER ACCOUNT SET NETWORK_POLICY = corporate_only;` This is commonly used to enforce VPN-only access to Snowflake.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "snowflake-054",
+    "category": "Snowflake",
+    "question": "What is data classification in Snowflake and how do sensitivity labels work?",
+    "answer": "Snowflake's data classification feature automatically scans columns and assigns system-defined semantic categories (e.g., NAME, EMAIL, PHONE_NUMBER, SSN) and privacy levels (IDENTIFIER, QUASI_IDENTIFIER, SENSITIVE) based on column names and sampled values. You run classification with `SELECT EXTRACT_SEMANTIC_CATEGORIES('db.schema.table');` and apply tags with `ASSOCIATE_SEMANTIC_CATEGORY_TAGS`. Sensitivity labels (custom or system tags) can then be used to drive masking policy assignments automatically, helping teams achieve governance compliance at scale without manually tagging every column.",
+    "difficulty": "intermediate"
   }
 ]
