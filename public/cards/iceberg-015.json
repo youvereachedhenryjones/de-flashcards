@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Z-order clustering in Delta Lake: what does it do and when should you prefer it over partitioning?",
+  "answer": "Z-order (also called Z-curve or space-filling curve ordering) reorders rows within Parquet files so that multiple columns are co-located spatially, improving data skipping when queries filter on any combination of those columns. The syntax is 'OPTIMIZE table ZORDER BY (col1, col2)'. Prefer Z-order over partitioning when columns have high cardinality (e.g., user_id, device_id) where partitioning would create millions of tiny directories. Partitioning works best for low-cardinality time-based columns (year, month) where each partition has a large number of rows. Z-order can be combined with a coarse partition (e.g., partition by date, Z-order by user_id within each partition) for maximum pruning efficiency."
+}

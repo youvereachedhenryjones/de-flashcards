@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "Medallion Architecture: what belongs in Bronze, Silver, and Gold layers?",
+  "answer": "Bronze is the raw ingestion layer: data lands here exactly as received from source systems, with no transformations, in append-only tables. It serves as the source of truth for reprocessing and audit. Silver is the cleansed and conformed layer: Bronze data is deduplicated, type-cast, validated against schemas, and joined across sources to produce reliable, queryable datasets. Gold is the serving layer: Silver data is aggregated, modeled as business-specific entities (e.g., daily active users, revenue by product), and optimized for consumption by BI dashboards, data science, and APIs. Each layer adds trust and query performance at the cost of some flexibility. Streaming pipelines often write to Bronze and Silver continuously, while Gold tables may be batch-refreshed on a schedule."
+}

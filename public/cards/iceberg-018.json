@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Delta Lake Auto Loader: what does it do and how does it handle schema evolution?",
+  "answer": "Auto Loader (cloudFiles format in Databricks) is a Spark Structured Streaming source that incrementally and efficiently ingests new files from cloud object storage (S3, GCS, ADLS) as they arrive, without needing to list the entire bucket on each run. It uses cloud notification services (SNS/SQS on AWS, Pub/Sub on GCP) or directory listing mode to detect new files with low latency. For schema evolution, Auto Loader can infer schema from the first batch and write it to a schema location, then detect schema changes in subsequent batches. With 'cloudFiles.schemaEvolutionMode' set to 'addNewColumns', it automatically adds new columns to the target Delta table. This makes it ideal for landing zone ingestion where upstream producers may add fields over time."
+}

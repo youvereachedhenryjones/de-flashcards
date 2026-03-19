@@ -1,0 +1,5 @@
+{
+  "category": "Apache Iceberg",
+  "question": "Time travel in Iceberg: how do snapshots work, what is snapshot isolation, and how do you roll back?",
+  "answer": "Every write to an Iceberg table creates an immutable snapshot, which is a complete, consistent view of the table at that moment in time. Snapshot isolation means readers always see a consistent snapshot even while writers are committing new ones, with no locking required. You can query historical data with 'SELECT * FROM table FOR VERSION AS OF snapshot_id' or 'FOR TIMESTAMP AS OF timestamp'. To undo a bad write, use 'CALL catalog.system.rollback_to_snapshot(table, snapshot_id)', which atomically repoints the table's current snapshot pointer without deleting any files. Snapshots are retained according to the table's expiration policy and can be removed with the expire_snapshots procedure."
+}

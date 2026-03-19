@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Delta Live Tables (DLT): what is it and how does it differ from standard Delta pipelines?",
+  "answer": "Delta Live Tables is a Databricks-managed ETL framework where you declare tables using SQL or Python with the @dlt.table decorator, and the framework handles orchestration, dependency resolution, error recovery, and data quality enforcement automatically. Unlike standard Delta pipelines where you manually write Spark jobs and manage job scheduling, DLT infers the DAG from table dependencies, runs tables in the correct order, and retries failed stages. DLT introduces 'expectations' for inline data quality rules (e.g., CONSTRAINT valid_date EXPECT (date IS NOT NULL)), and tables can be declared as streaming or batch. The tradeoff is that DLT is fully managed by Databricks and has less flexibility than custom Spark code, but significantly reduces operational overhead for pipeline maintenance."
+}

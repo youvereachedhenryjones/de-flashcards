@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Delta Lake vs Apache Iceberg vs Apache Hudi: one key differentiator for each.",
+  "answer": "Delta Lake's key differentiator is its tight Databricks integration and the transaction log (_delta_log) design, which uses simple JSON commit files that are easy to inspect and recover manually. Apache Iceberg's key differentiator is engine-agnostic openness: its spec is maintained by the Apache Software Foundation and it has the broadest support across Spark, Trino, Flink, Presto, BigQuery, and Snowflake without vendor lock-in. Apache Hudi's key differentiator is its record-level indexing, which enables very fast upserts on large tables because it can locate exactly which file contains a given record key without scanning all files. All three support ACID transactions and time travel, but their design priorities differ."
+}

@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "Apache Hudi: what does it specialize in compared to Iceberg and Delta Lake?",
+  "answer": "Apache Hudi specializes in fast record-level upserts on large tables by maintaining an index (Bloom filter, HBase index, or bucket index) that maps record keys to the specific file that contains them, so update operations can locate and rewrite only the affected file without scanning all partitions. This makes Hudi particularly well-suited for CDC (change data capture) pipelines where source systems stream row-level changes at high volume. Hudi also has native support for incremental queries ('SELECT * FROM table WHERE _hoodie_commit_time > X'), which let downstream consumers efficiently pull only changed records since their last read. Compared to Iceberg and Delta Lake, Hudi has a steeper operational complexity but superior upsert performance at scale."
+}

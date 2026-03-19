@@ -1,0 +1,5 @@
+{
+  "category": "Streaming Lakehouse",
+  "question": "Streaming vs batch ingestion tradeoffs in a lakehouse: when should you use each?",
+  "answer": "Batch ingestion is simpler to operate, cheaper per record (larger files, fewer transactions), and well-suited for workloads where data latency of minutes to hours is acceptable, such as nightly dimension loads or daily reporting. Streaming ingestion (Spark Structured Streaming, Flink) is needed when end-to-end latency must be seconds to minutes, such as fraud detection, real-time dashboards, or alerting pipelines. The operational cost of streaming is higher: you must manage checkpoints, handle schema evolution mid-stream, monitor consumer lag, and schedule compaction to merge small files. A common middle ground is micro-batch streaming with a 1- to 5-minute trigger interval, which provides near-real-time freshness with simpler operations than fully continuous streaming. Choose streaming when the business SLA demands low latency; choose batch when it does not."
+}

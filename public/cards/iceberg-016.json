@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Delta Lake time travel syntax: VERSION AS OF vs TIMESTAMP AS OF.",
+  "answer": "Delta Lake time travel lets you query historical snapshots of a table using two syntaxes. 'SELECT * FROM table VERSION AS OF 42' queries the table at commit version 42 in the transaction log. 'SELECT * FROM table TIMESTAMP AS OF '2024-06-01'' queries the latest version as of that timestamp. Both can also be used in DataFrame readers: 'spark.read.format(\"delta\").option(\"versionAsOf\", 42).load(path)' or '.option(\"timestampAsOf\", \"2024-06-01\")'. Time travel is limited by how long old data files are retained (controlled by VACUUM), so versions older than the VACUUM retention window are not available. This is commonly used for audit queries, debugging pipelines, and reproducing historical model training sets."
+}

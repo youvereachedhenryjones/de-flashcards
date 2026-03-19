@@ -1,0 +1,5 @@
+{
+  "category": "Apache Iceberg",
+  "question": "Describe Iceberg's metadata hierarchy: catalog, metadata.json, manifest list, manifest files, and data files.",
+  "answer": "Iceberg uses a five-layer hierarchy. The catalog (Glue, Hive Metastore, Nessie, etc.) stores a pointer to the current metadata.json file for each table. The metadata.json file records table schema, partition spec, and a list of snapshots. Each snapshot points to a manifest list, which is a file listing all manifest files for that snapshot. Each manifest file lists individual data files along with their column-level statistics (min/max, null counts). The data files themselves are Parquet, ORC, or Avro on object storage. This indirection lets Iceberg perform atomic commits and efficient file pruning without listing the storage bucket."
+}

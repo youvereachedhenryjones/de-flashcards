@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "Unity Catalog (Databricks): what does it govern and why does it matter for lakehouse governance?",
+  "answer": "Unity Catalog is Databricks' unified governance layer that manages access control, auditing, lineage, and data discovery across all data assets in a Databricks lakehouse: Delta tables, Iceberg tables (via UniForm), files, ML models, feature store tables, and notebooks. It uses a three-level namespace (catalog.schema.table) and enforces fine-grained permissions (row filters, column masks) that apply consistently across all query interfaces (SQL, DataFrames, dashboards). Lineage tracking automatically records which jobs read and write which tables. Unity Catalog matters because it eliminates the previous fragmentation where Hive Metastore permissions, cluster ACLs, and S3 bucket policies were managed separately, making compliance and data product ownership visible and auditable in one place."
+}

@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Delta Lake OPTIMIZE command: what does it do and when should you run it?",
+  "answer": "OPTIMIZE rewrites small Parquet files in a Delta table into fewer, larger files (targeting 128 MB by default), reducing the number of file handles readers must open and improving scan performance. It also consolidates the transaction log by creating a new checkpoint. You should run OPTIMIZE after heavy insert or streaming workloads that produce many small files, or on a regular schedule (e.g., nightly) for tables that receive continuous micro-batch writes. OPTIMIZE can be combined with ZORDER BY to co-locate related data within files for better column pruning. The command is safe to run concurrently with reads and most writes because Delta's MVCC isolation means in-flight queries see the pre-OPTIMIZE snapshot."
+}

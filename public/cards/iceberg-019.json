@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "What is the Data Lakehouse pattern? How does it combine data lake and data warehouse strengths?",
+  "answer": "A Data Lakehouse stores data in open file formats (Parquet, ORC) on cheap cloud object storage like a data lake, but adds a metadata and transaction layer (Iceberg, Delta Lake, or Hudi) that provides data warehouse features: ACID transactions, schema enforcement, indexing, and SQL query performance. Traditional data lakes are cheap but unreliable (no ACID, no schema enforcement, poor query performance). Traditional data warehouses are fast and reliable but expensive and proprietary, requiring data to be copied in. The Lakehouse eliminates the copy step, so BI, ML, and streaming workloads all read the same data in the same format, reducing duplication and keeping a single source of truth."
+}

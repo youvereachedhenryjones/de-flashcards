@@ -1,0 +1,5 @@
+{
+  "category": "Streaming Lakehouse",
+  "question": "Kafka to Delta Lake pipeline: what is the typical architecture pattern?",
+  "answer": "The standard pattern has three stages. First, a Spark Structured Streaming job reads from Kafka using the kafka source format, specifying 'subscribe' (topic name), 'startingOffsets', and Kafka broker address. Second, the stream deserializes the raw bytes (typically JSON or Avro), applies schema, transforms the data, and writes to a Bronze Delta table with '.format(\"delta\").option(\"checkpointLocation\", ...)'. Third, a second streaming job reads the Bronze Delta table as a stream (Delta as a streaming source) and writes cleaned, typed data to a Silver Delta table. Kafka consumer group offsets are stored in the Spark checkpoint (not Kafka), so Kafka offset retention policy must be long enough to cover any restart window. Schema Registry is commonly used to enforce Avro schemas and manage evolution."
+}

@@ -1,0 +1,5 @@
+{
+  "category": "Apache Iceberg",
+  "question": "Iceberg compaction: why is it needed and how does the bin-pack OPTIMIZE strategy work?",
+  "answer": "Over time, streaming writes and row-level operations accumulate many small data files and delete files, degrading read performance because the engine must open and scan many file handles. Compaction merges these small files into fewer, larger, optimally sized files (typically 128 MB to 512 MB) and applies any pending delete files, converting MoR state to CoW state. The bin-pack strategy in Spark is invoked via 'CALL catalog.system.rewrite_data_files(table)' and uses a bin-packing algorithm to group small files into target-size bins, then rewrites each bin as a new file. Sort-order can be applied during compaction (sort or z-order) to improve data clustering for column-pruning at read time. Compaction should be scheduled regularly for streaming or CDC tables."
+}

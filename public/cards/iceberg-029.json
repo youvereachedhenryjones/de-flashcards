@@ -1,0 +1,5 @@
+{
+  "category": "Streaming Lakehouse",
+  "question": "Exactly-once semantics in streaming pipelines: how do Spark + Delta Lake and Spark + Iceberg achieve it?",
+  "answer": "Exactly-once means each input record is processed and reflected in the output exactly one time, even across failures and restarts. Spark Structured Streaming achieves this by combining two guarantees: the source must provide replayable offsets (Kafka, Delta CDF), and the sink must be idempotent or transactional. With Delta Lake, each micro-batch writes atomically using the transaction log with a unique epoch ID; if the job fails mid-write and restarts, the incomplete transaction is rolled back and the batch is replayed, producing the same result. With Iceberg, each micro-batch creates a new snapshot atomically; if the same batch is replayed (same epoch ID), Iceberg's idempotency check detects the duplicate and skips the write. The checkpoint directory persists the last committed batch ID, ensuring the stream does not skip or double-process on restart."
+}

@@ -1,0 +1,5 @@
+{
+  "category": "Apache Iceberg",
+  "question": "Schema evolution in Iceberg: which changes are safe (add, rename, drop, reorder columns)?",
+  "answer": "Iceberg tracks columns by unique integer IDs rather than by name, which makes all four common schema changes safe. Adding a column appends a new ID and existing files simply return null for that column. Renaming a column updates the metadata name but the column ID stays the same, so old files are still readable. Dropping a column marks the ID as deleted in metadata; no data rewrite is needed. Reordering columns only changes the schema position, not the physical file layout. This ID-based approach prevents the common 'column swap bug' where renaming two columns in sequence causes data corruption in positional-column formats."
+}

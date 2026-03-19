@@ -759,7 +759,8 @@ async function mergePackCards(){
     'cards/trino-cards.json',
     'cards/gcp-cards.json',
     'cards/dbt-adv-cards.json',
-    'cards/databricks-cards.json'
+    'cards/databricks-cards.json',
+    'cards/iceberg-cards.json'
   ];
   const existingQuestions=new Set(cards.map(c=>normalizeQuestion(c.q)));
   try{

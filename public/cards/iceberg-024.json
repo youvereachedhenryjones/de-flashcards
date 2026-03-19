@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "Lakehouse vs Lambda Architecture: what problem does the lakehouse solve that Lambda doesn't?",
+  "answer": "Lambda Architecture addresses low-latency serving by running two parallel pipelines: a batch layer (e.g., Spark on HDFS) that computes accurate results over all historical data, and a speed layer (e.g., Spark Streaming or Flink) that computes approximate real-time results. The outputs are merged at query time. The core problem Lambda introduces is code duplication: the same business logic must be written and maintained twice in two different frameworks, causing bugs when they diverge. The Lakehouse solves this by using a single streaming pipeline (Spark Structured Streaming or Flink) that writes to an open table format with ACID guarantees, so the same table serves both real-time and historical queries with no merge layer. There is one codebase, one dataset, and one source of truth."
+}

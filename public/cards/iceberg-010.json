@@ -1,0 +1,5 @@
+{
+  "category": "Apache Iceberg",
+  "question": "Iceberg table format v1 vs v2: what does v2 add?",
+  "answer": "Format v1 (the original Iceberg spec) supports snapshot-based reads, hidden partitioning, schema evolution, and Copy-on-Write deletes by rewriting data files. Format v2 adds first-class support for row-level deletes via two new file types: position delete files (which record the file path and row position of deleted rows) and equality delete files (which record the values of one or more columns that identify deleted rows). V2 also adds sequence numbers to manifests, enabling more efficient incremental reads and compaction decisions. V2 is required for true Merge-on-Read behavior and is the format needed for CDC and streaming upsert workloads. Most modern engines (Spark 3.x, Trino, Flink) default to or support v2."
+}

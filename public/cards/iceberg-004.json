@@ -1,0 +1,5 @@
+{
+  "category": "Apache Iceberg",
+  "question": "Partition evolution in Iceberg: how does Iceberg handle changing partition schemes without breaking queries?",
+  "answer": "Iceberg supports partition evolution, meaning you can change the partitioning of a table (e.g., from partitioned by month to partitioned by day) without rewriting existing data files. Each snapshot records which partition spec was active when it was written, so old data files retain their original partition layout while new writes use the updated spec. At query time, Iceberg reads both specs and prunes files correctly for each. This contrasts with Hive, where changing partitioning requires either rewriting all data or maintaining two separate physical table structures."
+}

@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "Delta Lake transaction log (_delta_log): how does it provide ACID transactions on object storage?",
+  "answer": "The _delta_log directory at the root of every Delta table contains a sequential series of JSON files (000...00.json, 000...01.json, etc.), each representing one atomic commit. Each commit records which files were added and which were removed, along with the operation type and metadata. Atomicity is achieved by using the atomic 'put-if-absent' semantics of cloud object storage: only one writer can successfully create a given log file number, and losers must retry. Reads always start from the latest checkpoint (a Parquet snapshot of the log created every 10 commits) and replay subsequent JSON files to reconstruct current table state. This log-based approach provides serializability without a lock server, making it possible to get ACID guarantees on S3, GCS, or ADLS."
+}

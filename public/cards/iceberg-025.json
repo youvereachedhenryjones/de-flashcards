@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "Table format catalogs: Apache Polaris, Project Nessie, and AWS Glue. What they do and when to use each.",
+  "answer": "All three are Iceberg REST catalogs that serve as the source of truth for table locations and metadata pointers. AWS Glue is the managed catalog in the AWS ecosystem, deeply integrated with Athena, EMR, and Redshift; use it when your workload lives primarily on AWS and you want a zero-ops catalog. Project Nessie (open source, maintained by Dremio) adds Git-like branching and tagging to the catalog: you can create a branch, run experimental ETL on it, validate results, and merge it into main atomically without affecting production readers. Apache Polaris (open source, from Snowflake) is a multi-engine Iceberg REST catalog designed for cross-cloud and cross-engine interoperability; use it when you want a vendor-neutral catalog that any Iceberg-compatible engine can connect to without Databricks or AWS lock-in."
+}

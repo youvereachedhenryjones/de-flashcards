@@ -1,0 +1,5 @@
+{
+  "category": "Streaming Lakehouse",
+  "question": "Spark Structured Streaming with Apache Iceberg: key config options for writeStream.",
+  "answer": "To write a Spark Structured Streaming job to an Iceberg table, use '.format(\"iceberg\")' in the writeStream call and specify the fully qualified table name. Key options include 'fanout-enabled' set to true when data is not partitioned by the partition column (avoids sort requirement), and 'checkpointLocation' for fault-tolerant restart. Configure the Iceberg catalog by setting 'spark.sql.catalog.my_catalog' to the catalog implementation class (e.g., SparkCatalog with a REST or Glue catalog). For merge-on-read streaming, set 'write.merge.mode' to 'merge-on-read' and 'write.update.mode' to 'merge-on-read' at the table level. Iceberg streaming writes are atomic per micro-batch, creating a new snapshot for each committed batch, enabling exactly-once delivery when combined with a reliable source offset."
+}

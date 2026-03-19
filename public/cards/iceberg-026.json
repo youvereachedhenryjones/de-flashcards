@@ -1,0 +1,5 @@
+{
+  "category": "Streaming Lakehouse",
+  "question": "Spark Structured Streaming with Delta Lake: micro-batch vs continuous mode, and how checkpointing works.",
+  "answer": "Spark Structured Streaming supports two execution modes. Micro-batch mode (the default) processes incoming data in small batches at a configured trigger interval (e.g., every 10 seconds or once new data arrives), offering exactly-once semantics with Delta Lake. Continuous mode processes records one at a time with millisecond latency but only provides at-least-once semantics. Checkpointing is critical for fault tolerance: the stream writes its current offset and committed batch ID to a checkpoint directory (on HDFS or S3) after each successful micro-batch. On restart, the stream reads the checkpoint to resume from exactly where it left off, combined with Delta's idempotent writes to prevent duplicate records. Always specify a checkpoint location: '.option(\"checkpointLocation\", \"s3://bucket/checkpoints/stream-name\")'."
+}

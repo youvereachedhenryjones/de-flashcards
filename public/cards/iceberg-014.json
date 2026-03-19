@@ -1,0 +1,5 @@
+{
+  "category": "Delta Lake",
+  "question": "VACUUM in Delta Lake: what does it do, what is the default retention period, and what is the data recovery risk?",
+  "answer": "VACUUM permanently deletes data files from object storage that are no longer referenced by the current table version and are older than the retention threshold. The default retention period is 7 days (168 hours), configurable via 'delta.deletedFileRetentionDuration'. Running VACUUM removes the ability to time-travel to any version that depended on the deleted files. The main risk is running VACUUM with a retention period shorter than 7 days: if concurrent readers are using older snapshots (e.g., long-running queries or streaming jobs with old checkpoints), those readers may fail with 'FileNotFoundException' because their referenced files have been deleted. Always confirm no active readers depend on old snapshots before lowering the retention period."
+}

@@ -1,0 +1,5 @@
+{
+  "category": "Lakehouse Architecture",
+  "question": "Open table formats on cloud object storage: why do they matter vs proprietary data warehouse formats?",
+  "answer": "Proprietary warehouse formats (Redshift internal storage, BigQuery Capacitor, Snowflake FDN) lock data into vendor-specific encodings that cannot be read by other tools without going through the vendor's API, often at high cost. Open table formats (Iceberg, Delta Lake, Hudi) store data as standard Parquet files with open metadata specifications, so any compliant engine (Spark, Trino, Flink, DuckDB, Snowflake External Tables) can read the same data without a copy or transformation. This interoperability reduces vendor lock-in, lowers egress costs, enables multi-engine architectures (e.g., Spark for ETL and Trino for ad-hoc SQL on the same table), and allows organizations to swap compute engines without migrating data."
+}
