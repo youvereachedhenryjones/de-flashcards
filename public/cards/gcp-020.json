@@ -1,0 +1,8 @@
+{
+  "id": "gcp-020",
+  "deck": "gcp",
+  "front": "How do Pub/Sub dead letter topics work and what retry policies are available?",
+  "back": "A dead letter topic (DLT) is a separate Pub/Sub topic that receives messages a subscription fails to process after a configured maximum delivery attempt count (5 to 100). After the threshold is reached, Pub/Sub automatically forwards the message to the DLT and stops redelivering it to the original subscription. Retry policies control the backoff between attempts: either immediate retry or exponential backoff with configurable min and max delay. DLTs enable error isolation without blocking healthy messages.",
+  "tags": ["pubsub", "dead-letter-topic", "retry-policy", "error-handling"],
+  "difficulty": "medium"
+}

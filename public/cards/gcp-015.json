@@ -1,0 +1,8 @@
+{
+  "id": "gcp-015",
+  "deck": "gcp",
+  "front": "What is the difference between Dataflow Shuffle, Dataflow Prime, and the standard Dataflow runner?",
+  "back": "Standard Dataflow runs shuffle operations on worker VMs, consuming memory and disk. Dataflow Shuffle offloads the shuffle step to a managed Google backend service, reducing worker memory pressure, improving fault tolerance, and cutting costs for large batch jobs. Dataflow Prime is a next-generation runner that adds vertical autoscaling (right-sizing individual workers), horizontal autoscaling, and optimized resource packing. Prime subsumes Shuffle benefits and is recommended for new pipelines.",
+  "tags": ["dataflow", "dataflow-shuffle", "dataflow-prime", "performance", "autoscaling"],
+  "difficulty": "hard"
+}

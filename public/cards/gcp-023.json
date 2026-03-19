@@ -1,0 +1,8 @@
+{
+  "id": "gcp-023",
+  "deck": "gcp",
+  "front": "How is a Cloud Composer environment structured and what GCP services does it rely on?",
+  "back": "A Composer environment is backed by a GKE cluster that runs Airflow components: the web server, scheduler, and workers as separate pods. DAG files are stored in a GCS bucket and synced to workers automatically. The Airflow metadata database runs on Cloud SQL (PostgreSQL). Redis is used as the Celery executor broker. Additional services: Cloud Logging for log aggregation, Cloud Monitoring for metrics. Knowing this architecture helps diagnose failures at the right layer.",
+  "tags": ["cloud-composer", "gke", "airflow", "architecture", "cloud-sql"],
+  "difficulty": "medium"
+}

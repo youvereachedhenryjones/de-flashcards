@@ -1,0 +1,8 @@
+{
+  "id": "gcp-017",
+  "deck": "gcp",
+  "front": "Pub/Sub guarantees at-least-once delivery. How do you design consumers to handle duplicate messages?",
+  "back": "At-least-once means a message may be delivered more than once, especially on subscriber restarts or network retries. Consumers must be idempotent: processing the same message twice should produce the same result. Common patterns: use the message_id as a deduplication key in a database upsert, track processed IDs in Memorystore or Bigtable, or design downstream writes as insert-or-ignore. Exactly-once semantics require application-level dedup; Pub/Sub itself does not guarantee it.",
+  "tags": ["pubsub", "at-least-once", "idempotency", "deduplication", "streaming"],
+  "difficulty": "medium"
+}

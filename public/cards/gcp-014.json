@@ -1,0 +1,8 @@
+{
+  "id": "gcp-014",
+  "deck": "gcp",
+  "front": "How do watermarks work in Dataflow and how does the system handle late-arriving data?",
+  "back": "A watermark is Dataflow's estimate of how far behind real-time the event stream is. When the watermark passes a window's end, Dataflow fires that window's results. Late data arriving after the watermark can be handled with allowed_lateness: data within the threshold triggers a pane update (speculative or late pane). Data beyond the threshold is dropped by default. Gotcha: aggressive watermarks reduce latency but increase late data; conservative watermarks do the opposite.",
+  "tags": ["dataflow", "watermarks", "late-data", "streaming", "event-time"],
+  "difficulty": "hard"
+}

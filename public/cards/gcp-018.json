@@ -1,0 +1,8 @@
+{
+  "id": "gcp-018",
+  "deck": "gcp",
+  "front": "Explain Pub/Sub topics, subscriptions, and the difference between push and pull delivery.",
+  "back": "A topic is the named channel where publishers send messages. Subscriptions attach to a topic; multiple subscriptions each receive their own independent copy of every message. Pull subscriptions require consumers to request messages via API (good for scalable workers). Push subscriptions have Pub/Sub deliver messages to an HTTPS endpoint (good for serverless, Cloud Run, or App Engine). Gotcha: pull gives more control over backpressure; push requires the endpoint to respond with 200 within the ack deadline or the message is redelivered.",
+  "tags": ["pubsub", "topics", "subscriptions", "push", "pull"],
+  "difficulty": "easy"
+}

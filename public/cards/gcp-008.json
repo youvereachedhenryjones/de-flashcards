@@ -1,0 +1,8 @@
+{
+  "id": "gcp-008",
+  "deck": "gcp",
+  "front": "How do you use BigQuery INFORMATION_SCHEMA to monitor query performance and table metadata?",
+  "back": "INFORMATION_SCHEMA is a set of virtual views exposing metadata about datasets, tables, jobs, and reservations. Key views: INFORMATION_SCHEMA.JOBS_BY_PROJECT for query history and bytes billed; INFORMATION_SCHEMA.TABLE_STORAGE for partition and row counts; INFORMATION_SCHEMA.PARTITIONS for partition-level metadata. Gotcha: JOBS views are region-scoped, so cross-region auditing requires querying each region separately or using the _ALL suffix in supported regions.",
+  "tags": ["bigquery", "information-schema", "metadata", "monitoring", "observability"],
+  "difficulty": "medium"
+}

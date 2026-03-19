@@ -1,0 +1,8 @@
+{
+  "id": "gcp-013",
+  "deck": "gcp",
+  "front": "What are the three main windowing strategies in Dataflow and when would you use each?",
+  "back": "Tumbling (fixed) windows divide time into non-overlapping equal buckets (e.g., hourly counts). Sliding windows overlap: a 1-hour window every 15 minutes gives a rolling metric. Session windows group events by inactivity gap: a new window starts after a configurable idle period, useful for user session analytics. Gotcha: session windows are per-key, so each user gets independent session boundaries, not a global one.",
+  "tags": ["dataflow", "windowing", "tumbling", "sliding", "session", "apache-beam"],
+  "difficulty": "medium"
+}

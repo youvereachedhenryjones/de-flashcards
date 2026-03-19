@@ -1,0 +1,8 @@
+{
+  "id": "gcp-010",
+  "deck": "gcp",
+  "front": "What is BigQuery Omni and how does it support multi-cloud analytics?",
+  "back": "BigQuery Omni extends BigQuery's analytics engine to run queries directly on data stored in AWS S3 or Azure Blob Storage, without moving data to GCP. It uses a managed Anthos deployment in the target cloud to execute Dremel queries locally. Results are returned to BigQuery. Key use case: regulatory or contractual requirements preventing data egress, or organizations with multi-cloud data estates. Limitation: not all BigQuery features are available in Omni regions.",
+  "tags": ["bigquery", "omni", "multi-cloud", "aws", "azure", "anthos"],
+  "difficulty": "hard"
+}

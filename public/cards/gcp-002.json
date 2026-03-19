@@ -1,0 +1,8 @@
+{
+  "id": "gcp-002",
+  "deck": "gcp",
+  "front": "What are BigQuery's three partitioning strategies and when would you choose each?",
+  "back": "Time-based partitioning uses a DATE/TIMESTAMP column and is ideal for event or log data queried by date range. Range partitioning divides data by an integer column (e.g., customer_id buckets) for numeric segmentation. Ingestion-time partitioning uses the load timestamp automatically, useful when source data has no reliable date column. All three reduce scan costs by pruning irrelevant partitions.",
+  "tags": ["bigquery", "partitioning", "time-based", "range", "ingestion-time"],
+  "difficulty": "medium"
+}

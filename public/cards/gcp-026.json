@@ -1,0 +1,8 @@
+{
+  "id": "gcp-026",
+  "deck": "gcp",
+  "front": "When would you choose Dataproc over Dataflow, and vice versa?",
+  "back": "Choose Dataproc when you have existing Spark or Hadoop jobs, need Hive or HBase, or want full control over the cluster environment and libraries. It lifts and shifts existing big data workloads with minimal code changes. Choose Dataflow when building new pipelines that require auto-scaling, serverless operation, and unified batch and streaming semantics via Apache Beam. Gotcha: Dataflow has no persistent cluster, so startup latency is higher; Dataproc clusters can stay warm for low-latency repeated jobs.",
+  "tags": ["dataproc", "dataflow", "spark", "hadoop", "comparison"],
+  "difficulty": "medium"
+}

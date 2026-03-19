@@ -1,0 +1,8 @@
+{
+  "id": "gcp-003",
+  "deck": "gcp",
+  "front": "What is the difference between clustering and partitioning in BigQuery, and when should you combine them?",
+  "back": "Partitioning divides a table into segments (by date or range) that BigQuery can skip entirely. Clustering sorts data within each partition by up to 4 columns, allowing block-level pruning. Gotcha: partitioning gives exact partition elimination; clustering gives approximate pruning based on block metadata. Combine both when queries filter on a date column AND a high-cardinality column like user_id or region.",
+  "tags": ["bigquery", "clustering", "partitioning", "performance"],
+  "difficulty": "medium"
+}

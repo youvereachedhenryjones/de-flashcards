@@ -1,0 +1,8 @@
+{
+  "id": "gcp-022",
+  "deck": "gcp",
+  "front": "What are the key tradeoffs between Cloud Composer and self-managed Airflow?",
+  "back": "Cloud Composer is a managed Airflow service: Google handles upgrades, HA, and infrastructure. The tradeoff is cost (Composer environments are expensive, especially for small workloads) and reduced control over Airflow configuration. Self-managed Airflow on Kubernetes or VMs is cheaper and more flexible but requires operational overhead for upgrades, monitoring, and scaling. Gotcha: Composer uses a specific Airflow version tied to the Composer version, so major version upgrades require environment recreation.",
+  "tags": ["cloud-composer", "airflow", "managed-service", "tradeoffs"],
+  "difficulty": "medium"
+}

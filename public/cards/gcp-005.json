@@ -1,0 +1,8 @@
+{
+  "id": "gcp-005",
+  "deck": "gcp",
+  "front": "How do BigQuery materialized views differ from regular views, and what are their limitations?",
+  "back": "Regular views are saved SQL queries with no stored data; they execute fully on each query and bill for all underlying bytes scanned. Materialized views pre-compute and cache results, refreshing automatically or on a schedule, and queries can be served from the cache at lower cost. Limitations: materialized views support only a subset of SQL (no JOINs across datasets in some cases, no non-deterministic functions), and they count toward dataset storage costs.",
+  "tags": ["bigquery", "materialized-views", "views", "performance", "cost"],
+  "difficulty": "medium"
+}

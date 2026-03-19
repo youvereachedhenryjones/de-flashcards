@@ -1,0 +1,8 @@
+{
+  "id": "gcp-029",
+  "deck": "gcp",
+  "front": "What are best practices for organizing GCS object paths to optimize analytics query performance?",
+  "back": "Use a Hive-compatible partitioning scheme in object paths (e.g., gs://bucket/events/date=2024-03-01/hour=14/) so tools like BigQuery external tables, Dataproc Hive, and Dataflow auto-detect and prune partitions. Avoid too many small files (use compaction to produce files of 100MB to 1GB). Prefix with low-cardinality keys first for better listing performance. Gotcha: random UUIDs or timestamps as prefixes cause hotspots in GCS listing; use meaningful partitions instead.",
+  "tags": ["gcs", "cloud-storage", "partitioning", "hive", "analytics"],
+  "difficulty": "medium"
+}

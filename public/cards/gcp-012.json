@@ -1,0 +1,8 @@
+{
+  "id": "gcp-012",
+  "deck": "gcp",
+  "front": "How does Dataflow's unified model handle both streaming and batch pipelines?",
+  "back": "Dataflow uses Apache Beam's unified model where batch is treated as a bounded stream. The same pipeline code works for both modes; you switch by changing the runner options and input source (e.g., Pub/Sub for streaming vs. GCS for batch). This eliminates the need to maintain separate codebases. Gotcha: streaming pipelines require windowing and watermark logic that batch pipelines skip, so the code is identical in structure but streaming adds complexity around event time.",
+  "tags": ["dataflow", "streaming", "batch", "unified-model", "apache-beam"],
+  "difficulty": "medium"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "gcp-025",
+  "deck": "gcp",
+  "front": "What improvements did Cloud Composer 2 introduce over Composer 1?",
+  "back": "Composer 2 introduced autoscaling for Airflow workers (scale to zero when idle, scale up on task surge) using GKE Autopilot, eliminating fixed worker pools. Workload Identity replaces service account key files for secure GCP authentication from pods. Composer 2 also improved environment creation speed and supports Airflow 2.x features like the TaskFlow API. Cost model changed to resource-based billing rather than fixed environment tiers. Gotcha: Autopilot cold-start latency can affect time-sensitive tasks.",
+  "tags": ["cloud-composer", "composer-2", "autoscaling", "workload-identity", "gke-autopilot"],
+  "difficulty": "medium"
+}

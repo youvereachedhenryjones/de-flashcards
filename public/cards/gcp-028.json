@@ -1,0 +1,8 @@
+{
+  "id": "gcp-028",
+  "deck": "gcp",
+  "front": "How do you choose between Cloud Spanner, Cloud SQL, and Bigtable?",
+  "back": "Cloud SQL is managed PostgreSQL or MySQL for standard relational workloads up to a few TB; single-region, limited horizontal scale. Cloud Spanner is globally distributed, strongly consistent SQL with unlimited horizontal scale; use it when you need relational semantics across regions or data exceeds Cloud SQL limits. Bigtable is for non-relational, high-throughput, low-latency workloads where a row-key access pattern fits. Key decision: need SQL transactions at scale? Spanner. Traditional relational, modest scale? Cloud SQL. NoSQL, massive throughput? Bigtable.",
+  "tags": ["spanner", "cloud-sql", "bigtable", "database-selection", "comparison"],
+  "difficulty": "hard"
+}

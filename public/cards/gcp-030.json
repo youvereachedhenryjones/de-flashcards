@@ -1,0 +1,8 @@
+{
+  "id": "gcp-030",
+  "deck": "gcp",
+  "front": "What is the difference between Looker and Looker Studio, and when would you use each?",
+  "back": "Looker Studio (formerly Data Studio) is a free, self-service BI tool for building shareable dashboards from various data sources; it's lightweight and great for quick visualization and stakeholder reports. Looker is a full enterprise BI platform centered on LookML, a modeling layer that defines metrics and business logic centrally; it enforces governed, consistent definitions across the org. Use Looker Studio for ad-hoc reporting and external sharing; use Looker when you need governed metrics, embedded analytics, or complex data modeling at scale.",
+  "tags": ["looker", "looker-studio", "bi", "data-studio", "lookml"],
+  "difficulty": "easy"
+}

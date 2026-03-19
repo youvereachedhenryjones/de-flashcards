@@ -1,0 +1,8 @@
+{
+  "id": "gcp-011",
+  "deck": "gcp",
+  "front": "Explain the Apache Beam programming model: what are PCollections, transforms, and pipelines?",
+  "back": "A Beam Pipeline is a directed acyclic graph of data processing steps. PCollections are immutable, distributed datasets that flow between steps; they can be bounded (batch) or unbounded (streaming). Transforms are the operations applied to PCollections: ParDo for element-wise processing, GroupByKey for aggregation, Combine for efficient reductions, and CoGroupByKey for joins. The same pipeline code runs on any Beam runner, including Dataflow, Spark, or Flink.",
+  "tags": ["dataflow", "apache-beam", "pcollection", "transforms", "pipeline"],
+  "difficulty": "medium"
+}

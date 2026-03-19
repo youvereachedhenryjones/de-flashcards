@@ -1,0 +1,8 @@
+{
+  "id": "gcp-027",
+  "deck": "gcp",
+  "front": "What are the primary use cases for Cloud Bigtable and what makes it unsuitable for some workloads?",
+  "back": "Bigtable is a fully managed, wide-column NoSQL database optimized for low-latency reads and writes at massive scale (billions of rows, petabytes of data). Ideal for: time-series data (IoT sensor readings, financial tick data), user personalization, AdTech, and ML feature stores. Limitations: no SQL support, no multi-row transactions, no secondary indexes, and queries must be designed around a single row key. Gotcha: row key design is critical and bad key design causes hotspot tablets.",
+  "tags": ["bigtable", "nosql", "time-series", "iot", "row-key"],
+  "difficulty": "medium"
+}

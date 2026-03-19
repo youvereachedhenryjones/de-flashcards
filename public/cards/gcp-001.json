@@ -1,0 +1,8 @@
+{
+  "id": "gcp-001",
+  "deck": "gcp",
+  "front": "What is BigQuery's storage architecture and how does it enable serverless analytics?",
+  "back": "BigQuery uses Capacitor, a columnar storage format, on Google's Colossus distributed filesystem. Storage and compute are fully decoupled, so each scales independently. The Dremel execution engine distributes queries across thousands of nodes automatically, with no cluster management required. Partitioned and clustered tables reduce bytes scanned, directly cutting cost and improving performance.",
+  "tags": ["bigquery", "storage", "architecture", "capacitor", "dremel"],
+  "difficulty": "medium"
+}

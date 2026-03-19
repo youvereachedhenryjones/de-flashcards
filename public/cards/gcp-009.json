@@ -1,0 +1,8 @@
+{
+  "id": "gcp-009",
+  "deck": "gcp",
+  "front": "What are BigQuery authorized views and how do they enable row- and column-level security?",
+  "back": "Authorized views allow you to share query results without granting access to the underlying tables. You create a view with filtering logic (e.g., WHERE user_id = SESSION_USER() for row-level security, or by selecting specific columns for column-level security), then authorize that view to access the source dataset. The querying user needs only view access. Gotcha: for dynamic row-level security, use SESSION_USER() or a lookup table mapping users to allowed rows.",
+  "tags": ["bigquery", "authorized-views", "security", "row-level-security", "column-level-security"],
+  "difficulty": "hard"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "gcp-006",
+  "deck": "gcp",
+  "front": "What ML capabilities does BigQuery ML offer and what makes it unique compared to training models externally?",
+  "back": "BigQuery ML lets you train, evaluate, and serve ML models using SQL directly on data in BigQuery, eliminating the need to export data. Supported model types include linear and logistic regression, k-means, matrix factorization, XGBoost, TensorFlow, and AutoML. Key advantage: no data movement means lower latency and cost. Also supports importing externally trained TensorFlow SavedModels and calling Vertex AI endpoints for remote inference.",
+  "tags": ["bigquery", "bigquery-ml", "machine-learning", "vertex-ai"],
+  "difficulty": "medium"
+}

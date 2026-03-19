@@ -1,0 +1,8 @@
+{
+  "id": "gcp-007",
+  "deck": "gcp",
+  "front": "What is the BigQuery Data Transfer Service and what sources does it support?",
+  "back": "BigQuery Data Transfer Service (DTS) automates scheduled data ingestion into BigQuery from external sources without custom pipelines. Supported sources include Google Ads, Google Analytics 360, Campaign Manager, YouTube, Cloud Storage, and third-party SaaS tools via partner connectors. Transfers run on a schedule you define, with backfill support. Gotcha: DTS is not a generic ETL tool; it covers a specific set of Google and partner sources only.",
+  "tags": ["bigquery", "data-transfer-service", "ingestion", "scheduled-loads"],
+  "difficulty": "easy"
+}

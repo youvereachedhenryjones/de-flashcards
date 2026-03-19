@@ -1,0 +1,8 @@
+{
+  "id": "gcp-004",
+  "deck": "gcp",
+  "front": "How does BigQuery slot reservation differ from on-demand pricing, and when should you use each?",
+  "back": "On-demand pricing charges $5 per TB scanned, scaling automatically but with no cost cap. Slot reservations (via BigQuery Reservations API) purchase dedicated query compute capacity in 100-slot increments. Editions (Standard, Enterprise, Enterprise Plus) replaced flat-rate pricing in 2023. Use on-demand for variable, unpredictable workloads. Use reservations when monthly query spend exceeds roughly $2,000 or you need guaranteed capacity and cost predictability.",
+  "tags": ["bigquery", "pricing", "slots", "reservations", "on-demand"],
+  "difficulty": "hard"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "gcp-021",
+  "deck": "gcp",
+  "front": "Does Pub/Sub guarantee message ordering and how do message attributes work?",
+  "back": "By default, Pub/Sub does not guarantee ordering. Ordering keys enable ordered delivery: messages with the same ordering key are delivered in the order they were published, within a region. This comes with a throughput tradeoff since the subscriber must ack each ordered message before receiving the next with that key. Message attributes are key-value string pairs attached to messages for metadata (e.g., event_type, source_system) that consumers can use for routing or filtering without parsing the payload.",
+  "tags": ["pubsub", "ordering", "message-attributes", "ordering-keys"],
+  "difficulty": "medium"
+}

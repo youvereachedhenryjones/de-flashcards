@@ -1,0 +1,8 @@
+{
+  "id": "gcp-019",
+  "deck": "gcp",
+  "front": "What are the tradeoffs between Pub/Sub Lite and standard Pub/Sub?",
+  "back": "Standard Pub/Sub is fully managed, globally replicated, and auto-scales with no capacity planning; you pay per message volume. Pub/Sub Lite is a lower-cost alternative that requires you to provision capacity (throughput and storage) in advance and is zone-redundant only (not global). Lite is up to 80% cheaper for predictable, high-volume workloads. Gotcha: Lite has stricter ordering guarantees per partition but lacks some standard features like schema enforcement and dead letter topics.",
+  "tags": ["pubsub", "pubsub-lite", "cost", "capacity-planning", "tradeoffs"],
+  "difficulty": "medium"
+}

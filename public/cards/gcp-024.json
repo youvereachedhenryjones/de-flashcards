@@ -1,0 +1,8 @@
+{
+  "id": "gcp-024",
+  "deck": "gcp",
+  "front": "What is DAG serialization in Airflow and why does it matter for Cloud Composer performance?",
+  "back": "DAG serialization (introduced in Airflow 1.10.7) converts DAG objects to JSON and stores them in the metadata database instead of having the webserver parse Python DAG files directly. This dramatically reduces webserver memory usage and startup time, especially for large DAG counts. In Composer, the scheduler still parses DAG files for execution, but the UI reads from the serialized store. Gotcha: serialization can mask import errors in the UI if the serialized version is stale.",
+  "tags": ["cloud-composer", "airflow", "dag-serialization", "metadata-db", "performance"],
+  "difficulty": "hard"
+}

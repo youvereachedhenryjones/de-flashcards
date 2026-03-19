@@ -1,0 +1,8 @@
+{
+  "id": "gcp-016",
+  "deck": "gcp",
+  "front": "What is the difference between Dataflow Flex Templates and Classic Templates?",
+  "back": "Classic Templates compile the pipeline graph at build time and store it as a JSON template in GCS; runtime parameters are limited and the graph is fixed. Flex Templates package the pipeline code in a Docker container, building the graph at launch time. This allows dynamic pipeline construction based on runtime parameters and supports custom dependencies. Gotcha: Flex Templates have a slightly higher startup latency due to container launch, but are strongly preferred for new pipelines.",
+  "tags": ["dataflow", "flex-templates", "classic-templates", "deployment"],
+  "difficulty": "medium"
+}
