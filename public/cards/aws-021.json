@@ -1,0 +1,7 @@
+{
+  "id": "aws-021",
+  "category": "AWS Data Services",
+  "question": "What are the EMR cluster types and when do you choose transient vs long-running?",
+  "answer": "Transient (job-flow) clusters: spin up for a single Spark job, terminate after completion. Best for batch ETL with predictable duration -- pay only for active compute, no idle cost, and each run starts fresh. Long-running clusters: persistent, support interactive notebooks and ad-hoc queries (Jupyter + EMR). Best for data science teams with unpredictable query patterns. The key differentiator: transient clusters on Spot instances are 60-80% cheaper than long-running on-demand clusters for batch workloads -- most production batch pipelines should use transient clusters launched by Airflow or Step Functions.",
+  "difficulty": "intermediate"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "aws-004",
+  "category": "AWS Data Services",
+  "question": "What is AWS Lake Formation and how does it differ from managing access with S3 bucket policies?",
+  "answer": "Lake Formation adds a permission layer on top of the Glue Data Catalog, enabling column-level and row-level security applied consistently across Athena, Redshift Spectrum, and EMR -- without touching S3 bucket policies per service. With raw S3 policies, you grant access at the bucket/prefix level and each query engine must be configured separately. The key differentiator: Lake Formation centralizes governance so one GRANT command controls who sees which columns across all query engines.",
+  "difficulty": "intermediate"
+}

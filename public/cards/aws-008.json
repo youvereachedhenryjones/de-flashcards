@@ -1,0 +1,7 @@
+{
+  "id": "aws-008",
+  "category": "AWS Data Services",
+  "question": "What S3 storage class should you use for each zone in a three-tier data lake (raw, processed, consumption)?",
+  "answer": "Raw zone: S3 Standard for the first 30 days (active ingestion), then lifecycle-transition to Standard-IA (30-90 days) and Glacier (90+ days) since raw data is rarely re-read. Processed zone: S3 Standard -- frequently queried by Athena and Spark. Consumption zone: S3 Standard for active dashboards; Intelligent-Tiering if access patterns are unpredictable. The key differentiator: applying lifecycle policies only to the raw zone (not processed) avoids retrieval fees on the actively-queried layers while cutting cold storage costs 70%+.",
+  "difficulty": "intermediate"
+}

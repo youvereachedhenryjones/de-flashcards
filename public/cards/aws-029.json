@@ -1,0 +1,7 @@
+{
+  "id": "aws-029",
+  "category": "AWS Data Services",
+  "question": "How do Glue Crawlers manage partition discovery and what are their limitations?",
+  "answer": "Glue Crawlers scan S3 prefixes, detect partition structure (e.g., s3://bucket/table/year=2026/month=01/day=15/), and register partition metadata in the Glue Data Catalog so Athena can prune them. Run crawlers on a schedule or trigger them after new data lands. Limitations: crawlers are slow for large partition counts (millions of partitions), they overwrite custom table settings on re-crawl, and schema change detection can cause table recreation. The key differentiator: for high-partition tables, use the Glue SDK to call batch_create_partition directly from your ETL code instead of relying on a crawler -- it's 100x faster and preserves your table settings.",
+  "difficulty": "intermediate"
+}

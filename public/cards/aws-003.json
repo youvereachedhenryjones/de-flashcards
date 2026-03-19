@@ -1,0 +1,7 @@
+{
+  "id": "aws-003",
+  "category": "AWS Data Services",
+  "question": "When do you use S3 Select vs Athena for querying S3 data?",
+  "answer": "Use S3 Select when you need a targeted row/column filter on a single file in code (Lambda, Glue, SDK) -- it pushes the filter to S3 before the data travels over the network, reducing bytes returned for a single-file extract. Use Athena when querying across many files, needing joins, aggregations, or ad-hoc SQL exploration across a partitioned table. The key differentiator: S3 Select is a single-file API call with limited SQL; Athena is a full query engine for multi-file table scans.",
+  "difficulty": "intermediate"
+}

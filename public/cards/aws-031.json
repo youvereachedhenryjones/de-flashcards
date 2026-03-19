@@ -1,0 +1,7 @@
+{
+  "id": "aws-031",
+  "category": "AWS Data Services",
+  "question": "What is AWS Glue vs a self-managed Hive Metastore for metadata management?",
+  "answer": "Glue Data Catalog is fully serverless -- no MetaStore cluster to provision, patch, or scale, and it integrates natively with Athena, EMR, and Redshift Spectrum out of the box. A self-managed Hive Metastore (backed by MySQL/PostgreSQL on RDS or EC2) gives you full control and portability but requires cluster management, HA configuration, and manual Athena integration via external metastore config. The key differentiator: Glue Catalog is the right default for AWS-native data lakes; self-managed Hive Metastore is only justified when you need cross-cloud portability or have strict latency requirements that Glue's API throttling limits cannot meet.",
+  "difficulty": "intermediate"
+}

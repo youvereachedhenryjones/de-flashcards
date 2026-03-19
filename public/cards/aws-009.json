@@ -1,0 +1,7 @@
+{
+  "id": "aws-009",
+  "category": "AWS Data Services",
+  "question": "What are Athena workgroups and how do they enforce cost controls on a team?",
+  "answer": "Athena workgroups are logical namespaces that isolate query execution, enforce per-query and per-workgroup data scan limits, and control which S3 output location results go to. You can set a per-query limit (e.g., block queries scanning more than 10GB) and a per-workgroup daily limit -- queries that would exceed the limit are cancelled before they scan any data. The key differentiator: workgroups let you give each team their own query isolation and budget enforcement without shared account-level Athena governance.",
+  "difficulty": "intermediate"
+}

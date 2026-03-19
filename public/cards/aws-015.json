@@ -1,0 +1,7 @@
+{
+  "id": "aws-015",
+  "category": "AWS Data Services",
+  "question": "What is a Kinesis Data Streams shard and how does sharding affect throughput and ordering?",
+  "answer": "A shard is the base unit of capacity in Kinesis: each shard provides 1 MB/s write (1,000 records/s) and 2 MB/s read. Records with the same partition key always go to the same shard, guaranteeing ordering within that partition key. Scale out by adding shards (UpdateShardCount); scale in by merging shards. The key differentiator: ordering is per-shard, not per-stream -- if you need globally ordered processing, use a single shard (limited throughput) or accept per-partition-key ordering across multiple shards.",
+  "difficulty": "intermediate"
+}

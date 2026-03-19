@@ -1,0 +1,7 @@
+{
+  "id": "aws-017",
+  "category": "AWS Data Services",
+  "question": "What is Kinesis Data Firehose and how does its buffering model work?",
+  "answer": "Firehose is a fully managed delivery stream that buffers incoming records and writes them to S3, Redshift, OpenSearch, or Splunk in batches -- no consumer code needed. Buffering is controlled by two thresholds: buffer size (up to 128MB) and buffer interval (60-900 seconds) -- whichever is hit first triggers a delivery. Firehose also handles format conversion (JSON to Parquet), compression (GZIP/Snappy), and dynamic partitioning (e.g., partition S3 output by event_type extracted from record payload). The key differentiator: Firehose is the zero-code path from a data source to S3/Redshift; Kinesis Data Streams is the programmable path requiring custom consumer logic.",
+  "difficulty": "intermediate"
+}

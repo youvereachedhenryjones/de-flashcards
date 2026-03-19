@@ -1,0 +1,7 @@
+{
+  "id": "aws-027",
+  "category": "AWS Data Services",
+  "question": "What are Lambda's data engineering event sources and how does each trigger model differ?",
+  "answer": "S3 event notifications (async): Lambda is invoked after an object PUT/DELETE -- good for file arrival triggers (validate, route, kick off Glue). Kinesis Data Streams (poll-based): Lambda polls the stream, batches records, and invokes your function with up to 10,000 records -- built-in retry with bisect-on-error. SQS (poll-based): Lambda polls the queue and invokes with a batch -- on failure, messages return to SQS for retry or go to DLQ. EventBridge scheduled rules (sync): cron-based invocation for periodic lightweight jobs. The key differentiator: Kinesis and SQS triggers are poll-based with automatic batching and retry -- S3 and EventBridge are push-based with no built-in retry on the Lambda side (you handle failures in your function).",
+  "difficulty": "intermediate"
+}

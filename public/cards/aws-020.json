@@ -1,0 +1,7 @@
+{
+  "id": "aws-020",
+  "category": "AWS Data Services",
+  "question": "What causes a hot shard in Kinesis Data Streams and how do you fix it?",
+  "answer": "A hot shard occurs when records are hashed to the same shard due to a low-cardinality partition key (e.g., all records with partition_key='app_events' land on one shard while others sit idle). Fix by using a high-cardinality partition key -- user_id, device_id, or UUID -- so records distribute evenly. Monitor via CloudWatch IncomingRecords per shard; a shard near 1000 records/s signals hot sharding. The key differentiator: unlike Kafka where you choose partition count explicitly, Kinesis partition assignment is entirely hash-based -- the partition key design is your only lever for even distribution.",
+  "difficulty": "intermediate"
+}

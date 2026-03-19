@@ -1,0 +1,7 @@
+{
+  "id": "aws-024",
+  "category": "AWS Data Services",
+  "question": "How do you use AWS Step Functions to orchestrate a multi-step data pipeline?",
+  "answer": "Define a state machine in Amazon States Language (JSON/YAML) with states for each pipeline step -- Task states call AWS services (Lambda, Glue, EMR, Athena) directly via SDK integrations without polling code. Add Retry (exponential backoff) and Catch (error routing to DLQ or notification) to each task state. Use the Map state to fan-out parallel processing across a list of items (e.g., process each S3 partition in parallel). The key differentiator: Step Functions handles retry, error routing, and execution history automatically -- replacing hundreds of lines of polling and error-handling code you'd write in a Lambda-based pipeline.",
+  "difficulty": "intermediate"
+}

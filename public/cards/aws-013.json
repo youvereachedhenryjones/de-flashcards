@@ -1,0 +1,7 @@
+{
+  "id": "aws-013",
+  "category": "AWS Data Services",
+  "question": "What is Redshift distribution key (DISTKEY) and how do you choose the right one?",
+  "answer": "DISTKEY determines which column is used to distribute rows across compute nodes -- rows with the same DISTKEY value land on the same node, enabling co-located joins without network shuffling. Choose DISTKEY on the column used in your most frequent, most expensive join (typically the FK linking fact to large dimension tables, like user_id or order_id). The key differentiator: a mismatched DISTKEY between two joined tables causes DS_BCAST or DS_DIST in EXPLAIN output, indicating expensive data redistribution -- choosing the right key eliminates this overhead.",
+  "difficulty": "intermediate"
+}

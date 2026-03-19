@@ -1,0 +1,226 @@
+[
+  {
+    "id": "aws-001",
+    "category": "AWS Data Services",
+    "question": "What are the S3 partitioning strategies for a data lake and how does partition design affect query cost in Athena?",
+    "answer": "Partition by high-cardinality, frequently-filtered columns -- most commonly year/month/day or event_type. Athena ($5/TB scanned) skips entire S3 prefixes that don't match the WHERE clause partition filter. The key differentiator: a poorly partitioned table (no date partition) scans the full dataset every query; a well-partitioned table with WHERE dt = '2026-01-15' scans only that day's data, cutting costs 100x or more.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-002",
+    "category": "AWS Data Services",
+    "question": "What is the S3 consistency model and how does it affect data pipeline design?",
+    "answer": "Since December 2020, S3 provides strong read-after-write consistency for all operations (PUT, DELETE, LIST) -- there is no longer a window where a newly written object might not appear in a LIST or GET. This means pipelines no longer need eventual consistency workarounds like wait-and-retry loops or DynamoDB-based coordination. The key differentiator: older DE architectures used S3 consistency workarounds that are now unnecessary dead weight -- knowing this shows you understand S3's evolution.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-003",
+    "category": "AWS Data Services",
+    "question": "When do you use S3 Select vs Athena for querying S3 data?",
+    "answer": "Use S3 Select when you need a targeted row/column filter on a single file in code (Lambda, Glue, SDK) -- it pushes the filter to S3 before the data travels over the network, reducing bytes returned for a single-file extract. Use Athena when querying across many files, needing joins, aggregations, or ad-hoc SQL exploration across a partitioned table. The key differentiator: S3 Select is a single-file API call with limited SQL; Athena is a full query engine for multi-file table scans.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-004",
+    "category": "AWS Data Services",
+    "question": "What is AWS Lake Formation and how does it differ from managing access with S3 bucket policies?",
+    "answer": "Lake Formation adds a permission layer on top of the Glue Data Catalog, enabling column-level and row-level security applied consistently across Athena, Redshift Spectrum, and EMR -- without touching S3 bucket policies per service. With raw S3 policies, you grant access at the bucket/prefix level and each query engine must be configured separately. The key differentiator: Lake Formation centralizes governance so one GRANT command controls who sees which columns across all query engines.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-005",
+    "category": "AWS Data Services",
+    "question": "What are Lake Formation blueprints and governed tables?",
+    "answer": "Blueprints are pre-built workflow templates in Lake Formation that automate ingesting data from JDBC sources (RDS, on-prem databases) into S3 -- they create a Glue workflow, crawlers, and ETL jobs automatically. Governed Tables are Iceberg-backed ACID-compliant tables registered in Lake Formation that support row-level security and automatic compaction. The key differentiator: blueprints are a low-code CDC/ingestion accelerator; governed tables bring ACID guarantees to S3 without you managing the Iceberg layer yourself.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "aws-006",
+    "category": "AWS Data Services",
+    "question": "How does Lake Formation tag-based access control (LF-TBAC) work and why is it preferred over per-resource grants at scale?",
+    "answer": "LF-TBAC lets you attach attribute tags (e.g., sensitivity=PII, domain=finance) to databases and tables, then grant IAM principals access by tag value rather than by individual resource. When a new table is created and tagged, access is inherited automatically -- no new GRANT needed. The key differentiator: per-resource grants become unmanageable at hundreds of tables; tag-based control scales governance without manual access updates for every new table.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "aws-007",
+    "category": "AWS Data Services",
+    "question": "What is the S3 small files problem and how do you fix it in a data lake pipeline?",
+    "answer": "Small files (under 128MB) cause high metadata overhead and slow Athena/Spark queries because each file requires a separate S3 LIST/GET call and a task allocation -- 10,000 files of 1MB each performs far worse than 10 files of 1GB each. Fix with: Glue ETL job or Spark coalesce/repartition to compact files to 128MB-1GB before writing to the processed zone, Kinesis Firehose buffering (buffer by size before writing to S3), or S3 Lifecycle batch compaction scripts. The key differentiator: small files from streaming writes are the most common data lake performance problem DE teams encounter in production.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-008",
+    "category": "AWS Data Services",
+    "question": "What S3 storage class should you use for each zone in a three-tier data lake (raw, processed, consumption)?",
+    "answer": "Raw zone: S3 Standard for the first 30 days (active ingestion), then lifecycle-transition to Standard-IA (30-90 days) and Glacier (90+ days) since raw data is rarely re-read. Processed zone: S3 Standard -- frequently queried by Athena and Spark. Consumption zone: S3 Standard for active dashboards; Intelligent-Tiering if access patterns are unpredictable. The key differentiator: applying lifecycle policies only to the raw zone (not processed) avoids retrieval fees on the actively-queried layers while cutting cold storage costs 70%+.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-009",
+    "category": "AWS Data Services",
+    "question": "What are Athena workgroups and how do they enforce cost controls on a team?",
+    "answer": "Athena workgroups are logical namespaces that isolate query execution, enforce per-query and per-workgroup data scan limits, and control which S3 output location results go to. You can set a per-query limit (e.g., block queries scanning more than 10GB) and a per-workgroup daily limit -- queries that would exceed the limit are cancelled before they scan any data. The key differentiator: workgroups let you give each team their own query isolation and budget enforcement without shared account-level Athena governance.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-010",
+    "category": "AWS Data Services",
+    "question": "What is Athena CTAS (CREATE TABLE AS SELECT) and when do you use it?",
+    "answer": "CTAS executes a SELECT query and writes the results as a new Athena table (Parquet/ORC) in S3 in a single statement -- CREATE TABLE new_table WITH (format='PARQUET', partitioned_by=ARRAY['dt']) AS SELECT ... FROM raw_table WHERE ... Use CTAS to: convert CSV/JSON raw data to Parquet at query time, create pre-filtered or aggregated tables from large raw tables, and materialize intermediate results for downstream queries. The key differentiator: CTAS is the serverless alternative to a Glue ETL job for simple format conversion and filtering -- no code, no infrastructure, billed at $5/TB scanned.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-011",
+    "category": "AWS Data Services",
+    "question": "What are Athena federated queries and what problem do they solve?",
+    "answer": "Athena federated queries use Lambda-based data source connectors to query non-S3 data sources (RDS, DynamoDB, Redshift, CloudWatch Logs, on-prem JDBC) directly from Athena SQL -- without first extracting the data to S3. You install an Athena connector Lambda for the source, register it as a catalog, and query it like: SELECT * FROM lambda_connector.schema.table. The key differentiator: federated queries let you join an S3 data lake table with a live RDS table in a single Athena SQL query -- eliminating the need for a separate ETL pipeline just to make a lookup table queryable.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "aws-012",
+    "category": "AWS Data Services",
+    "question": "When should you use Redshift vs Athena vs EMR for a query or data transformation workload?",
+    "answer": "Redshift: when you need sub-second BI dashboard queries on structured, frequently-queried data with complex joins -- columnar storage + zone maps + compiled queries beat Athena for repeated, concurrent queries. Athena: for ad-hoc SQL on S3, infrequent queries, and serverless pay-per-scan -- no cluster to manage. EMR: for Spark/Hive workloads requiring custom code, ML feature engineering, complex multi-step transformations, or when the data volume exceeds what Athena handles efficiently. The key differentiator: Redshift wins on repeated concurrent queries; Athena wins on infrequent ad-hoc queries; EMR wins when you need Spark's full programming model.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-013",
+    "category": "AWS Data Services",
+    "question": "What is Redshift distribution key (DISTKEY) and how do you choose the right one?",
+    "answer": "DISTKEY determines which column is used to distribute rows across compute nodes -- rows with the same DISTKEY value land on the same node, enabling co-located joins without network shuffling. Choose DISTKEY on the column used in your most frequent, most expensive join (typically the FK linking fact to large dimension tables, like user_id or order_id). The key differentiator: a mismatched DISTKEY between two joined tables causes DS_BCAST or DS_DIST in EXPLAIN output, indicating expensive data redistribution -- choosing the right key eliminates this overhead.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-014",
+    "category": "AWS Data Services",
+    "question": "What is Redshift Spectrum and when is it better than loading data into Redshift tables?",
+    "answer": "Redshift Spectrum queries data directly in S3 using the Glue Data Catalog as the metastore -- you define an external schema and query external tables alongside native Redshift tables in the same SQL. Use Spectrum for: historical or cold data too large or infrequently accessed to justify Redshift storage cost, joining a small Redshift dimension table with a massive S3 archive, and ad-hoc exploration of raw data. The key differentiator: Spectrum is better than full Redshift when queries are infrequent and data is cold -- you pay $5/TB scanned instead of $0.25/GB/month for permanent Redshift storage.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-015",
+    "category": "AWS Data Services",
+    "question": "What is a Kinesis Data Streams shard and how does sharding affect throughput and ordering?",
+    "answer": "A shard is the base unit of capacity in Kinesis: each shard provides 1 MB/s write (1,000 records/s) and 2 MB/s read. Records with the same partition key always go to the same shard, guaranteeing ordering within that partition key. Scale out by adding shards (UpdateShardCount); scale in by merging shards. The key differentiator: ordering is per-shard, not per-stream -- if you need globally ordered processing, use a single shard (limited throughput) or accept per-partition-key ordering across multiple shards.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-016",
+    "category": "AWS Data Services",
+    "question": "What is Kinesis Data Streams retention and what happens when a consumer falls behind?",
+    "answer": "Default retention is 24 hours; you can extend up to 365 days (Extended Data Retention, billed extra). Records remain in the shard during retention -- consumers can reprocess from any point using a shard iterator (TRIM_HORIZON for oldest, AT_TIMESTAMP for a specific time). If a consumer falls behind and retention expires, those records are permanently lost. The key differentiator: unlike Kafka, Kinesis does not allow consumers to independently control their offset at the topic level -- each consumer uses a GetRecords iterator, and falling behind the retention window means unrecoverable data loss.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-017",
+    "category": "AWS Data Services",
+    "question": "What is Kinesis Data Firehose and how does its buffering model work?",
+    "answer": "Firehose is a fully managed delivery stream that buffers incoming records and writes them to S3, Redshift, OpenSearch, or Splunk in batches -- no consumer code needed. Buffering is controlled by two thresholds: buffer size (up to 128MB) and buffer interval (60-900 seconds) -- whichever is hit first triggers a delivery. Firehose also handles format conversion (JSON to Parquet), compression (GZIP/Snappy), and dynamic partitioning (e.g., partition S3 output by event_type extracted from record payload). The key differentiator: Firehose is the zero-code path from a data source to S3/Redshift; Kinesis Data Streams is the programmable path requiring custom consumer logic.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-018",
+    "category": "AWS Data Services",
+    "question": "What are the trade-offs between Kinesis Data Streams and Amazon MSK (Kafka) for a streaming data pipeline?",
+    "answer": "Kinesis: simpler ops (no broker sizing, native IAM auth, auto-integrates with Lambda/Firehose/Glue), but AWS-only with limited ecosystem tools, 7MB record size limit, and shard-based pricing (pay per shard-hour). MSK/Kafka: full Kafka API (portable, ecosystem tools like Debezium, ksqlDB, Kafka Connect), configurable retention and compaction, partition-level consumer group offsets, and lower per-GB cost at scale -- but requires broker sizing, replication factor tuning, and more operational overhead. The key differentiator: Kinesis is the right choice for AWS-native simplicity; MSK wins when you need the Kafka ecosystem (especially Debezium for CDC) or want to avoid vendor lock-in.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-019",
+    "category": "AWS Data Services",
+    "question": "What is Amazon MSK (Managed Streaming for Apache Kafka) and what does AWS manage vs what you manage?",
+    "answer": "MSK is AWS-managed Apache Kafka -- AWS handles broker provisioning, OS patching, ZooKeeper/KRaft coordination, replication, and CloudWatch metrics. You manage: topic creation, partition counts, replication factor, consumer group configuration, Kafka Connect connectors, and Schema Registry (via Glue Schema Registry integration). MSK Serverless auto-scales broker capacity without you sizing instances. The key differentiator: MSK eliminates the hardest Kafka ops (broker replacement, ZooKeeper management) but still requires Kafka expertise for topic design, consumer group lag monitoring, and connector management.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-020",
+    "category": "AWS Data Services",
+    "question": "What causes a hot shard in Kinesis Data Streams and how do you fix it?",
+    "answer": "A hot shard occurs when records are hashed to the same shard due to a low-cardinality partition key (e.g., all records with partition_key='app_events' land on one shard while others sit idle). Fix by using a high-cardinality partition key -- user_id, device_id, or UUID -- so records distribute evenly. Monitor via CloudWatch IncomingRecords per shard; a shard near 1000 records/s signals hot sharding. The key differentiator: unlike Kafka where you choose partition count explicitly, Kinesis partition assignment is entirely hash-based -- the partition key design is your only lever for even distribution.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-021",
+    "category": "AWS Data Services",
+    "question": "What are the EMR cluster types and when do you choose transient vs long-running?",
+    "answer": "Transient (job-flow) clusters: spin up for a single Spark job, terminate after completion. Best for batch ETL with predictable duration -- pay only for active compute, no idle cost, and each run starts fresh. Long-running clusters: persistent, support interactive notebooks and ad-hoc queries (Jupyter + EMR). Best for data science teams with unpredictable query patterns. The key differentiator: transient clusters on Spot instances are 60-80% cheaper than long-running on-demand clusters for batch workloads -- most production batch pipelines should use transient clusters launched by Airflow or Step Functions.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-022",
+    "category": "AWS Data Services",
+    "question": "What is the difference between EMR instance groups and instance fleets?",
+    "answer": "Instance groups: a fixed homogeneous pool of EC2 instances per role (master/core/task) -- simple to configure but limited to one instance type per group. Instance fleets: each fleet can include up to 5 instance types with Spot + On-Demand mix, and EMR provisions the best-available capacity across instance types and AZs. Instance fleets dramatically reduce Spot interruptions because they can fall back to alternative instance types when one type is unavailable. The key differentiator: instance fleets are the modern choice for cost-optimized, interruption-resilient EMR clusters; use instance groups only when you need a specific instance type for predictable performance.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "aws-023",
+    "category": "AWS Data Services",
+    "question": "How does EMR auto-scaling work and what are the two auto-scaling options?",
+    "answer": "EMR Managed Scaling (recommended): AWS automatically adds/removes task nodes based on YARN resource metrics (pending memory, container utilization) without you configuring scaling policies. Custom Auto Scaling: you define CloudWatch metric thresholds and scaling actions yourself (scale out when YARNMemoryAvailablePercentage < 15%). Managed scaling reacts faster (every 5-10 seconds) and handles the core/task ratio automatically. The key differentiator: Managed Scaling is the right default for most workloads -- custom auto-scaling is only needed when you have non-standard metrics or want to scale on application-level signals beyond YARN.",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "aws-024",
+    "category": "AWS Data Services",
+    "question": "How do you use AWS Step Functions to orchestrate a multi-step data pipeline?",
+    "answer": "Define a state machine in Amazon States Language (JSON/YAML) with states for each pipeline step -- Task states call AWS services (Lambda, Glue, EMR, Athena) directly via SDK integrations without polling code. Add Retry (exponential backoff) and Catch (error routing to DLQ or notification) to each task state. Use the Map state to fan-out parallel processing across a list of items (e.g., process each S3 partition in parallel). The key differentiator: Step Functions handles retry, error routing, and execution history automatically -- replacing hundreds of lines of polling and error-handling code you'd write in a Lambda-based pipeline.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-025",
+    "category": "AWS Data Services",
+    "question": "What is the Step Functions Map state and how do you use it in a data pipeline?",
+    "answer": "The Map state iterates over an array in the execution input and runs a set of sub-states for each item in parallel (or with concurrency control via MaxConcurrency). Example: split a list of 50 S3 file paths into the input array, Map state runs a Lambda validation + Glue job for each file concurrently. MaxConcurrency=0 runs all items simultaneously; MaxConcurrency=5 limits to 5 parallel branches. The key differentiator: Map state replaces custom fan-out/fan-in orchestration logic -- it's the native way to implement parallel partition processing in Step Functions without managing SQS queues or concurrent Lambda invocations yourself.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-026",
+    "category": "AWS Data Services",
+    "question": "What are Lambda's hard limits that matter for data engineering and how do you work around them?",
+    "answer": "Key limits: 15-minute max timeout, 10GB max memory, 512MB-10GB ephemeral /tmp storage, 6MB synchronous payload / 256KB async. For data processing: Lambda cannot run multi-hour Spark jobs -- hand off to Glue or EMR. For large file processing in /tmp: stream S3 data in chunks rather than downloading the full file. Cold starts (100ms-1s for Python) matter for latency-sensitive pipelines -- use Provisioned Concurrency to pre-warm functions. The key differentiator: Lambda is best as an event router and lightweight transformer (schema validation, enrichment, routing) -- not as a compute engine for heavy ETL; anything over 5 minutes or 5GB should use Glue or EMR.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-027",
+    "category": "AWS Data Services",
+    "question": "What are Lambda's data engineering event sources and how does each trigger model differ?",
+    "answer": "S3 event notifications (async): Lambda is invoked after an object PUT/DELETE -- good for file arrival triggers (validate, route, kick off Glue). Kinesis Data Streams (poll-based): Lambda polls the stream, batches records, and invokes your function with up to 10,000 records -- built-in retry with bisect-on-error. SQS (poll-based): Lambda polls the queue and invokes with a batch -- on failure, messages return to SQS for retry or go to DLQ. EventBridge scheduled rules (sync): cron-based invocation for periodic lightweight jobs. The key differentiator: Kinesis and SQS triggers are poll-based with automatic batching and retry -- S3 and EventBridge are push-based with no built-in retry on the Lambda side (you handle failures in your function).",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-028",
+    "category": "AWS Data Services",
+    "question": "What is the AWS Glue Data Catalog and how does it relate to Hive Metastore?",
+    "answer": "The Glue Data Catalog is a fully managed, Hive-compatible metadata repository that stores database and table definitions (schema, location, partitions, SerDe properties). Athena, Redshift Spectrum, EMR, and Spark on EMR all use it natively as their metastore -- replacing the need to run a self-managed Hive Metastore. Glue Crawlers populate it automatically by scanning S3, JDBC sources, or DynamoDB and inferring schemas. The key differentiator: the Glue Data Catalog is the central metadata hub for the entire AWS data lake -- it decouples metadata from any single query engine, so Athena and EMR share the same table definitions without duplication.",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "aws-029",
+    "category": "AWS Data Services",
+    "question": "How do Glue Crawlers manage partition discovery and what are their limitations?",
+    "answer": "Glue Crawlers scan S3 prefixes, detect partition structure (e.g., s3://bucket/table/year=2026/month=01/day=15/), and register partition metadata in the Glue Data Catalog so Athena can prune them. Run crawlers on a schedule or trigger them after new data lands. Limitations: crawlers are slow for large partition counts (millions of partitions), they overwrite custom table settings on re-crawl, and schema change detection can cause table recreation. The key differentiator: for high-partition tables, use the Glue SDK to call batch_create_partition directly from your ETL code instead of relying on a crawler -- it's 100x faster and preserves your table settings.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-030",
+    "category": "AWS Data Services",
+    "question": "How does IAM for data access differ from Lake Formation permissions, and when do you use each?",
+    "answer": "IAM controls access to AWS API actions and S3 prefixes at the resource level -- you grant s3:GetObject on a specific bucket/prefix. Lake Formation adds table-level, column-level, and row-level permissions on top of the Glue Catalog -- it intercepts Athena, Redshift Spectrum, and EMR queries and filters data before it reaches the user. Use IAM alone for simple single-engine scenarios. Use Lake Formation when: you have multiple query engines, need column-level masking (PII), or want tag-based access control across a large table catalog. The key differentiator: Lake Formation is not a replacement for IAM -- it adds a semantic permission layer on top of it; both must be configured correctly (the effective permission is the intersection of IAM and Lake Formation grants).",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-031",
+    "category": "AWS Data Services",
+    "question": "What is AWS Glue vs a self-managed Hive Metastore for metadata management?",
+    "answer": "Glue Data Catalog is fully serverless -- no MetaStore cluster to provision, patch, or scale, and it integrates natively with Athena, EMR, and Redshift Spectrum out of the box. A self-managed Hive Metastore (backed by MySQL/PostgreSQL on RDS or EC2) gives you full control and portability but requires cluster management, HA configuration, and manual Athena integration via external metastore config. The key differentiator: Glue Catalog is the right default for AWS-native data lakes; self-managed Hive Metastore is only justified when you need cross-cloud portability or have strict latency requirements that Glue's API throttling limits cannot meet.",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "aws-032",
+    "category": "AWS Data Services",
+    "question": "What is EMR Serverless and how does it differ from EMR on EC2?",
+    "answer": "EMR Serverless runs Spark and Hive jobs without you provisioning or managing a cluster -- submit a job, AWS allocates compute, job runs, compute released. No cluster startup time (pre-initialized capacity available), no idle cost between jobs, and auto-scales workers per job. EMR on EC2 requires you to size and manage the cluster (master, core, task nodes) and you pay for idle time between jobs. The key differentiator: EMR Serverless is the modern default for transient batch jobs with variable frequency -- EMR on EC2 is still better when you need fine-grained control over cluster config, specific AMIs, bootstrap actions, or persistent HDFS storage between jobs.",
+    "difficulty": "intermediate"
+  }
+]

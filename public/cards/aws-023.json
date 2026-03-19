@@ -1,0 +1,7 @@
+{
+  "id": "aws-023",
+  "category": "AWS Data Services",
+  "question": "How does EMR auto-scaling work and what are the two auto-scaling options?",
+  "answer": "EMR Managed Scaling (recommended): AWS automatically adds/removes task nodes based on YARN resource metrics (pending memory, container utilization) without you configuring scaling policies. Custom Auto Scaling: you define CloudWatch metric thresholds and scaling actions yourself (scale out when YARNMemoryAvailablePercentage < 15%). Managed scaling reacts faster (every 5-10 seconds) and handles the core/task ratio automatically. The key differentiator: Managed Scaling is the right default for most workloads -- custom auto-scaling is only needed when you have non-standard metrics or want to scale on application-level signals beyond YARN.",
+  "difficulty": "advanced"
+}

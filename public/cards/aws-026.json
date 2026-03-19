@@ -1,0 +1,7 @@
+{
+  "id": "aws-026",
+  "category": "AWS Data Services",
+  "question": "What are Lambda's hard limits that matter for data engineering and how do you work around them?",
+  "answer": "Key limits: 15-minute max timeout, 10GB max memory, 512MB-10GB ephemeral /tmp storage, 6MB synchronous payload / 256KB async. For data processing: Lambda cannot run multi-hour Spark jobs -- hand off to Glue or EMR. For large file processing in /tmp: stream S3 data in chunks rather than downloading the full file. Cold starts (100ms-1s for Python) matter for latency-sensitive pipelines -- use Provisioned Concurrency to pre-warm functions. The key differentiator: Lambda is best as an event router and lightweight transformer (schema validation, enrichment, routing) -- not as a compute engine for heavy ETL; anything over 5 minutes or 5GB should use Glue or EMR.",
+  "difficulty": "intermediate"
+}

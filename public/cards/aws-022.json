@@ -1,0 +1,7 @@
+{
+  "id": "aws-022",
+  "category": "AWS Data Services",
+  "question": "What is the difference between EMR instance groups and instance fleets?",
+  "answer": "Instance groups: a fixed homogeneous pool of EC2 instances per role (master/core/task) -- simple to configure but limited to one instance type per group. Instance fleets: each fleet can include up to 5 instance types with Spot + On-Demand mix, and EMR provisions the best-available capacity across instance types and AZs. Instance fleets dramatically reduce Spot interruptions because they can fall back to alternative instance types when one type is unavailable. The key differentiator: instance fleets are the modern choice for cost-optimized, interruption-resilient EMR clusters; use instance groups only when you need a specific instance type for predictable performance.",
+  "difficulty": "advanced"
+}

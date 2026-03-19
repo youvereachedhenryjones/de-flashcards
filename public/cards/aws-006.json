@@ -1,0 +1,7 @@
+{
+  "id": "aws-006",
+  "category": "AWS Data Services",
+  "question": "How does Lake Formation tag-based access control (LF-TBAC) work and why is it preferred over per-resource grants at scale?",
+  "answer": "LF-TBAC lets you attach attribute tags (e.g., sensitivity=PII, domain=finance) to databases and tables, then grant IAM principals access by tag value rather than by individual resource. When a new table is created and tagged, access is inherited automatically -- no new GRANT needed. The key differentiator: per-resource grants become unmanageable at hundreds of tables; tag-based control scales governance without manual access updates for every new table.",
+  "difficulty": "advanced"
+}

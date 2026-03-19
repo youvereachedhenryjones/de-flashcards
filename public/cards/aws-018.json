@@ -1,0 +1,7 @@
+{
+  "id": "aws-018",
+  "category": "AWS Data Services",
+  "question": "What are the trade-offs between Kinesis Data Streams and Amazon MSK (Kafka) for a streaming data pipeline?",
+  "answer": "Kinesis: simpler ops (no broker sizing, native IAM auth, auto-integrates with Lambda/Firehose/Glue), but AWS-only with limited ecosystem tools, 7MB record size limit, and shard-based pricing (pay per shard-hour). MSK/Kafka: full Kafka API (portable, ecosystem tools like Debezium, ksqlDB, Kafka Connect), configurable retention and compaction, partition-level consumer group offsets, and lower per-GB cost at scale -- but requires broker sizing, replication factor tuning, and more operational overhead. The key differentiator: Kinesis is the right choice for AWS-native simplicity; MSK wins when you need the Kafka ecosystem (especially Debezium for CDC) or want to avoid vendor lock-in.",
+  "difficulty": "intermediate"
+}

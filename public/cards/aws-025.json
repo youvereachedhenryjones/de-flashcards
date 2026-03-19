@@ -1,0 +1,7 @@
+{
+  "id": "aws-025",
+  "category": "AWS Data Services",
+  "question": "What is the Step Functions Map state and how do you use it in a data pipeline?",
+  "answer": "The Map state iterates over an array in the execution input and runs a set of sub-states for each item in parallel (or with concurrency control via MaxConcurrency). Example: split a list of 50 S3 file paths into the input array, Map state runs a Lambda validation + Glue job for each file concurrently. MaxConcurrency=0 runs all items simultaneously; MaxConcurrency=5 limits to 5 parallel branches. The key differentiator: Map state replaces custom fan-out/fan-in orchestration logic -- it's the native way to implement parallel partition processing in Step Functions without managing SQS queues or concurrent Lambda invocations yourself.",
+  "difficulty": "intermediate"
+}

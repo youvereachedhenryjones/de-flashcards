@@ -1,0 +1,7 @@
+{
+  "id": "aws-010",
+  "category": "AWS Data Services",
+  "question": "What is Athena CTAS (CREATE TABLE AS SELECT) and when do you use it?",
+  "answer": "CTAS executes a SELECT query and writes the results as a new Athena table (Parquet/ORC) in S3 in a single statement -- CREATE TABLE new_table WITH (format='PARQUET', partitioned_by=ARRAY['dt']) AS SELECT ... FROM raw_table WHERE ... Use CTAS to: convert CSV/JSON raw data to Parquet at query time, create pre-filtered or aggregated tables from large raw tables, and materialize intermediate results for downstream queries. The key differentiator: CTAS is the serverless alternative to a Glue ETL job for simple format conversion and filtering -- no code, no infrastructure, billed at $5/TB scanned.",
+  "difficulty": "intermediate"
+}

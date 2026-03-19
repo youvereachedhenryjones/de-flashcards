@@ -1,0 +1,7 @@
+{
+  "id": "aws-007",
+  "category": "AWS Data Services",
+  "question": "What is the S3 small files problem and how do you fix it in a data lake pipeline?",
+  "answer": "Small files (under 128MB) cause high metadata overhead and slow Athena/Spark queries because each file requires a separate S3 LIST/GET call and a task allocation -- 10,000 files of 1MB each performs far worse than 10 files of 1GB each. Fix with: Glue ETL job or Spark coalesce/repartition to compact files to 128MB-1GB before writing to the processed zone, Kinesis Firehose buffering (buffer by size before writing to S3), or S3 Lifecycle batch compaction scripts. The key differentiator: small files from streaming writes are the most common data lake performance problem DE teams encounter in production.",
+  "difficulty": "intermediate"
+}

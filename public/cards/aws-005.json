@@ -1,0 +1,7 @@
+{
+  "id": "aws-005",
+  "category": "AWS Data Services",
+  "question": "What are Lake Formation blueprints and governed tables?",
+  "answer": "Blueprints are pre-built workflow templates in Lake Formation that automate ingesting data from JDBC sources (RDS, on-prem databases) into S3 -- they create a Glue workflow, crawlers, and ETL jobs automatically. Governed Tables are Iceberg-backed ACID-compliant tables registered in Lake Formation that support row-level security and automatic compaction. The key differentiator: blueprints are a low-code CDC/ingestion accelerator; governed tables bring ACID guarantees to S3 without you managing the Iceberg layer yourself.",
+  "difficulty": "advanced"
+}

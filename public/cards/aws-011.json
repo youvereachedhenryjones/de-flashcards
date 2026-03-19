@@ -1,0 +1,7 @@
+{
+  "id": "aws-011",
+  "category": "AWS Data Services",
+  "question": "What are Athena federated queries and what problem do they solve?",
+  "answer": "Athena federated queries use Lambda-based data source connectors to query non-S3 data sources (RDS, DynamoDB, Redshift, CloudWatch Logs, on-prem JDBC) directly from Athena SQL -- without first extracting the data to S3. You install an Athena connector Lambda for the source, register it as a catalog, and query it like: SELECT * FROM lambda_connector.schema.table. The key differentiator: federated queries let you join an S3 data lake table with a live RDS table in a single Athena SQL query -- eliminating the need for a separate ETL pipeline just to make a lookup table queryable.",
+  "difficulty": "advanced"
+}

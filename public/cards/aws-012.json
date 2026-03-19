@@ -1,0 +1,7 @@
+{
+  "id": "aws-012",
+  "category": "AWS Data Services",
+  "question": "When should you use Redshift vs Athena vs EMR for a query or data transformation workload?",
+  "answer": "Redshift: when you need sub-second BI dashboard queries on structured, frequently-queried data with complex joins -- columnar storage + zone maps + compiled queries beat Athena for repeated, concurrent queries. Athena: for ad-hoc SQL on S3, infrequent queries, and serverless pay-per-scan -- no cluster to manage. EMR: for Spark/Hive workloads requiring custom code, ML feature engineering, complex multi-step transformations, or when the data volume exceeds what Athena handles efficiently. The key differentiator: Redshift wins on repeated concurrent queries; Athena wins on infrequent ad-hoc queries; EMR wins when you need Spark's full programming model.",
+  "difficulty": "intermediate"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "aws-016",
+  "category": "AWS Data Services",
+  "question": "What is Kinesis Data Streams retention and what happens when a consumer falls behind?",
+  "answer": "Default retention is 24 hours; you can extend up to 365 days (Extended Data Retention, billed extra). Records remain in the shard during retention -- consumers can reprocess from any point using a shard iterator (TRIM_HORIZON for oldest, AT_TIMESTAMP for a specific time). If a consumer falls behind and retention expires, those records are permanently lost. The key differentiator: unlike Kafka, Kinesis does not allow consumers to independently control their offset at the topic level -- each consumer uses a GetRecords iterator, and falling behind the retention window means unrecoverable data loss.",
+  "difficulty": "intermediate"
+}

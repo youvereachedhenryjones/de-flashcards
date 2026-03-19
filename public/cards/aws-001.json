@@ -1,0 +1,7 @@
+{
+  "id": "aws-001",
+  "category": "AWS Data Services",
+  "question": "What are the S3 partitioning strategies for a data lake and how does partition design affect query cost in Athena?",
+  "answer": "Partition by high-cardinality, frequently-filtered columns -- most commonly year/month/day or event_type. Athena ($5/TB scanned) skips entire S3 prefixes that don't match the WHERE clause partition filter. The key differentiator: a poorly partitioned table (no date partition) scans the full dataset every query; a well-partitioned table with WHERE dt = '2026-01-15' scans only that day's data, cutting costs 100x or more.",
+  "difficulty": "intermediate"
+}

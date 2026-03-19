@@ -1,0 +1,7 @@
+{
+  "id": "aws-030",
+  "category": "AWS Data Services",
+  "question": "How does IAM for data access differ from Lake Formation permissions, and when do you use each?",
+  "answer": "IAM controls access to AWS API actions and S3 prefixes at the resource level -- you grant s3:GetObject on a specific bucket/prefix. Lake Formation adds table-level, column-level, and row-level permissions on top of the Glue Catalog -- it intercepts Athena, Redshift Spectrum, and EMR queries and filters data before it reaches the user. Use IAM alone for simple single-engine scenarios. Use Lake Formation when: you have multiple query engines, need column-level masking (PII), or want tag-based access control across a large table catalog. The key differentiator: Lake Formation is not a replacement for IAM -- it adds a semantic permission layer on top of it; both must be configured correctly (the effective permission is the intersection of IAM and Lake Formation grants).",
+  "difficulty": "intermediate"
+}

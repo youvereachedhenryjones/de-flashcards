@@ -1,0 +1,7 @@
+{
+  "id": "aws-019",
+  "category": "AWS Data Services",
+  "question": "What is Amazon MSK (Managed Streaming for Apache Kafka) and what does AWS manage vs what you manage?",
+  "answer": "MSK is AWS-managed Apache Kafka -- AWS handles broker provisioning, OS patching, ZooKeeper/KRaft coordination, replication, and CloudWatch metrics. You manage: topic creation, partition counts, replication factor, consumer group configuration, Kafka Connect connectors, and Schema Registry (via Glue Schema Registry integration). MSK Serverless auto-scales broker capacity without you sizing instances. The key differentiator: MSK eliminates the hardest Kafka ops (broker replacement, ZooKeeper management) but still requires Kafka expertise for topic design, consumer group lag monitoring, and connector management.",
+  "difficulty": "intermediate"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "aws-028",
+  "category": "AWS Data Services",
+  "question": "What is the AWS Glue Data Catalog and how does it relate to Hive Metastore?",
+  "answer": "The Glue Data Catalog is a fully managed, Hive-compatible metadata repository that stores database and table definitions (schema, location, partitions, SerDe properties). Athena, Redshift Spectrum, EMR, and Spark on EMR all use it natively as their metastore -- replacing the need to run a self-managed Hive Metastore. Glue Crawlers populate it automatically by scanning S3, JDBC sources, or DynamoDB and inferring schemas. The key differentiator: the Glue Data Catalog is the central metadata hub for the entire AWS data lake -- it decouples metadata from any single query engine, so Athena and EMR share the same table definitions without duplication.",
+  "difficulty": "beginner"
+}

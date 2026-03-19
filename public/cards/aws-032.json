@@ -1,0 +1,7 @@
+{
+  "id": "aws-032",
+  "category": "AWS Data Services",
+  "question": "What is EMR Serverless and how does it differ from EMR on EC2?",
+  "answer": "EMR Serverless runs Spark and Hive jobs without you provisioning or managing a cluster -- submit a job, AWS allocates compute, job runs, compute released. No cluster startup time (pre-initialized capacity available), no idle cost between jobs, and auto-scales workers per job. EMR on EC2 requires you to size and manage the cluster (master, core, task nodes) and you pay for idle time between jobs. The key differentiator: EMR Serverless is the modern default for transient batch jobs with variable frequency -- EMR on EC2 is still better when you need fine-grained control over cluster config, specific AMIs, bootstrap actions, or persistent HDFS storage between jobs.",
+  "difficulty": "intermediate"
+}

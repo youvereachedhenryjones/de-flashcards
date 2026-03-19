@@ -1,0 +1,7 @@
+{
+  "id": "aws-014",
+  "category": "AWS Data Services",
+  "question": "What is Redshift Spectrum and when is it better than loading data into Redshift tables?",
+  "answer": "Redshift Spectrum queries data directly in S3 using the Glue Data Catalog as the metastore -- you define an external schema and query external tables alongside native Redshift tables in the same SQL. Use Spectrum for: historical or cold data too large or infrequently accessed to justify Redshift storage cost, joining a small Redshift dimension table with a massive S3 archive, and ad-hoc exploration of raw data. The key differentiator: Spectrum is better than full Redshift when queries are infrequent and data is cold -- you pay $5/TB scanned instead of $0.25/GB/month for permanent Redshift storage.",
+  "difficulty": "intermediate"
+}

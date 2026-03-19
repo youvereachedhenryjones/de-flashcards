@@ -1,0 +1,7 @@
+{
+  "id": "aws-002",
+  "category": "AWS Data Services",
+  "question": "What is the S3 consistency model and how does it affect data pipeline design?",
+  "answer": "Since December 2020, S3 provides strong read-after-write consistency for all operations (PUT, DELETE, LIST) -- there is no longer a window where a newly written object might not appear in a LIST or GET. This means pipelines no longer need eventual consistency workarounds like wait-and-retry loops or DynamoDB-based coordination. The key differentiator: older DE architectures used S3 consistency workarounds that are now unnecessary dead weight -- knowing this shows you understand S3's evolution.",
+  "difficulty": "intermediate"
+}
