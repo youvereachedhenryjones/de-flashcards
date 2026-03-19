@@ -1,0 +1,12 @@
+{
+  "id": "databricks-007",
+  "category": "Databricks",
+  "question": "How does Delta Live Tables handle streaming vs batch processing?",
+  "answer": "DLT tables defined with dlt.read_stream() process data incrementally as new records arrive (streaming mode). Tables defined with dlt.read() process all data each run (batch mode). DLT pipelines can mix both in the same pipeline: streaming ingestion at the bronze layer, batch transformations at silver/gold. Trigger modes: Triggered (runs once on schedule, like a batch job) or Continuous (always-on streaming). The gotcha: mixing streaming and batch in the same pipeline can cause unexpected refresh behavior as batch layers re-process all data while streaming layers only process new data.",
+  "tags": [
+    "databricks",
+    "delta-live-tables",
+    "streaming",
+    "batch"
+  ]
+}

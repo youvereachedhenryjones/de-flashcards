@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-020",
+  "category": "dbt Advanced",
+  "question": "What is the difference between the timestamp and check snapshot strategies in dbt?",
+  "answer": "timestamp strategy: uses an updated_at column to detect changes. dbt compares the timestamp of each row to the last snapshot run. Fast and efficient, requires a reliable updated_at column that changes on every update. check strategy: compares specific columns you list in 'check_cols' to detect changes. Works when there is no reliable updated_at column but performs a full column comparison on every run, which is slower. Prefer timestamp when available. The gotcha: if your source updates rows without changing updated_at (a common bug), timestamp strategy silently misses changes.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "snapshots",
+    "strategy"
+  ]
+}

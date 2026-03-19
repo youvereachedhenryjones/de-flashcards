@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-016",
+  "category": "dbt Advanced",
+  "question": "What is the ephemeral materialization in dbt and when should you avoid it?",
+  "answer": "Ephemeral models are not built as database objects. dbt compiles them as CTEs and injects them inline into every model that refs them. Use for lightweight, single-use transformations where creating a database object is wasteful. Avoid ephemeral when: the model is used by many downstream models (the CTE is duplicated in each), you need to inspect or test the intermediate result, or the CTE causes SQL complexity limits. The gotcha: you cannot run 'dbt test' on an ephemeral model directly because it has no materialized form.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "materialization",
+    "ephemeral"
+  ]
+}

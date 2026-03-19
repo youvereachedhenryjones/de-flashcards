@@ -1,0 +1,11 @@
+{
+  "id": "databricks-017",
+  "category": "Databricks",
+  "question": "What are the trigger modes in Databricks Structured Streaming?",
+  "answer": "processingTime='1 minute': micro-batch, processes available data every N seconds/minutes. Once(): processes all available data in one batch then stops (like a batch job with streaming semantics, useful for scheduled runs). AvailableNow(): processes all available data in optimally-sized batches then stops (more efficient than Once() for large backlogs). Continuous('1 second'): experimental, true continuous processing with millisecond latency but limited aggregation support. The gotcha: AvailableNow() is the recommended replacement for Once() in dbt 1.5+ and Databricks; it's faster for backfill scenarios.",
+  "tags": [
+    "databricks",
+    "structured-streaming",
+    "triggers"
+  ]
+}

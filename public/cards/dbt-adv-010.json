@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-010",
+  "category": "dbt Advanced",
+  "question": "What is Jinja templating in dbt and what are the three Jinja block types?",
+  "answer": "Jinja is the templating engine dbt uses to make SQL dynamic. Three block types: {{ expression }} renders a value (e.g., {{ ref('orders') }}, {{ var('start_date') }}). {% statement %} executes logic without rendering (e.g., {% if is_incremental() %}...{% endif %}, {% for col in columns %}). {# comment #} is a comment ignored at compile time. dbt compiles Jinja into pure SQL before sending it to the warehouse, so the warehouse only sees standard SQL.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "macros",
+    "jinja"
+  ]
+}

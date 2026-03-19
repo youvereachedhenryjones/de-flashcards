@@ -1,0 +1,12 @@
+{
+  "id": "databricks-005",
+  "category": "Databricks",
+  "question": "What is Z-ordering in Delta Lake and how does it improve query performance?",
+  "answer": "Z-ordering is a multi-dimensional data skipping technique that co-locates related data in the same Parquet files by sorting on multiple columns simultaneously. OPTIMIZE my_table ZORDER BY (country, user_id) reorganizes files so that rows with the same country and user_id are stored together. Delta Lake's min/max statistics per file allow the query engine to skip entire files that cannot satisfy a WHERE clause. The gotcha: Z-ordering is most effective on high-cardinality columns used in frequent filters; it provides no benefit on partition columns (those should be table partitions instead).",
+  "tags": [
+    "databricks",
+    "delta-lake",
+    "z-ordering",
+    "performance"
+  ]
+}

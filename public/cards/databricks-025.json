@@ -1,0 +1,12 @@
+{
+  "id": "databricks-025",
+  "category": "Databricks",
+  "question": "What is Auto Loader's file notification mode and how does it differ from directory listing mode?",
+  "answer": "Directory listing mode (default): Auto Loader periodically lists the source directory and identifies new files by comparing to the checkpoint. Simple to set up but slow for large directories (thousands of files). File notification mode: Auto Loader subscribes to cloud storage events (S3 EventBridge, Azure Event Grid) and receives real-time notifications when files arrive. Much faster for high-volume ingestion. The gotcha: file notification mode requires additional cloud infrastructure setup (SNS queue for S3, Event Grid for ADLS) and cloud permissions. Directory listing is fine for low-volume or infrequent ingestion; notification mode is needed for near-real-time file processing.",
+  "tags": [
+    "databricks",
+    "auto-loader",
+    "streaming",
+    "ingestion"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "databricks-020",
+  "category": "Databricks",
+  "question": "What is the Photon engine in Databricks and what workloads benefit most?",
+  "answer": "Photon is a vectorized query engine written in C++ that replaces the JVM-based Spark execution engine for SQL workloads. It uses SIMD CPU instructions to process columnar data in batches, achieving 2-10x speedups on scan-heavy SQL queries, aggregations, joins, and string operations. Photon is fully compatible with Spark DataFrames and Delta Lake. The gotcha: Photon benefits SQL and DataFrame workloads most. Pure Python UDFs bypass Photon entirely and run at JVM/Python speed. Replace Python UDFs with Spark SQL functions or Pandas UDFs to get Photon acceleration.",
+  "tags": [
+    "databricks",
+    "photon",
+    "performance",
+    "databricks-sql"
+  ]
+}

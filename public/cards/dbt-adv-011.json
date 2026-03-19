@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-011",
+  "category": "dbt Advanced",
+  "question": "What does {{ config() }} do in a dbt model, and what is {{ this }}?",
+  "answer": "{{ config() }} sets model-level configuration inline at the top of a SQL file: {{ config(materialized='incremental', unique_key='order_id', tags=['nightly']) }}. It overrides dbt_project.yml defaults for that specific model. {{ this }} resolves to the fully-qualified relation of the current model in the target warehouse (schema.table_name), used in incremental filters to reference the existing table. The gotcha: {{ this }} is only meaningful inside the model file itself, not in external macros.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "macros",
+    "config"
+  ]
+}

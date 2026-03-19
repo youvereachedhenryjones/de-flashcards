@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-009",
+  "category": "dbt Advanced",
+  "question": "How do you write a custom generic test in dbt?",
+  "answer": "Create a SQL file in the macros/ directory (or tests/generic/) with a macro named 'test_<your_name>(model, column_name)'. The macro returns a SELECT that surfaces failing rows. Example: {% macro test_not_negative(model, column_name) %} SELECT {{ column_name }} FROM {{ model }} WHERE {{ column_name }} < 0 {% endmacro %}. Apply in YAML as: tests: - not_negative. The gotcha: the macro receives 'model' as a relation object and 'column_name' as a string, so use {{ model }} directly in FROM, not ref().",
+  "tags": [
+    "dbt",
+    "advanced",
+    "testing",
+    "macros"
+  ]
+}

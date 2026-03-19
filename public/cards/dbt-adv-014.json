@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-014",
+  "category": "dbt Advanced",
+  "question": "What do dbt_utils and dbt_expectations packages provide?",
+  "answer": "dbt_utils provides helper macros: surrogate_key() (MD5 hash of multiple columns for a composite PK), date_spine() (generate a date sequence), pivot(), star() (SELECT * except listed columns), and many more. dbt_expectations ports Great Expectations-style tests: expect_column_values_to_be_between(), expect_table_row_count_to_be_between(), expect_column_to_exist(). The gotcha: dbt_utils surrogate_key() is the standard pattern for creating stable primary keys in staging models when the source lacks one.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "packages",
+    "dbt-utils"
+  ]
+}

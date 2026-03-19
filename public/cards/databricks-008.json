@@ -1,0 +1,12 @@
+{
+  "id": "databricks-008",
+  "category": "Databricks",
+  "question": "What are DLT expectations and how do they handle data quality failures?",
+  "answer": "DLT expectations are data quality rules defined with @dlt.expect, @dlt.expect_or_drop, or @dlt.expect_or_fail decorators. @dlt.expect records quality metrics but passes all rows through. @dlt.expect_or_drop removes rows that violate the constraint and routes them to a quarantine table. @dlt.expect_or_fail stops the entire pipeline on any violation. DLT tracks expectation pass/fail rates in the pipeline metrics UI. The gotcha: @dlt.expect_or_fail is too strict for production pipelines with dirty upstream data; @dlt.expect_or_drop is the recommended default for bad-row quarantine.",
+  "tags": [
+    "databricks",
+    "delta-live-tables",
+    "data-quality",
+    "expectations"
+  ]
+}

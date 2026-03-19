@@ -1,0 +1,11 @@
+{
+  "id": "databricks-001",
+  "category": "Databricks",
+  "question": "How does Delta Lake provide ACID transactions on top of a data lake?",
+  "answer": "Delta Lake stores data as Parquet files plus a transaction log (_delta_log directory) that records every operation as a JSON commit entry. All reads and writes go through the log, providing serializable isolation. ACID is achieved via optimistic concurrency: writers check the log for conflicts before committing; readers see a consistent snapshot for their transaction. The gotcha: ACID in Delta Lake is per-table, not cross-table. Multi-table atomic operations require Databricks' managed tables with Unity Catalog isolation.",
+  "tags": [
+    "databricks",
+    "delta-lake",
+    "acid"
+  ]
+}

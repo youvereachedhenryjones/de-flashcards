@@ -1,0 +1,297 @@
+[
+  {
+    "id": "dbt-adv-001",
+    "category": "dbt Advanced",
+    "question": "What is the difference between ref() and source() in dbt?",
+    "answer": "ref() references another dbt model: {{ ref('stg_orders') }}. It resolves schema per environment (dev vs prod), builds the DAG, and ensures correct run order. source() references raw upstream tables loaded by ELT tools: {{ source('stripe', 'payments') }}. Use ref() for model-to-model dependencies, source() for the raw ingestion layer. The gotcha: using source() enables freshness checks; hardcoding table names bypasses both.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "data-modeling"
+    ]
+  },
+  {
+    "id": "dbt-adv-002",
+    "category": "dbt Advanced",
+    "question": "What does source() enable that ref() does not, and why does this matter in production?",
+    "answer": "source() enables source freshness checks via 'dbt source freshness', which alerts you when raw data is stale (e.g., Fivetran sync failed). source() also ties the model to a documented source block in schema.yml, making lineage visible from raw table to final mart. ref() does not provide freshness checking. In production, missing source freshness checks means stale data silently flows through the pipeline with no alert.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "sources",
+      "freshness"
+    ]
+  },
+  {
+    "id": "dbt-adv-003",
+    "category": "dbt Advanced",
+    "question": "How does is_incremental() work in a dbt incremental model?",
+    "answer": "is_incremental() is a Jinja macro that returns true when the model's target table already exists AND you are not running --full-refresh. Use it to wrap a WHERE clause that filters to only recent/new rows: WHERE updated_at > (SELECT MAX(updated_at) FROM {{ this }}). On the first run, the table does not exist, so is_incremental() is false and dbt builds the full table. The gotcha: {{ this }} resolves to the existing table, so your filter can reference its current max timestamp.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "incremental",
+      "performance"
+    ]
+  },
+  {
+    "id": "dbt-adv-004",
+    "category": "dbt Advanced",
+    "question": "What is unique_key in a dbt incremental model and what does it control?",
+    "answer": "unique_key tells dbt which column(s) uniquely identify a row. When set, dbt uses MERGE (or delete+insert) on incremental runs: rows matching the key are updated, new rows are inserted. Without unique_key, dbt simply appends all new rows with no deduplication, which risks duplicates if the same record appears in two runs. Set unique_key to your natural or surrogate key for any model where upstream data can be updated or corrected.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "incremental",
+      "merge"
+    ]
+  },
+  {
+    "id": "dbt-adv-005",
+    "category": "dbt Advanced",
+    "question": "What are the three incremental strategies in dbt and when do you use each?",
+    "answer": "append: no deduplication, just inserts new rows. Fastest but only safe for truly append-only event data. merge: SQL MERGE upsert using unique_key. Standard choice for mutable data. delete+insert: deletes matched rows then re-inserts, used on warehouses without native MERGE support or when merge has performance issues. The gotcha: not all strategies are available on all adapters (e.g., Snowflake supports merge natively; BigQuery uses merge; Redshift historically used delete+insert).",
+    "tags": [
+      "dbt",
+      "advanced",
+      "incremental",
+      "strategy"
+    ]
+  },
+  {
+    "id": "dbt-adv-006",
+    "category": "dbt Advanced",
+    "question": "What is on_schema_change in a dbt incremental model and what are the options?",
+    "answer": "on_schema_change controls behavior when upstream SQL adds or removes columns vs the existing incremental table. Options: 'ignore' (default, silently ignores schema changes, can cause column mismatches), 'append_new_columns' (adds new columns, fills historical rows with NULL), 'sync_all_columns' (adds new and removes dropped columns), 'fail' (errors out on any schema change, safest for strict contracts). The gotcha: the default 'ignore' silently drops new columns from incremental runs, which is a common production bug.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "incremental",
+      "schema"
+    ]
+  },
+  {
+    "id": "dbt-adv-007",
+    "category": "dbt Advanced",
+    "question": "What are the four built-in dbt generic tests and what does each validate?",
+    "answer": "not_null: asserts no NULL values in a column. unique: asserts all values are distinct. accepted_values: asserts column values are within a specified list (e.g., status in ['active', 'closed']). relationships: asserts a foreign key relationship holds (every value in col A exists in col B of another table). These cover the most common data quality checks and are configured in YAML schema files, not SQL. Run with 'dbt test'.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "testing",
+      "data-quality"
+    ]
+  },
+  {
+    "id": "dbt-adv-008",
+    "category": "dbt Advanced",
+    "question": "What is the difference between dbt generic tests and singular tests?",
+    "answer": "Generic tests (not_null, unique, accepted_values, relationships, and custom ones) are reusable and applied via YAML config to any column or model. Singular tests are one-off SQL files in the tests/ directory that return rows when the test fails (zero rows = pass). Use generic tests for repeatable checks across many models, singular tests for complex business logic assertions (e.g., 'total_revenue must never be negative'). The gotcha: singular tests fail if they return ANY rows, so your SQL must return the offending rows.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "testing"
+    ]
+  },
+  {
+    "id": "dbt-adv-009",
+    "category": "dbt Advanced",
+    "question": "How do you write a custom generic test in dbt?",
+    "answer": "Create a SQL file in the macros/ directory (or tests/generic/) with a macro named 'test_<your_name>(model, column_name)'. The macro returns a SELECT that surfaces failing rows. Example: {% macro test_not_negative(model, column_name) %} SELECT {{ column_name }} FROM {{ model }} WHERE {{ column_name }} < 0 {% endmacro %}. Apply in YAML as: tests: - not_negative. The gotcha: the macro receives 'model' as a relation object and 'column_name' as a string, so use {{ model }} directly in FROM, not ref().",
+    "tags": [
+      "dbt",
+      "advanced",
+      "testing",
+      "macros"
+    ]
+  },
+  {
+    "id": "dbt-adv-010",
+    "category": "dbt Advanced",
+    "question": "What is Jinja templating in dbt and what are the three Jinja block types?",
+    "answer": "Jinja is the templating engine dbt uses to make SQL dynamic. Three block types: {{ expression }} renders a value (e.g., {{ ref('orders') }}, {{ var('start_date') }}). {% statement %} executes logic without rendering (e.g., {% if is_incremental() %}...{% endif %}, {% for col in columns %}). {# comment #} is a comment ignored at compile time. dbt compiles Jinja into pure SQL before sending it to the warehouse, so the warehouse only sees standard SQL.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "macros",
+      "jinja"
+    ]
+  },
+  {
+    "id": "dbt-adv-011",
+    "category": "dbt Advanced",
+    "question": "What does {{ config() }} do in a dbt model, and what is {{ this }}?",
+    "answer": "{{ config() }} sets model-level configuration inline at the top of a SQL file: {{ config(materialized='incremental', unique_key='order_id', tags=['nightly']) }}. It overrides dbt_project.yml defaults for that specific model. {{ this }} resolves to the fully-qualified relation of the current model in the target warehouse (schema.table_name), used in incremental filters to reference the existing table. The gotcha: {{ this }} is only meaningful inside the model file itself, not in external macros.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "macros",
+      "config"
+    ]
+  },
+  {
+    "id": "dbt-adv-012",
+    "category": "dbt Advanced",
+    "question": "How do you use ref() inside a dbt macro, and what is a common pattern?",
+    "answer": "Inside a macro, call ref() with the model name string: {{ ref('stg_orders') }}. A common pattern is a dynamic deduplication macro that accepts a model reference and a key: {% macro deduplicate(model, partition_by, order_by) %} SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY {{ partition_by }} ORDER BY {{ order_by }} DESC) AS rn FROM {{ model }}) WHERE rn = 1 {% endmacro %}. The macro is then called as: {{ deduplicate(ref('raw_orders'), 'order_id', 'updated_at') }}. The gotcha: ref() in a macro still registers the dependency in the DAG.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "macros",
+      "ref"
+    ]
+  },
+  {
+    "id": "dbt-adv-013",
+    "category": "dbt Advanced",
+    "question": "How do you add a dbt package to a project and what is hub.getdbt.com?",
+    "answer": "Add packages to packages.yml: 'packages: [{package: dbt-labs/dbt_utils, version: \">=1.0.0\"}]'. Run 'dbt deps' to download and install them. hub.getdbt.com is the official dbt package registry where you find versioned packages. You can also install from a Git repo or local path. The gotcha: always pin a version range in packages.yml rather than leaving it unpinned, as major versions can include breaking macro changes.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "packages"
+    ]
+  },
+  {
+    "id": "dbt-adv-014",
+    "category": "dbt Advanced",
+    "question": "What do dbt_utils and dbt_expectations packages provide?",
+    "answer": "dbt_utils provides helper macros: surrogate_key() (MD5 hash of multiple columns for a composite PK), date_spine() (generate a date sequence), pivot(), star() (SELECT * except listed columns), and many more. dbt_expectations ports Great Expectations-style tests: expect_column_values_to_be_between(), expect_table_row_count_to_be_between(), expect_column_to_exist(). The gotcha: dbt_utils surrogate_key() is the standard pattern for creating stable primary keys in staging models when the source lacks one.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "packages",
+      "dbt-utils"
+    ]
+  },
+  {
+    "id": "dbt-adv-015",
+    "category": "dbt Advanced",
+    "question": "What is the difference between table and view materializations in dbt?",
+    "answer": "view: dbt creates a database view. No data is stored; every query re-executes the SQL against the underlying tables. Always returns fresh data but adds query latency. table: dbt runs the SQL and stores results as a physical table. Reads are fast, but the table is rebuilt from scratch on every dbt run regardless of data size. Use views for lightweight transformations and tables for models that are queried frequently and take significant compute to rebuild each time.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "materialization"
+    ]
+  },
+  {
+    "id": "dbt-adv-016",
+    "category": "dbt Advanced",
+    "question": "What is the ephemeral materialization in dbt and when should you avoid it?",
+    "answer": "Ephemeral models are not built as database objects. dbt compiles them as CTEs and injects them inline into every model that refs them. Use for lightweight, single-use transformations where creating a database object is wasteful. Avoid ephemeral when: the model is used by many downstream models (the CTE is duplicated in each), you need to inspect or test the intermediate result, or the CTE causes SQL complexity limits. The gotcha: you cannot run 'dbt test' on an ephemeral model directly because it has no materialized form.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "materialization",
+      "ephemeral"
+    ]
+  },
+  {
+    "id": "dbt-adv-017",
+    "category": "dbt Advanced",
+    "question": "What are model contracts in dbt 1.5+ and why use them?",
+    "answer": "A model contract (enforced: true in config) declares the exact schema a model must produce: column names, data types, and constraints (not_null, primary_key, foreign_key). dbt validates the contract at run time and fails if the actual output does not match. Use contracts on critical mart models consumed by downstream applications or SLAs, where schema changes must be deliberate and reviewed. The gotcha: contracts require explicit column definitions in YAML for every output column, which adds maintenance overhead but prevents silent breaking changes.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "contracts",
+      "schema"
+    ]
+  },
+  {
+    "id": "dbt-adv-018",
+    "category": "dbt Advanced",
+    "question": "What is model versioning in dbt 1.5+ and how does it enable non-breaking changes?",
+    "answer": "Model versioning lets you maintain multiple versions of a model simultaneously (v1, v2) by adding 'versions: [{v: 1}, {v: 2}]' to the model YAML. Downstream consumers ref() a specific version: {{ ref('orders', v=1) }}. This lets you deploy a new version without immediately breaking existing consumers. The latest version is the default when no version is specified. The gotcha: versioning is designed for mart-layer models with strict contracts, not for staging models that change frequently.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "versioning",
+      "contracts"
+    ]
+  },
+  {
+    "id": "dbt-adv-019",
+    "category": "dbt Advanced",
+    "question": "What are dbt snapshots and what problem do they solve?",
+    "answer": "dbt snapshots track changes to mutable source tables over time by recording a history of each row's state, implementing Slowly Changing Dimension Type 2 (SCD2) automatically. dbt adds dbt_scd_id, dbt_valid_from, dbt_valid_to, and dbt_updated_at columns. Without snapshots, when source data is overwritten (e.g., a customer changes their plan), historical state is lost forever. Run with 'dbt snapshot'. The gotcha: snapshots are only as fresh as how often you run them.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "snapshots",
+      "scd"
+    ]
+  },
+  {
+    "id": "dbt-adv-020",
+    "category": "dbt Advanced",
+    "question": "What is the difference between the timestamp and check snapshot strategies in dbt?",
+    "answer": "timestamp strategy: uses an updated_at column to detect changes. dbt compares the timestamp of each row to the last snapshot run. Fast and efficient, requires a reliable updated_at column that changes on every update. check strategy: compares specific columns you list in 'check_cols' to detect changes. Works when there is no reliable updated_at column but performs a full column comparison on every run, which is slower. Prefer timestamp when available. The gotcha: if your source updates rows without changing updated_at (a common bug), timestamp strategy silently misses changes.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "snapshots",
+      "strategy"
+    ]
+  },
+  {
+    "id": "dbt-adv-021",
+    "category": "dbt Advanced",
+    "question": "When should you use dbt seeds and how do you handle column type overrides?",
+    "answer": "Seeds are CSV files in seeds/ loaded into the warehouse as tables via 'dbt seed'. Use for small, static reference data: country codes, cost center mappings, feature flag config. Avoid for large datasets or data that changes frequently. Override column types in dbt_project.yml: seeds: {my_project: {my_seed: {+column_types: {zip_code: varchar(10)}}}}. The gotcha: dbt infers types from CSV data, which often gets zip codes as integers, dropping leading zeros. Always explicitly override types for any code-like column.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "seeds"
+    ]
+  },
+  {
+    "id": "dbt-adv-022",
+    "category": "dbt Advanced",
+    "question": "What is the difference between dbt Cloud and dbt Core?",
+    "answer": "dbt Core is the open-source CLI: free, runs anywhere, no scheduler or UI included. You bring your own orchestrator (Airflow, Dagster, Prefect) and CI/CD setup. dbt Cloud is the managed SaaS: adds a web IDE, built-in job scheduler with retries and notifications, CI/CD integration (slim CI with defer), dbt Explorer for lineage, the Semantic Layer API, and team collaboration. The gotcha: dbt Core is the right choice if you already have Airflow or Dagster; dbt Cloud is faster to operationalize for teams without existing orchestration infrastructure.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "dbt-cloud",
+      "dbt-core"
+    ]
+  },
+  {
+    "id": "dbt-adv-023",
+    "category": "dbt Advanced",
+    "question": "What is an exposure in dbt and when do you use it?",
+    "answer": "An exposure is a YAML declaration of a downstream artifact that consumes dbt models: dashboards, ML models, APIs, or applications. Define it in schema.yml with the type, owner, depends_on (list of ref() models), and URL. Exposures make lineage end-to-end visible in dbt docs and Explorer: you can see exactly which BI reports depend on which models. The gotcha: exposures do not automate anything; they are metadata only. Their value is blast-radius analysis: before renaming a column, see which dashboards will break.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "exposures",
+      "lineage"
+    ]
+  },
+  {
+    "id": "dbt-adv-024",
+    "category": "dbt Advanced",
+    "question": "How do source freshness checks work in dbt and what do warn_after and error_after control?",
+    "answer": "Configure freshness in schema.yml under a source: specify a loaded_at_field (a timestamp column) and freshness thresholds. warn_after triggers a warning if the most recent row is older than the threshold (e.g., {count: 12, period: hour}); error_after causes dbt to fail. Run with 'dbt source freshness'. The gotcha: freshness checks require a reliable ingestion timestamp column in the source table. If the source lacks one, freshness cannot be measured and you must rely on external monitoring.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "sources",
+      "freshness"
+    ]
+  },
+  {
+    "id": "dbt-adv-025",
+    "category": "dbt Advanced",
+    "question": "How does dbt run --select work and what are the key selection operators?",
+    "answer": "dbt run --select uses a graph selection syntax: 'model_name' (just that model), '+model_name' (model and all upstream), 'model_name+' (model and all downstream), '@model_name' (model, all upstream, and all downstream of upstream). Combine selectors: 'tag:nightly path:models/marts'. Other operators: 'source:stripe' (all models sourced from stripe), 'state:modified+' (changed models and their downstream, used in slim CI), 'fqn:project.schema.model' (fully-qualified name). The gotcha: '+' counts graph hops, so '2+model_name' means two levels upstream.",
+    "tags": [
+      "dbt",
+      "advanced",
+      "cli",
+      "selection"
+    ]
+  }
+]

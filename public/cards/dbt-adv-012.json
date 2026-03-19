@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-012",
+  "category": "dbt Advanced",
+  "question": "How do you use ref() inside a dbt macro, and what is a common pattern?",
+  "answer": "Inside a macro, call ref() with the model name string: {{ ref('stg_orders') }}. A common pattern is a dynamic deduplication macro that accepts a model reference and a key: {% macro deduplicate(model, partition_by, order_by) %} SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY {{ partition_by }} ORDER BY {{ order_by }} DESC) AS rn FROM {{ model }}) WHERE rn = 1 {% endmacro %}. The macro is then called as: {{ deduplicate(ref('raw_orders'), 'order_id', 'updated_at') }}. The gotcha: ref() in a macro still registers the dependency in the DAG.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "macros",
+    "ref"
+  ]
+}

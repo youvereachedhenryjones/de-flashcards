@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-003",
+  "category": "dbt Advanced",
+  "question": "How does is_incremental() work in a dbt incremental model?",
+  "answer": "is_incremental() is a Jinja macro that returns true when the model's target table already exists AND you are not running --full-refresh. Use it to wrap a WHERE clause that filters to only recent/new rows: WHERE updated_at > (SELECT MAX(updated_at) FROM {{ this }}). On the first run, the table does not exist, so is_incremental() is false and dbt builds the full table. The gotcha: {{ this }} resolves to the existing table, so your filter can reference its current max timestamp.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "incremental",
+    "performance"
+  ]
+}

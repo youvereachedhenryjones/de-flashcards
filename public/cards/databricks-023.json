@@ -1,0 +1,12 @@
+{
+  "id": "databricks-023",
+  "category": "Databricks",
+  "question": "What do dbutils.secrets and dbutils.widgets provide?",
+  "answer": "dbutils.secrets retrieves secrets stored in Databricks Secret Scopes (backed by Databricks or Azure Key Vault) without exposing them as plaintext: dbutils.secrets.get(scope='my-scope', key='db-password'). Secrets are redacted in notebook output. dbutils.widgets creates interactive notebook parameters: text inputs, dropdowns, and multi-select. Widgets let you parameterize notebooks for different runs without code changes: dbutils.widgets.get('start_date'). The gotcha: dbutils.secrets.get() returns a Python string. Logging or printing that string exposes the secret in plaintext. Always use secrets directly in connection strings, never assign them to logged variables.",
+  "tags": [
+    "databricks",
+    "dbutils",
+    "secrets",
+    "widgets"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "databricks-012",
+  "category": "Databricks",
+  "question": "What are Databricks Workflows and how do they compare to Apache Airflow?",
+  "answer": "Databricks Workflows is the native job orchestration service: define multi-task jobs (notebooks, Python scripts, Delta Live Tables, SQL) with task dependencies, retry policies, and schedule triggers. Airflow is an external DAG-based orchestrator that requires a separate deployment. Key differences: Workflows is tightly integrated with Databricks (cluster management, secrets, lineage), requires no external infrastructure, and costs nothing extra on Databricks. Airflow offers richer ecosystem connectors, cross-platform orchestration, and a more mature UI for complex DAGs. The gotcha: for Databricks-only workloads, Workflows is simpler; for cross-platform pipelines mixing Databricks with dbt, Fivetran, and other tools, Airflow or Dagster is a better fit.",
+  "tags": [
+    "databricks",
+    "workflows",
+    "orchestration",
+    "airflow"
+  ]
+}

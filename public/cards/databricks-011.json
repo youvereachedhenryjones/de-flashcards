@@ -1,0 +1,12 @@
+{
+  "id": "databricks-011",
+  "category": "Databricks",
+  "question": "How does Unity Catalog implement row-level security?",
+  "answer": "Unity Catalog row filters are SQL functions registered as row-level security policies on a table: CREATE ROW ACCESS POLICY filter AS (col) RETURNS BOOLEAN -> CURRENT_USER() = col or IS_ACCOUNT_GROUP_MEMBER('admin'). Apply with ALTER TABLE my_table ADD ROW FILTER filter ON (user_id). Every query on that table automatically applies the filter, limiting rows to those the caller is authorized to see. The gotcha: row filters are applied at query time, not at storage time, so the underlying files are not encrypted by the filter. Unauthorized users with direct storage access can still read all data.",
+  "tags": [
+    "databricks",
+    "unity-catalog",
+    "row-level-security",
+    "governance"
+  ]
+}

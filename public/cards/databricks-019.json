@@ -1,0 +1,11 @@
+{
+  "id": "databricks-019",
+  "category": "Databricks",
+  "question": "What are the three Databricks SQL warehouse types and how do they differ?",
+  "answer": "Serverless: compute managed entirely by Databricks, starts in seconds, auto-scales to zero. No cluster management. Best for interactive BI and ad-hoc SQL. Pro: classic warehouse with more configuration control, multi-cluster scaling, supports Databricks-managed infrastructure. Classic: the legacy warehouse type, manually managed clusters on the customer's cloud account. The gotcha: Serverless warehouses have cold start times of ~5 seconds vs minutes for Pro/Classic clusters, making Serverless the right choice for dashboards where end users cannot wait for cluster startup. Serverless costs slightly more per DBU but saves on idle cluster cost.",
+  "tags": [
+    "databricks",
+    "databricks-sql",
+    "warehouse"
+  ]
+}

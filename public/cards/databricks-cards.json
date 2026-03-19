@@ -1,0 +1,295 @@
+[
+  {
+    "id": "databricks-001",
+    "category": "Databricks",
+    "question": "How does Delta Lake provide ACID transactions on top of a data lake?",
+    "answer": "Delta Lake stores data as Parquet files plus a transaction log (_delta_log directory) that records every operation as a JSON commit entry. All reads and writes go through the log, providing serializable isolation. ACID is achieved via optimistic concurrency: writers check the log for conflicts before committing; readers see a consistent snapshot for their transaction. The gotcha: ACID in Delta Lake is per-table, not cross-table. Multi-table atomic operations require Databricks' managed tables with Unity Catalog isolation.",
+    "tags": [
+      "databricks",
+      "delta-lake",
+      "acid"
+    ]
+  },
+  {
+    "id": "databricks-002",
+    "category": "Databricks",
+    "question": "What is Delta Lake time travel and how do you use it?",
+    "answer": "Delta Lake time travel queries historical versions of a table using the transaction log. Syntax: SELECT * FROM my_table VERSION AS OF 5 (by version number) or SELECT * FROM my_table TIMESTAMP AS OF '2026-01-15'. In Python: spark.read.format('delta').option('versionAsOf', 5).load(path). Use cases: auditing, rollback (RESTORE TABLE my_table TO VERSION AS OF 5), and debugging bad data. The gotcha: time travel only works as far back as VACUUM has allowed, by default 7 days of history.",
+    "tags": [
+      "databricks",
+      "delta-lake",
+      "time-travel"
+    ]
+  },
+  {
+    "id": "databricks-003",
+    "category": "Databricks",
+    "question": "What does OPTIMIZE do in Delta Lake and when should you run it?",
+    "answer": "OPTIMIZE compacts small Parquet files in a Delta table into larger files (targeting 1GB each), reducing file count and improving query scan performance. Run after high-frequency streaming writes that produce many small files, or periodically on tables with many UPDATE/DELETE operations. OPTIMIZE TABLE my_table ZORDER BY (col1) combines compaction with Z-ordering in one pass. The gotcha: OPTIMIZE is a compute-intensive operation and should run during low-traffic windows; on Databricks, it can run automatically via Auto Optimize on streaming tables.",
+    "tags": [
+      "databricks",
+      "delta-lake",
+      "optimize",
+      "performance"
+    ]
+  },
+  {
+    "id": "databricks-004",
+    "category": "Databricks",
+    "question": "What does VACUUM do in Delta Lake and what is the retention risk?",
+    "answer": "VACUUM removes old Parquet files that are no longer referenced by the current or recent transaction log versions. VACUUM my_table RETAIN 168 HOURS removes files older than 7 days (the default minimum). After VACUUM, time travel beyond the retention window is impossible. The gotcha: if you run VACUUM with a retention period shorter than the default 7 days (using VACUUM ... RETAIN 0 HOURS), you must set spark.databricks.delta.retentionDurationCheck.enabled=false, but you will lose ALL time travel capability. Never do this on production tables without understanding the trade-off.",
+    "tags": [
+      "databricks",
+      "delta-lake",
+      "vacuum",
+      "data-management"
+    ]
+  },
+  {
+    "id": "databricks-005",
+    "category": "Databricks",
+    "question": "What is Z-ordering in Delta Lake and how does it improve query performance?",
+    "answer": "Z-ordering is a multi-dimensional data skipping technique that co-locates related data in the same Parquet files by sorting on multiple columns simultaneously. OPTIMIZE my_table ZORDER BY (country, user_id) reorganizes files so that rows with the same country and user_id are stored together. Delta Lake's min/max statistics per file allow the query engine to skip entire files that cannot satisfy a WHERE clause. The gotcha: Z-ordering is most effective on high-cardinality columns used in frequent filters; it provides no benefit on partition columns (those should be table partitions instead).",
+    "tags": [
+      "databricks",
+      "delta-lake",
+      "z-ordering",
+      "performance"
+    ]
+  },
+  {
+    "id": "databricks-006",
+    "category": "Databricks",
+    "question": "What are Delta Live Tables (DLT) and how do they differ from regular Spark pipelines?",
+    "answer": "Delta Live Tables is a declarative ETL framework where you define what data should look like (using @dlt.table and @dlt.view decorators in Python, or LIVE TABLE in SQL) rather than how to process it imperatively. DLT manages execution order, retries, checkpointing, schema evolution, and error quarantine automatically. Regular Spark pipelines require you to manage all of this manually. The gotcha: DLT runs only inside Databricks and cannot be executed locally or ported to other platforms, creating vendor lock-in.",
+    "tags": [
+      "databricks",
+      "delta-live-tables",
+      "pipelines"
+    ]
+  },
+  {
+    "id": "databricks-007",
+    "category": "Databricks",
+    "question": "How does Delta Live Tables handle streaming vs batch processing?",
+    "answer": "DLT tables defined with dlt.read_stream() process data incrementally as new records arrive (streaming mode). Tables defined with dlt.read() process all data each run (batch mode). DLT pipelines can mix both in the same pipeline: streaming ingestion at the bronze layer, batch transformations at silver/gold. Trigger modes: Triggered (runs once on schedule, like a batch job) or Continuous (always-on streaming). The gotcha: mixing streaming and batch in the same pipeline can cause unexpected refresh behavior as batch layers re-process all data while streaming layers only process new data.",
+    "tags": [
+      "databricks",
+      "delta-live-tables",
+      "streaming",
+      "batch"
+    ]
+  },
+  {
+    "id": "databricks-008",
+    "category": "Databricks",
+    "question": "What are DLT expectations and how do they handle data quality failures?",
+    "answer": "DLT expectations are data quality rules defined with @dlt.expect, @dlt.expect_or_drop, or @dlt.expect_or_fail decorators. @dlt.expect records quality metrics but passes all rows through. @dlt.expect_or_drop removes rows that violate the constraint and routes them to a quarantine table. @dlt.expect_or_fail stops the entire pipeline on any violation. DLT tracks expectation pass/fail rates in the pipeline metrics UI. The gotcha: @dlt.expect_or_fail is too strict for production pipelines with dirty upstream data; @dlt.expect_or_drop is the recommended default for bad-row quarantine.",
+    "tags": [
+      "databricks",
+      "delta-live-tables",
+      "data-quality",
+      "expectations"
+    ]
+  },
+  {
+    "id": "databricks-009",
+    "category": "Databricks",
+    "question": "What is the Unity Catalog 3-level namespace and how does it work?",
+    "answer": "Unity Catalog organizes data assets as: catalog.schema.table (e.g., prod.sales.orders). Catalog is the top-level container (maps to a business domain or environment). Schema is a namespace within a catalog (equivalent to a database). Table is the data object. Unity Catalog governs all three levels with centralized access control. The gotcha: before Unity Catalog, Databricks used a 2-level namespace (database.table, called the Hive Metastore). Migrating to Unity Catalog requires upgrading clusters to Spark 3.4+ and re-registering tables, which is a significant migration effort.",
+    "tags": [
+      "databricks",
+      "unity-catalog",
+      "governance"
+    ]
+  },
+  {
+    "id": "databricks-010",
+    "category": "Databricks",
+    "question": "How does Unity Catalog provide data governance across multiple Databricks workspaces?",
+    "answer": "Unity Catalog is a single metastore shared across all Databricks workspaces in an account, unlike the Hive Metastore which is per-workspace. This means one permission grant in Unity Catalog applies across all workspaces. Governance features: column-level masking (policy functions that transform sensitive columns based on caller identity), row filters (limit rows returned based on user group), audit logs to cloud storage, and lineage tracking (automatic column-level lineage across notebooks, jobs, and SQL). The gotcha: Unity Catalog requires an account-level admin setup; workspace admins alone cannot configure it.",
+    "tags": [
+      "databricks",
+      "unity-catalog",
+      "governance",
+      "permissions"
+    ]
+  },
+  {
+    "id": "databricks-011",
+    "category": "Databricks",
+    "question": "How does Unity Catalog implement row-level security?",
+    "answer": "Unity Catalog row filters are SQL functions registered as row-level security policies on a table: CREATE ROW ACCESS POLICY filter AS (col) RETURNS BOOLEAN -> CURRENT_USER() = col or IS_ACCOUNT_GROUP_MEMBER('admin'). Apply with ALTER TABLE my_table ADD ROW FILTER filter ON (user_id). Every query on that table automatically applies the filter, limiting rows to those the caller is authorized to see. The gotcha: row filters are applied at query time, not at storage time, so the underlying files are not encrypted by the filter. Unauthorized users with direct storage access can still read all data.",
+    "tags": [
+      "databricks",
+      "unity-catalog",
+      "row-level-security",
+      "governance"
+    ]
+  },
+  {
+    "id": "databricks-012",
+    "category": "Databricks",
+    "question": "What are Databricks Workflows and how do they compare to Apache Airflow?",
+    "answer": "Databricks Workflows is the native job orchestration service: define multi-task jobs (notebooks, Python scripts, Delta Live Tables, SQL) with task dependencies, retry policies, and schedule triggers. Airflow is an external DAG-based orchestrator that requires a separate deployment. Key differences: Workflows is tightly integrated with Databricks (cluster management, secrets, lineage), requires no external infrastructure, and costs nothing extra on Databricks. Airflow offers richer ecosystem connectors, cross-platform orchestration, and a more mature UI for complex DAGs. The gotcha: for Databricks-only workloads, Workflows is simpler; for cross-platform pipelines mixing Databricks with dbt, Fivetran, and other tools, Airflow or Dagster is a better fit.",
+    "tags": [
+      "databricks",
+      "workflows",
+      "orchestration",
+      "airflow"
+    ]
+  },
+  {
+    "id": "databricks-013",
+    "category": "Databricks",
+    "question": "How does Databricks integrate with Dagster for pipeline orchestration?",
+    "answer": "The dagster-databricks library provides DatabricksJobRunner and dagster-dbt with DbtCliResource for unified orchestration. You define Databricks jobs as Dagster ops or assets, trigger them from Dagster, and get unified lineage across Databricks and dbt assets in Dagster's UI. Databricks Workflows runs the compute; Dagster handles scheduling, dependency management, and observability. The gotcha: Dagster treats Databricks jobs as external processes, so Databricks cluster startup time adds latency vs native Workflows triggers. Use Workflows for Databricks-only pipelines; Dagster for mixed-platform orchestration.",
+    "tags": [
+      "databricks",
+      "workflows",
+      "dagster",
+      "orchestration"
+    ]
+  },
+  {
+    "id": "databricks-014",
+    "category": "Databricks",
+    "question": "What does MLflow experiment tracking provide and what is logged in a run?",
+    "answer": "MLflow experiment tracking records model training runs with: parameters (hyperparameters passed to the model), metrics (loss, accuracy, RMSE at each epoch), artifacts (model files, plots, feature importance charts), and tags (metadata like team, version, dataset). Each run has a unique run_id for reproducibility. mlflow.autolog() automatically captures all of this for scikit-learn, XGBoost, PyTorch, and more with zero code. The gotcha: without experiment tracking, comparing model versions requires manually keeping notes. MLflow makes model comparison and rollback systematic.",
+    "tags": [
+      "databricks",
+      "mlflow",
+      "ml",
+      "experiment-tracking"
+    ]
+  },
+  {
+    "id": "databricks-015",
+    "category": "Databricks",
+    "question": "What is the MLflow Model Registry and how does it enable model serving?",
+    "answer": "The MLflow Model Registry is a centralized store for model versions with lifecycle stages: None, Staging, Production, Archived. You register a trained run's model, promote versions through stages, and load the production model by name without knowing the specific run_id: mlflow.pyfunc.load_model('models:/MyModel/Production'). Databricks Model Serving wraps registered models as REST API endpoints with auto-scaling, A/B traffic splitting, and monitoring. The gotcha: Model Registry tracks versions but not retraining schedules. You need separate orchestration (Workflows, Dagster) to trigger retraining and auto-promote models that pass validation.",
+    "tags": [
+      "databricks",
+      "mlflow",
+      "ml",
+      "model-registry",
+      "serving"
+    ]
+  },
+  {
+    "id": "databricks-016",
+    "category": "Databricks",
+    "question": "How do readStream and writeStream work in Databricks Structured Streaming?",
+    "answer": "readStream creates a streaming DataFrame from a source (Delta table, Kafka, Auto Loader): df = spark.readStream.format('delta').table('bronze.events'). writeStream writes it to a sink with a trigger and checkpoint: df.writeStream.format('delta').option('checkpointLocation', path).trigger(processingTime='1 minute').table('silver.events'). The checkpoint stores the current offset/progress so the stream resumes from exactly where it left off after a restart. The gotcha: every streaming query requires a unique checkpoint location. Reusing a checkpoint from a different query causes schema conflicts and data corruption.",
+    "tags": [
+      "databricks",
+      "structured-streaming",
+      "readstream",
+      "writestream"
+    ]
+  },
+  {
+    "id": "databricks-017",
+    "category": "Databricks",
+    "question": "What are the trigger modes in Databricks Structured Streaming?",
+    "answer": "processingTime='1 minute': micro-batch, processes available data every N seconds/minutes. Once(): processes all available data in one batch then stops (like a batch job with streaming semantics, useful for scheduled runs). AvailableNow(): processes all available data in optimally-sized batches then stops (more efficient than Once() for large backlogs). Continuous('1 second'): experimental, true continuous processing with millisecond latency but limited aggregation support. The gotcha: AvailableNow() is the recommended replacement for Once() in dbt 1.5+ and Databricks; it's faster for backfill scenarios.",
+    "tags": [
+      "databricks",
+      "structured-streaming",
+      "triggers"
+    ]
+  },
+  {
+    "id": "databricks-018",
+    "category": "Databricks",
+    "question": "What is watermarking in Structured Streaming and when is it required?",
+    "answer": "Watermarking defines how long Spark waits for late-arriving data before closing a time-based aggregation window. Set with: df.withWatermark('event_time', '10 minutes'). For a 5-minute tumbling window with a 10-minute watermark, Spark holds state for the window for 10 minutes after the window closes, then emits and drops the state. Watermarking is required for stateful aggregations (GROUP BY time window) to prevent unbounded state growth. The gotcha: without a watermark, Structured Streaming must retain all past window state forever, eventually causing OOM errors in long-running streams.",
+    "tags": [
+      "databricks",
+      "structured-streaming",
+      "watermarking",
+      "late-data"
+    ]
+  },
+  {
+    "id": "databricks-019",
+    "category": "Databricks",
+    "question": "What are the three Databricks SQL warehouse types and how do they differ?",
+    "answer": "Serverless: compute managed entirely by Databricks, starts in seconds, auto-scales to zero. No cluster management. Best for interactive BI and ad-hoc SQL. Pro: classic warehouse with more configuration control, multi-cluster scaling, supports Databricks-managed infrastructure. Classic: the legacy warehouse type, manually managed clusters on the customer's cloud account. The gotcha: Serverless warehouses have cold start times of ~5 seconds vs minutes for Pro/Classic clusters, making Serverless the right choice for dashboards where end users cannot wait for cluster startup. Serverless costs slightly more per DBU but saves on idle cluster cost.",
+    "tags": [
+      "databricks",
+      "databricks-sql",
+      "warehouse"
+    ]
+  },
+  {
+    "id": "databricks-020",
+    "category": "Databricks",
+    "question": "What is the Photon engine in Databricks and what workloads benefit most?",
+    "answer": "Photon is a vectorized query engine written in C++ that replaces the JVM-based Spark execution engine for SQL workloads. It uses SIMD CPU instructions to process columnar data in batches, achieving 2-10x speedups on scan-heavy SQL queries, aggregations, joins, and string operations. Photon is fully compatible with Spark DataFrames and Delta Lake. The gotcha: Photon benefits SQL and DataFrame workloads most. Pure Python UDFs bypass Photon entirely and run at JVM/Python speed. Replace Python UDFs with Spark SQL functions or Pandas UDFs to get Photon acceleration.",
+    "tags": [
+      "databricks",
+      "photon",
+      "performance",
+      "databricks-sql"
+    ]
+  },
+  {
+    "id": "databricks-021",
+    "category": "Databricks",
+    "question": "What are the three Databricks cluster types and when do you use each?",
+    "answer": "All-purpose clusters: interactive, multi-user, support notebooks and ad-hoc code. Persist between jobs, billed for idle time. Use for development, data exploration, and collaborative notebook work. Job compute (formerly job clusters): ephemeral clusters spun up for a single job run, terminated on completion. No idle cost. Use for production batch pipelines and scheduled jobs. SQL Warehouses: optimized for SQL analytics (Databricks SQL, BI tools). Support concurrent queries, auto-scaling, and Photon. The gotcha: never run production batch jobs on all-purpose clusters. They are 2-3x more expensive per DBU than job compute and create resource contention with interactive users.",
+    "tags": [
+      "databricks",
+      "clusters",
+      "compute"
+    ]
+  },
+  {
+    "id": "databricks-022",
+    "category": "Databricks",
+    "question": "What is dbutils and what does dbutils.fs provide?",
+    "answer": "dbutils is the Databricks Utilities library, a Python/Scala API for interacting with the Databricks environment. dbutils.fs provides file system operations on DBFS and cloud storage: dbutils.fs.ls('dbfs:/mnt/data'), dbutils.fs.cp(), dbutils.fs.rm(), dbutils.fs.mkdirs(), and dbutils.fs.mount() (to mount S3/ADLS/GCS as a file system path). The gotcha: dbutils is only available inside Databricks notebooks and jobs. It is not importable in local Python scripts, so code using dbutils cannot be unit tested outside Databricks without mocking.",
+    "tags": [
+      "databricks",
+      "dbutils",
+      "file-system"
+    ]
+  },
+  {
+    "id": "databricks-023",
+    "category": "Databricks",
+    "question": "What do dbutils.secrets and dbutils.widgets provide?",
+    "answer": "dbutils.secrets retrieves secrets stored in Databricks Secret Scopes (backed by Databricks or Azure Key Vault) without exposing them as plaintext: dbutils.secrets.get(scope='my-scope', key='db-password'). Secrets are redacted in notebook output. dbutils.widgets creates interactive notebook parameters: text inputs, dropdowns, and multi-select. Widgets let you parameterize notebooks for different runs without code changes: dbutils.widgets.get('start_date'). The gotcha: dbutils.secrets.get() returns a Python string. Logging or printing that string exposes the secret in plaintext. Always use secrets directly in connection strings, never assign them to logged variables.",
+    "tags": [
+      "databricks",
+      "dbutils",
+      "secrets",
+      "widgets"
+    ]
+  },
+  {
+    "id": "databricks-024",
+    "category": "Databricks",
+    "question": "What is Databricks Auto Loader and how does it handle schema evolution?",
+    "answer": "Auto Loader (cloudFiles format) incrementally ingests new files from cloud storage (S3, ADLS, GCS) into Delta Lake without you tracking which files have been processed. It uses Structured Streaming checkpoints to maintain state. Schema inference: on first run, Auto Loader samples files to infer schema and stores it. Schema evolution: cloudFiles.schemaEvolutionMode='addNewColumns' automatically adds new columns as they appear in source files. The gotcha: the default schema evolution mode is 'none', which fails the stream when new columns appear. Always set schemaEvolutionMode explicitly for production ingestion pipelines.",
+    "tags": [
+      "databricks",
+      "auto-loader",
+      "ingestion",
+      "schema"
+    ]
+  },
+  {
+    "id": "databricks-025",
+    "category": "Databricks",
+    "question": "What is Auto Loader's file notification mode and how does it differ from directory listing mode?",
+    "answer": "Directory listing mode (default): Auto Loader periodically lists the source directory and identifies new files by comparing to the checkpoint. Simple to set up but slow for large directories (thousands of files). File notification mode: Auto Loader subscribes to cloud storage events (S3 EventBridge, Azure Event Grid) and receives real-time notifications when files arrive. Much faster for high-volume ingestion. The gotcha: file notification mode requires additional cloud infrastructure setup (SNS queue for S3, Event Grid for ADLS) and cloud permissions. Directory listing is fine for low-volume or infrequent ingestion; notification mode is needed for near-real-time file processing.",
+    "tags": [
+      "databricks",
+      "auto-loader",
+      "streaming",
+      "ingestion"
+    ]
+  }
+]

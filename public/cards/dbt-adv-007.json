@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-007",
+  "category": "dbt Advanced",
+  "question": "What are the four built-in dbt generic tests and what does each validate?",
+  "answer": "not_null: asserts no NULL values in a column. unique: asserts all values are distinct. accepted_values: asserts column values are within a specified list (e.g., status in ['active', 'closed']). relationships: asserts a foreign key relationship holds (every value in col A exists in col B of another table). These cover the most common data quality checks and are configured in YAML schema files, not SQL. Run with 'dbt test'.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "testing",
+    "data-quality"
+  ]
+}

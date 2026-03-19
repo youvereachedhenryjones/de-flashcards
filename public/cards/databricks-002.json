@@ -1,0 +1,11 @@
+{
+  "id": "databricks-002",
+  "category": "Databricks",
+  "question": "What is Delta Lake time travel and how do you use it?",
+  "answer": "Delta Lake time travel queries historical versions of a table using the transaction log. Syntax: SELECT * FROM my_table VERSION AS OF 5 (by version number) or SELECT * FROM my_table TIMESTAMP AS OF '2026-01-15'. In Python: spark.read.format('delta').option('versionAsOf', 5).load(path). Use cases: auditing, rollback (RESTORE TABLE my_table TO VERSION AS OF 5), and debugging bad data. The gotcha: time travel only works as far back as VACUUM has allowed, by default 7 days of history.",
+  "tags": [
+    "databricks",
+    "delta-lake",
+    "time-travel"
+  ]
+}

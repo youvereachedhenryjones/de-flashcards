@@ -1,0 +1,12 @@
+{
+  "id": "databricks-010",
+  "category": "Databricks",
+  "question": "How does Unity Catalog provide data governance across multiple Databricks workspaces?",
+  "answer": "Unity Catalog is a single metastore shared across all Databricks workspaces in an account, unlike the Hive Metastore which is per-workspace. This means one permission grant in Unity Catalog applies across all workspaces. Governance features: column-level masking (policy functions that transform sensitive columns based on caller identity), row filters (limit rows returned based on user group), audit logs to cloud storage, and lineage tracking (automatic column-level lineage across notebooks, jobs, and SQL). The gotcha: Unity Catalog requires an account-level admin setup; workspace admins alone cannot configure it.",
+  "tags": [
+    "databricks",
+    "unity-catalog",
+    "governance",
+    "permissions"
+  ]
+}

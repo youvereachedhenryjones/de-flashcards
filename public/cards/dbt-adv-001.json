@@ -1,0 +1,11 @@
+{
+  "id": "dbt-adv-001",
+  "category": "dbt Advanced",
+  "question": "What is the difference between ref() and source() in dbt?",
+  "answer": "ref() references another dbt model: {{ ref('stg_orders') }}. It resolves schema per environment (dev vs prod), builds the DAG, and ensures correct run order. source() references raw upstream tables loaded by ELT tools: {{ source('stripe', 'payments') }}. Use ref() for model-to-model dependencies, source() for the raw ingestion layer. The gotcha: using source() enables freshness checks; hardcoding table names bypasses both.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "data-modeling"
+  ]
+}

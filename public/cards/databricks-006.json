@@ -1,0 +1,11 @@
+{
+  "id": "databricks-006",
+  "category": "Databricks",
+  "question": "What are Delta Live Tables (DLT) and how do they differ from regular Spark pipelines?",
+  "answer": "Delta Live Tables is a declarative ETL framework where you define what data should look like (using @dlt.table and @dlt.view decorators in Python, or LIVE TABLE in SQL) rather than how to process it imperatively. DLT manages execution order, retries, checkpointing, schema evolution, and error quarantine automatically. Regular Spark pipelines require you to manage all of this manually. The gotcha: DLT runs only inside Databricks and cannot be executed locally or ported to other platforms, creating vendor lock-in.",
+  "tags": [
+    "databricks",
+    "delta-live-tables",
+    "pipelines"
+  ]
+}

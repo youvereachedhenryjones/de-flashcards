@@ -1,0 +1,11 @@
+{
+  "id": "dbt-adv-021",
+  "category": "dbt Advanced",
+  "question": "When should you use dbt seeds and how do you handle column type overrides?",
+  "answer": "Seeds are CSV files in seeds/ loaded into the warehouse as tables via 'dbt seed'. Use for small, static reference data: country codes, cost center mappings, feature flag config. Avoid for large datasets or data that changes frequently. Override column types in dbt_project.yml: seeds: {my_project: {my_seed: {+column_types: {zip_code: varchar(10)}}}}. The gotcha: dbt infers types from CSV data, which often gets zip codes as integers, dropping leading zeros. Always explicitly override types for any code-like column.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "seeds"
+  ]
+}

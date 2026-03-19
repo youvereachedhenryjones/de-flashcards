@@ -1,0 +1,13 @@
+{
+  "id": "databricks-015",
+  "category": "Databricks",
+  "question": "What is the MLflow Model Registry and how does it enable model serving?",
+  "answer": "The MLflow Model Registry is a centralized store for model versions with lifecycle stages: None, Staging, Production, Archived. You register a trained run's model, promote versions through stages, and load the production model by name without knowing the specific run_id: mlflow.pyfunc.load_model('models:/MyModel/Production'). Databricks Model Serving wraps registered models as REST API endpoints with auto-scaling, A/B traffic splitting, and monitoring. The gotcha: Model Registry tracks versions but not retraining schedules. You need separate orchestration (Workflows, Dagster) to trigger retraining and auto-promote models that pass validation.",
+  "tags": [
+    "databricks",
+    "mlflow",
+    "ml",
+    "model-registry",
+    "serving"
+  ]
+}

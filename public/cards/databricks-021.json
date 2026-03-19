@@ -1,0 +1,11 @@
+{
+  "id": "databricks-021",
+  "category": "Databricks",
+  "question": "What are the three Databricks cluster types and when do you use each?",
+  "answer": "All-purpose clusters: interactive, multi-user, support notebooks and ad-hoc code. Persist between jobs, billed for idle time. Use for development, data exploration, and collaborative notebook work. Job compute (formerly job clusters): ephemeral clusters spun up for a single job run, terminated on completion. No idle cost. Use for production batch pipelines and scheduled jobs. SQL Warehouses: optimized for SQL analytics (Databricks SQL, BI tools). Support concurrent queries, auto-scaling, and Photon. The gotcha: never run production batch jobs on all-purpose clusters. They are 2-3x more expensive per DBU than job compute and create resource contention with interactive users.",
+  "tags": [
+    "databricks",
+    "clusters",
+    "compute"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "databricks-022",
+  "category": "Databricks",
+  "question": "What is dbutils and what does dbutils.fs provide?",
+  "answer": "dbutils is the Databricks Utilities library, a Python/Scala API for interacting with the Databricks environment. dbutils.fs provides file system operations on DBFS and cloud storage: dbutils.fs.ls('dbfs:/mnt/data'), dbutils.fs.cp(), dbutils.fs.rm(), dbutils.fs.mkdirs(), and dbutils.fs.mount() (to mount S3/ADLS/GCS as a file system path). The gotcha: dbutils is only available inside Databricks notebooks and jobs. It is not importable in local Python scripts, so code using dbutils cannot be unit tested outside Databricks without mocking.",
+  "tags": [
+    "databricks",
+    "dbutils",
+    "file-system"
+  ]
+}

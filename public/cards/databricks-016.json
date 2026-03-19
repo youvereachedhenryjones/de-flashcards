@@ -1,0 +1,12 @@
+{
+  "id": "databricks-016",
+  "category": "Databricks",
+  "question": "How do readStream and writeStream work in Databricks Structured Streaming?",
+  "answer": "readStream creates a streaming DataFrame from a source (Delta table, Kafka, Auto Loader): df = spark.readStream.format('delta').table('bronze.events'). writeStream writes it to a sink with a trigger and checkpoint: df.writeStream.format('delta').option('checkpointLocation', path).trigger(processingTime='1 minute').table('silver.events'). The checkpoint stores the current offset/progress so the stream resumes from exactly where it left off after a restart. The gotcha: every streaming query requires a unique checkpoint location. Reusing a checkpoint from a different query causes schema conflicts and data corruption.",
+  "tags": [
+    "databricks",
+    "structured-streaming",
+    "readstream",
+    "writestream"
+  ]
+}

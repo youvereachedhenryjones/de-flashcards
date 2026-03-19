@@ -1,0 +1,12 @@
+{
+  "id": "databricks-004",
+  "category": "Databricks",
+  "question": "What does VACUUM do in Delta Lake and what is the retention risk?",
+  "answer": "VACUUM removes old Parquet files that are no longer referenced by the current or recent transaction log versions. VACUUM my_table RETAIN 168 HOURS removes files older than 7 days (the default minimum). After VACUUM, time travel beyond the retention window is impossible. The gotcha: if you run VACUUM with a retention period shorter than the default 7 days (using VACUUM ... RETAIN 0 HOURS), you must set spark.databricks.delta.retentionDurationCheck.enabled=false, but you will lose ALL time travel capability. Never do this on production tables without understanding the trade-off.",
+  "tags": [
+    "databricks",
+    "delta-lake",
+    "vacuum",
+    "data-management"
+  ]
+}

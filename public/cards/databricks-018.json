@@ -1,0 +1,12 @@
+{
+  "id": "databricks-018",
+  "category": "Databricks",
+  "question": "What is watermarking in Structured Streaming and when is it required?",
+  "answer": "Watermarking defines how long Spark waits for late-arriving data before closing a time-based aggregation window. Set with: df.withWatermark('event_time', '10 minutes'). For a 5-minute tumbling window with a 10-minute watermark, Spark holds state for the window for 10 minutes after the window closes, then emits and drops the state. Watermarking is required for stateful aggregations (GROUP BY time window) to prevent unbounded state growth. The gotcha: without a watermark, Structured Streaming must retain all past window state forever, eventually causing OOM errors in long-running streams.",
+  "tags": [
+    "databricks",
+    "structured-streaming",
+    "watermarking",
+    "late-data"
+  ]
+}

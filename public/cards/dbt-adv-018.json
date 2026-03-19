@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-018",
+  "category": "dbt Advanced",
+  "question": "What is model versioning in dbt 1.5+ and how does it enable non-breaking changes?",
+  "answer": "Model versioning lets you maintain multiple versions of a model simultaneously (v1, v2) by adding 'versions: [{v: 1}, {v: 2}]' to the model YAML. Downstream consumers ref() a specific version: {{ ref('orders', v=1) }}. This lets you deploy a new version without immediately breaking existing consumers. The latest version is the default when no version is specified. The gotcha: versioning is designed for mart-layer models with strict contracts, not for staging models that change frequently.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "versioning",
+    "contracts"
+  ]
+}

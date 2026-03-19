@@ -1,0 +1,11 @@
+{
+  "id": "dbt-adv-013",
+  "category": "dbt Advanced",
+  "question": "How do you add a dbt package to a project and what is hub.getdbt.com?",
+  "answer": "Add packages to packages.yml: 'packages: [{package: dbt-labs/dbt_utils, version: \">=1.0.0\"}]'. Run 'dbt deps' to download and install them. hub.getdbt.com is the official dbt package registry where you find versioned packages. You can also install from a Git repo or local path. The gotcha: always pin a version range in packages.yml rather than leaving it unpinned, as major versions can include breaking macro changes.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "packages"
+  ]
+}

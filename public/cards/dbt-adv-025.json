@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-025",
+  "category": "dbt Advanced",
+  "question": "How does dbt run --select work and what are the key selection operators?",
+  "answer": "dbt run --select uses a graph selection syntax: 'model_name' (just that model), '+model_name' (model and all upstream), 'model_name+' (model and all downstream), '@model_name' (model, all upstream, and all downstream of upstream). Combine selectors: 'tag:nightly path:models/marts'. Other operators: 'source:stripe' (all models sourced from stripe), 'state:modified+' (changed models and their downstream, used in slim CI), 'fqn:project.schema.model' (fully-qualified name). The gotcha: '+' counts graph hops, so '2+model_name' means two levels upstream.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "cli",
+    "selection"
+  ]
+}

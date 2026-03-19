@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-006",
+  "category": "dbt Advanced",
+  "question": "What is on_schema_change in a dbt incremental model and what are the options?",
+  "answer": "on_schema_change controls behavior when upstream SQL adds or removes columns vs the existing incremental table. Options: 'ignore' (default, silently ignores schema changes, can cause column mismatches), 'append_new_columns' (adds new columns, fills historical rows with NULL), 'sync_all_columns' (adds new and removes dropped columns), 'fail' (errors out on any schema change, safest for strict contracts). The gotcha: the default 'ignore' silently drops new columns from incremental runs, which is a common production bug.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "incremental",
+    "schema"
+  ]
+}

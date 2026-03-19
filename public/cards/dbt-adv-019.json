@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-019",
+  "category": "dbt Advanced",
+  "question": "What are dbt snapshots and what problem do they solve?",
+  "answer": "dbt snapshots track changes to mutable source tables over time by recording a history of each row's state, implementing Slowly Changing Dimension Type 2 (SCD2) automatically. dbt adds dbt_scd_id, dbt_valid_from, dbt_valid_to, and dbt_updated_at columns. Without snapshots, when source data is overwritten (e.g., a customer changes their plan), historical state is lost forever. Run with 'dbt snapshot'. The gotcha: snapshots are only as fresh as how often you run them.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "snapshots",
+    "scd"
+  ]
+}

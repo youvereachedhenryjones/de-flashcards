@@ -1,0 +1,11 @@
+{
+  "id": "databricks-009",
+  "category": "Databricks",
+  "question": "What is the Unity Catalog 3-level namespace and how does it work?",
+  "answer": "Unity Catalog organizes data assets as: catalog.schema.table (e.g., prod.sales.orders). Catalog is the top-level container (maps to a business domain or environment). Schema is a namespace within a catalog (equivalent to a database). Table is the data object. Unity Catalog governs all three levels with centralized access control. The gotcha: before Unity Catalog, Databricks used a 2-level namespace (database.table, called the Hive Metastore). Migrating to Unity Catalog requires upgrading clusters to Spark 3.4+ and re-registering tables, which is a significant migration effort.",
+  "tags": [
+    "databricks",
+    "unity-catalog",
+    "governance"
+  ]
+}

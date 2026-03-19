@@ -1,0 +1,12 @@
+{
+  "id": "databricks-003",
+  "category": "Databricks",
+  "question": "What does OPTIMIZE do in Delta Lake and when should you run it?",
+  "answer": "OPTIMIZE compacts small Parquet files in a Delta table into larger files (targeting 1GB each), reducing file count and improving query scan performance. Run after high-frequency streaming writes that produce many small files, or periodically on tables with many UPDATE/DELETE operations. OPTIMIZE TABLE my_table ZORDER BY (col1) combines compaction with Z-ordering in one pass. The gotcha: OPTIMIZE is a compute-intensive operation and should run during low-traffic windows; on Databricks, it can run automatically via Auto Optimize on streaming tables.",
+  "tags": [
+    "databricks",
+    "delta-lake",
+    "optimize",
+    "performance"
+  ]
+}

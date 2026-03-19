@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-004",
+  "category": "dbt Advanced",
+  "question": "What is unique_key in a dbt incremental model and what does it control?",
+  "answer": "unique_key tells dbt which column(s) uniquely identify a row. When set, dbt uses MERGE (or delete+insert) on incremental runs: rows matching the key are updated, new rows are inserted. Without unique_key, dbt simply appends all new rows with no deduplication, which risks duplicates if the same record appears in two runs. Set unique_key to your natural or surrogate key for any model where upstream data can be updated or corrected.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "incremental",
+    "merge"
+  ]
+}

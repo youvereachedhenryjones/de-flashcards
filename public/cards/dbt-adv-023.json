@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-023",
+  "category": "dbt Advanced",
+  "question": "What is an exposure in dbt and when do you use it?",
+  "answer": "An exposure is a YAML declaration of a downstream artifact that consumes dbt models: dashboards, ML models, APIs, or applications. Define it in schema.yml with the type, owner, depends_on (list of ref() models), and URL. Exposures make lineage end-to-end visible in dbt docs and Explorer: you can see exactly which BI reports depend on which models. The gotcha: exposures do not automate anything; they are metadata only. Their value is blast-radius analysis: before renaming a column, see which dashboards will break.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "exposures",
+    "lineage"
+  ]
+}

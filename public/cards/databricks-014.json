@@ -1,0 +1,12 @@
+{
+  "id": "databricks-014",
+  "category": "Databricks",
+  "question": "What does MLflow experiment tracking provide and what is logged in a run?",
+  "answer": "MLflow experiment tracking records model training runs with: parameters (hyperparameters passed to the model), metrics (loss, accuracy, RMSE at each epoch), artifacts (model files, plots, feature importance charts), and tags (metadata like team, version, dataset). Each run has a unique run_id for reproducibility. mlflow.autolog() automatically captures all of this for scikit-learn, XGBoost, PyTorch, and more with zero code. The gotcha: without experiment tracking, comparing model versions requires manually keeping notes. MLflow makes model comparison and rollback systematic.",
+  "tags": [
+    "databricks",
+    "mlflow",
+    "ml",
+    "experiment-tracking"
+  ]
+}

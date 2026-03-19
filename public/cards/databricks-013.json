@@ -1,0 +1,12 @@
+{
+  "id": "databricks-013",
+  "category": "Databricks",
+  "question": "How does Databricks integrate with Dagster for pipeline orchestration?",
+  "answer": "The dagster-databricks library provides DatabricksJobRunner and dagster-dbt with DbtCliResource for unified orchestration. You define Databricks jobs as Dagster ops or assets, trigger them from Dagster, and get unified lineage across Databricks and dbt assets in Dagster's UI. Databricks Workflows runs the compute; Dagster handles scheduling, dependency management, and observability. The gotcha: Dagster treats Databricks jobs as external processes, so Databricks cluster startup time adds latency vs native Workflows triggers. Use Workflows for Databricks-only pipelines; Dagster for mixed-platform orchestration.",
+  "tags": [
+    "databricks",
+    "workflows",
+    "dagster",
+    "orchestration"
+  ]
+}

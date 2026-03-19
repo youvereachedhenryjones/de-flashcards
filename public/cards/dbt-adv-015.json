@@ -1,0 +1,11 @@
+{
+  "id": "dbt-adv-015",
+  "category": "dbt Advanced",
+  "question": "What is the difference between table and view materializations in dbt?",
+  "answer": "view: dbt creates a database view. No data is stored; every query re-executes the SQL against the underlying tables. Always returns fresh data but adds query latency. table: dbt runs the SQL and stores results as a physical table. Reads are fast, but the table is rebuilt from scratch on every dbt run regardless of data size. Use views for lightweight transformations and tables for models that are queried frequently and take significant compute to rebuild each time.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "materialization"
+  ]
+}

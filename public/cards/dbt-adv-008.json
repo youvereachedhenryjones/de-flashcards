@@ -1,0 +1,11 @@
+{
+  "id": "dbt-adv-008",
+  "category": "dbt Advanced",
+  "question": "What is the difference between dbt generic tests and singular tests?",
+  "answer": "Generic tests (not_null, unique, accepted_values, relationships, and custom ones) are reusable and applied via YAML config to any column or model. Singular tests are one-off SQL files in the tests/ directory that return rows when the test fails (zero rows = pass). Use generic tests for repeatable checks across many models, singular tests for complex business logic assertions (e.g., 'total_revenue must never be negative'). The gotcha: singular tests fail if they return ANY rows, so your SQL must return the offending rows.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "testing"
+  ]
+}

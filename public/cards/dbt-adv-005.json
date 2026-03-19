@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-005",
+  "category": "dbt Advanced",
+  "question": "What are the three incremental strategies in dbt and when do you use each?",
+  "answer": "append: no deduplication, just inserts new rows. Fastest but only safe for truly append-only event data. merge: SQL MERGE upsert using unique_key. Standard choice for mutable data. delete+insert: deletes matched rows then re-inserts, used on warehouses without native MERGE support or when merge has performance issues. The gotcha: not all strategies are available on all adapters (e.g., Snowflake supports merge natively; BigQuery uses merge; Redshift historically used delete+insert).",
+  "tags": [
+    "dbt",
+    "advanced",
+    "incremental",
+    "strategy"
+  ]
+}

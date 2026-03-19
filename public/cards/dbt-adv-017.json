@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-017",
+  "category": "dbt Advanced",
+  "question": "What are model contracts in dbt 1.5+ and why use them?",
+  "answer": "A model contract (enforced: true in config) declares the exact schema a model must produce: column names, data types, and constraints (not_null, primary_key, foreign_key). dbt validates the contract at run time and fails if the actual output does not match. Use contracts on critical mart models consumed by downstream applications or SLAs, where schema changes must be deliberate and reviewed. The gotcha: contracts require explicit column definitions in YAML for every output column, which adds maintenance overhead but prevents silent breaking changes.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "contracts",
+    "schema"
+  ]
+}

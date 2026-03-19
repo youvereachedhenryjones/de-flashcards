@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-024",
+  "category": "dbt Advanced",
+  "question": "How do source freshness checks work in dbt and what do warn_after and error_after control?",
+  "answer": "Configure freshness in schema.yml under a source: specify a loaded_at_field (a timestamp column) and freshness thresholds. warn_after triggers a warning if the most recent row is older than the threshold (e.g., {count: 12, period: hour}); error_after causes dbt to fail. Run with 'dbt source freshness'. The gotcha: freshness checks require a reliable ingestion timestamp column in the source table. If the source lacks one, freshness cannot be measured and you must rely on external monitoring.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "sources",
+    "freshness"
+  ]
+}

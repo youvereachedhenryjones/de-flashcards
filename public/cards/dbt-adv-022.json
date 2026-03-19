@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-022",
+  "category": "dbt Advanced",
+  "question": "What is the difference between dbt Cloud and dbt Core?",
+  "answer": "dbt Core is the open-source CLI: free, runs anywhere, no scheduler or UI included. You bring your own orchestrator (Airflow, Dagster, Prefect) and CI/CD setup. dbt Cloud is the managed SaaS: adds a web IDE, built-in job scheduler with retries and notifications, CI/CD integration (slim CI with defer), dbt Explorer for lineage, the Semantic Layer API, and team collaboration. The gotcha: dbt Core is the right choice if you already have Airflow or Dagster; dbt Cloud is faster to operationalize for teams without existing orchestration infrastructure.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "dbt-cloud",
+    "dbt-core"
+  ]
+}

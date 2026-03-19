@@ -1,0 +1,12 @@
+{
+  "id": "databricks-024",
+  "category": "Databricks",
+  "question": "What is Databricks Auto Loader and how does it handle schema evolution?",
+  "answer": "Auto Loader (cloudFiles format) incrementally ingests new files from cloud storage (S3, ADLS, GCS) into Delta Lake without you tracking which files have been processed. It uses Structured Streaming checkpoints to maintain state. Schema inference: on first run, Auto Loader samples files to infer schema and stores it. Schema evolution: cloudFiles.schemaEvolutionMode='addNewColumns' automatically adds new columns as they appear in source files. The gotcha: the default schema evolution mode is 'none', which fails the stream when new columns appear. Always set schemaEvolutionMode explicitly for production ingestion pipelines.",
+  "tags": [
+    "databricks",
+    "auto-loader",
+    "ingestion",
+    "schema"
+  ]
+}

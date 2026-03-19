@@ -1,0 +1,12 @@
+{
+  "id": "dbt-adv-002",
+  "category": "dbt Advanced",
+  "question": "What does source() enable that ref() does not, and why does this matter in production?",
+  "answer": "source() enables source freshness checks via 'dbt source freshness', which alerts you when raw data is stale (e.g., Fivetran sync failed). source() also ties the model to a documented source block in schema.yml, making lineage visible from raw table to final mart. ref() does not provide freshness checking. In production, missing source freshness checks means stale data silently flows through the pipeline with no alert.",
+  "tags": [
+    "dbt",
+    "advanced",
+    "sources",
+    "freshness"
+  ]
+}
