@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-007",
+  "category": "Behavioral",
+  "question": "Tell me about a time you disagreed with a teammate about a technical decision.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Disagreement framed as problem-solving, not personal conflict. Data or reasoning used to make the case. Willingness to be wrong or compromise.\n\n**Sample talking points:** Teammate wanted to build a custom CDC framework in Python. I believed Debezium was more reliable and faster to ship. Rather than argue, I ran a two-day spike: set up Debezium on a test Postgres instance and benchmarked it against the prototype. Presented findings in a team design review. Teammate agreed the operational overhead of the custom approach wasn't justified. Shipped Debezium-based CDC in 2 weeks instead of the estimated 6.\n\n**What interviewers look for:** Maturity, evidence-based thinking, collaborative problem solving.",
+  "tags": ["behavioral", "interview", "star", "conflict"]
+}

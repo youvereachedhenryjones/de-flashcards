@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-005",
+  "category": "Behavioral",
+  "question": "Tell me about a time you optimized a slow query or pipeline that was causing problems.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** How you identified the bottleneck. Measurable before/after. Trade-offs considered (cost, complexity, maintenance).\n\n**Sample talking points:** A Snowflake query powering a daily executive dashboard was taking 45 minutes. Ran EXPLAIN and found a missing clustering key causing full table scans on a 2B-row fact table. Reclustered on event_date, rewrote the JOIN order, and replaced a correlated subquery with a window function. Runtime dropped to 4 minutes. Also added query tagging to catch future regressions in Snowflake's query history.\n\n**What interviewers look for:** SQL/compute proficiency, systematic debugging, quantified impact.",
+  "tags": ["behavioral", "interview", "star", "performance"]
+}

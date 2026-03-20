@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-001",
+  "category": "System Design",
+  "question": "Design a batch ETL pipeline from a PostgreSQL OLTP database to a Snowflake data warehouse.",
+  "answer": "**Components:** Fivetran or Airbyte for extraction, S3 staging bucket, Snowflake COPY INTO, dbt for transformations, Dagster for orchestration.\n\n**Key decisions:** Full load vs incremental (use updated_at or CDC). Staging schema separate from analytics schema. dbt models: staging > intermediate > mart.\n\n**Scale considerations:** At 100M rows, switch to Debezium CDC to avoid full table scans on the source. Partition Snowflake tables by date.\n\n**Gotchas:** Schema drift from source. Late-arriving records. Duplicate records from retries (use MERGE not INSERT). Monitor Snowflake credit consumption per dbt model.\n\n**What interviewers look for:** End-to-end flow, incremental design, idempotency, observability.",
+  "tags": ["system-design", "architecture", "interview", "etl", "snowflake"]
+}

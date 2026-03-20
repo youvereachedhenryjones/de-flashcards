@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-018",
+  "category": "System Design",
+  "question": "Design a partition strategy for a fact table with 5 billion rows in a data warehouse.",
+  "answer": "**Core principle:** Partition on the column most queries filter on. For most fact tables that is event_date or created_date.\n\n**Snowflake:** Use clustering keys (not traditional partitions). Cluster on event_date + high-cardinality ID if queries filter on both. Automatic clustering handles maintenance.\n\n**Spark/Iceberg:** Partition by date (year/month/day hierarchy). For high-volume tables use hidden partitioning on a timestamp column. Avoid over-partitioning: target 256MB-1GB per partition file.\n\n**BigQuery:** Partition on DATE column. Cluster on 1-4 additional columns (e.g., user_id, event_type). Partition expiration to auto-delete old data.\n\n**Anti-patterns:** Partitioning on a boolean (only 2 values, useless). Partitioning on user_id for a table with 100M users (too many partitions). Not partitioning at all on a 5B-row table.\n\n**Small files problem:** Too many partitions creates too many small files. Compact regularly with Iceberg's rewrite_data_files procedure.\n\n**What interviewers look for:** Filter-driven partitioning, platform-specific nuances, small files awareness, clustering vs partitioning.",
+  "tags": ["system-design", "architecture", "interview", "partitioning", "snowflake", "iceberg"]
+}

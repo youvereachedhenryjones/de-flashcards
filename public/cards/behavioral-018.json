@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-018",
+  "category": "Behavioral",
+  "question": "Describe a time you had to prioritize across multiple competing deadlines.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Explicit prioritization framework (impact vs effort, stakeholder urgency). Communicating trade-offs. Not silently dropping anything.\n\n**Sample talking points:** Had three simultaneous asks in one sprint: a compliance data export due in 2 days, a new dashboard for a product launch, and a technical debt refactor the team wanted. Listed all three by business impact and consequence of slipping. Compliance export was immovable (legal deadline), product dashboard had a fixed launch date but 1-week buffer, refactor had no hard deadline. Communicated the sequencing to all stakeholders in one message. Delivered compliance first, dashboard second, refactor moved to next sprint. No surprises for anyone.\n\n**What interviewers look for:** Prioritization logic, proactive communication, managing up.",
+  "tags": ["behavioral", "interview", "star", "prioritization"]
+}

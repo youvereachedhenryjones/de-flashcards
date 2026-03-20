@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-006",
+  "category": "System Design",
+  "question": "Design a metrics and analytics platform to serve 500+ internal users across multiple business units.",
+  "answer": "**Components:** Snowflake as the warehouse, dbt for metric definitions, MetricFlow or dbt Semantic Layer for consistent metric logic, Looker or Tableau for dashboards, a data catalog (DataHub or Alation) for discovery.\n\n**Key decisions:** Centralized metric definitions (one source of truth for 'revenue', 'DAU', etc.) to avoid metric fragmentation. Row-level security by business unit in Looker. Dedicated virtual warehouses per team to isolate credit consumption.\n\n**Scale considerations:** Aggregate pre-computed summaries in Gold layer for high-traffic dashboards. Use Snowflake result caching. Monitor credit usage by department.\n\n**Gotchas:** Without a semantic layer, every analyst defines metrics differently. Governance decays over time. Implement a metric PR review process.\n\n**What interviewers look for:** Semantic layer understanding, multi-team governance, access control, cost isolation.",
+  "tags": ["system-design", "architecture", "interview", "analytics", "metrics", "snowflake"]
+}

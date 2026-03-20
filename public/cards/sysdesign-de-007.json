@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-007",
+  "category": "System Design",
+  "question": "Design an ML feature store for a company with multiple ML teams.",
+  "answer": "**Components:** Offline store (S3 + Iceberg or Hive), online store (Redis or DynamoDB for low-latency serving), feature registry (Feast or Tecton), compute layer (Spark for batch, Flink for streaming features), orchestration via Dagster or Airflow.\n\n**Key decisions:** Offline/online split: offline for training, online for real-time inference. Point-in-time correct joins for training data to prevent data leakage. Feature versioning and deprecation policy.\n\n**Flow:** Raw events -> Spark/Flink computes features -> written to offline Iceberg table + online Redis. Training job reads offline. Inference service reads online.\n\n**Gotchas:** Training/serving skew (offline and online features must use identical logic). Feature freshness SLAs. Backfilling historical features is expensive. Avoid storing raw PII in the feature store.\n\n**What interviewers look for:** Offline vs online split, point-in-time correctness, training/serving skew, feature governance.",
+  "tags": ["system-design", "architecture", "interview", "ml", "feature-store", "feast"]
+}

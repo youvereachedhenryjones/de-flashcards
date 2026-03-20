@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-009",
+  "category": "Behavioral",
+  "question": "Tell me about a time you dealt with ambiguous data requirements and how you moved forward.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Proactive clarification over paralysis. Documenting assumptions explicitly. Iterating with stakeholders.\n\n**Sample talking points:** A VP asked for a 'retention report' with no further definition. Instead of guessing, scheduled a 20-minute discovery call with three questions: what decision will this report inform, what time window matters, and how do we define a 'retained' user? Got answers, then wrote a one-page data contract documenting the agreed definition before touching any code. Shared a dbt model preview after 3 days. The VP said it was exactly what she meant, and the contract became the template for all future metric definitions.\n\n**What interviewers look for:** Structured thinking, requirement discovery, preventing rework.",
+  "tags": ["behavioral", "interview", "star", "ambiguity"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-003",
+  "category": "System Design",
+  "question": "Design a data quality monitoring system for a production data warehouse.",
+  "answer": "**Components:** dbt tests (schema + custom data tests), Great Expectations for row-level validation, Monte Carlo or Soda Core for anomaly detection, Slack/PagerDuty for alerting, a quality metrics dashboard.\n\n**Key decisions:** Test at ingestion time vs transformation time vs serving time (do all three). Classify failures: blocking (stop the pipeline) vs warning (alert but continue).\n\n**Core checks:** Freshness (data arrived on time?), volume anomaly (row count changed more than X%?), nullability, uniqueness, referential integrity, distribution drift.\n\n**Gotchas:** Too many tests = alert fatigue. Too few = silent corruption. Tune thresholds per table. Store quality check results as data so you can trend them over time.\n\n**What interviewers look for:** Layered validation strategy, anomaly detection, alert design, treating quality as a first-class concern.",
+  "tags": ["system-design", "architecture", "interview", "data-quality", "dbt"]
+}

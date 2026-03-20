@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-008",
+  "category": "Behavioral",
+  "question": "Describe a situation where you received critical feedback from a peer or manager and how you handled it.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Receiving feedback without defensiveness. Specific action taken. Demonstrating growth.\n\n**Sample talking points:** My manager flagged that my dbt models were hard to follow: no documentation, long SQL files with no intermediate CTEs. It stung at first but I reviewed the models with fresh eyes and she was right. Spent a sprint refactoring: split monolithic models into staging, intermediate, and mart layers; added descriptions to every model and column; wrote a team README on our modeling conventions. Two months later, two new hires onboarded to the warehouse in one day instead of three.\n\n**What interviewers look for:** Self-awareness, coachability, follow-through.",
+  "tags": ["behavioral", "interview", "star", "conflict", "growth"]
+}

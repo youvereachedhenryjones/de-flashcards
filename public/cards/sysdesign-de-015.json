@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-015",
+  "category": "System Design",
+  "question": "How do you design a system that handles schema evolution without breaking downstream consumers?",
+  "answer": "**Core principle:** Schema changes should be backward-compatible by default. New fields are optional with defaults. Renamed or removed fields go through a deprecation period, not immediate removal.\n\n**Tools:** Confluent Schema Registry with Avro or Protobuf enforces compatibility rules (BACKWARD, FORWARD, FULL). dbt handles schema changes in SQL by making new columns nullable initially. Iceberg supports column adds, renames, and type promotions without rewriting data files.\n\n**Change process:** 1) Propose schema change in a schema PR. 2) Check compatibility against registry. 3) Add new field as nullable. 4) Notify downstream consumers. 5) After migration window, make field required or drop old field.\n\n**Gotchas:** JSON without a schema registry is a silent bomb. Breaking changes break consumers in ways that are hard to detect immediately. Never rename a Kafka field without a compatibility check.\n\n**What interviewers look for:** Schema registry understanding, backward compatibility rules, deprecation process, Iceberg schema evolution.",
+  "tags": ["system-design", "architecture", "interview", "schema-evolution", "kafka", "iceberg"]
+}

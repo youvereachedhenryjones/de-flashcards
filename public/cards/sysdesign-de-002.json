@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-002",
+  "category": "System Design",
+  "question": "Design a real-time streaming pipeline from Kafka to an analytics system.",
+  "answer": "**Components:** Kafka (producers + topics), Flink or Spark Structured Streaming for processing, Apache Iceberg or Delta Lake for sink, Trino or Snowflake for serving, Grafana for monitoring.\n\n**Key decisions:** Event time vs processing time. Exactly-once semantics (use Flink checkpointing + Kafka transactions). Stateful vs stateless processing.\n\n**Scale considerations:** Partition Kafka topics by user_id or entity_id for parallelism. Tune Flink parallelism to match partition count. Use compacted topics for dimension tables.\n\n**Gotchas:** Late-arriving events require watermarks. Schema evolution breaks consumers (use Confluent Schema Registry with Avro). Backpressure from slow sinks. Dead letter queue for malformed records.\n\n**What interviewers look for:** Exactly-once guarantees, watermark handling, schema registry, operational concerns.",
+  "tags": ["system-design", "architecture", "interview", "kafka", "streaming", "flink"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-015",
+  "category": "Behavioral",
+  "question": "Tell me about a time you debugged a mysterious or hard-to-reproduce bug in a data system.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Systematic elimination. Using logs, metrics, and reproducible test cases. Documenting the root cause clearly.\n\n**Sample talking points:** A Dagster pipeline intermittently produced duplicate rows in a Snowflake table, but only on weekends. Added detailed logging and found it only happened when two weekend runs overlapped due to a missing concurrency lock. The MERGE statement's ON condition wasn't fully unique so concurrent runs would insert duplicates before either run committed. Fixed by adding a pipeline-level concurrency limit in Dagster and tightening the MERGE key. Wrote a post-mortem that became the team's reference for idempotency design.\n\n**What interviewers look for:** Systematic debugging, understanding of concurrency, clear documentation.",
+  "tags": ["behavioral", "interview", "star", "debugging"]
+}

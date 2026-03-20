@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-004",
+  "category": "Behavioral",
+  "question": "Give an example of working with a product or business team that had different priorities from your data team.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Understanding the 'why' behind each team's priority. Finding shared goals. Negotiating scope without burning trust.\n\n**Sample talking points:** Product wanted a new event tracking schema shipped in 3 days. Data team needed a week to design it properly to avoid future breakage. Scheduled a 30-minute alignment call, showed the product manager what a poorly designed schema had cost us 6 months earlier (a full remodel). Agreed on a phased approach: minimal schema shipped in 3 days, second iteration within 2 weeks with proper normalization. Both teams got what they needed.\n\n**What interviewers look for:** Negotiation, stakeholder management, big-picture thinking.",
+  "tags": ["behavioral", "interview", "star", "collaboration"]
+}

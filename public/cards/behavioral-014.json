@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-014",
+  "category": "Behavioral",
+  "question": "Describe a time you improved your team's data practices or engineering standards.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Identifying the gap. Getting buy-in before mandating change. Measuring adoption.\n\n**Sample talking points:** Our team had no consistent dbt testing standards. Some models had 50 tests, others had zero, and broken models caused silent downstream failures. Wrote a lightweight testing policy: every model must have unique and not_null on primary keys, every source must have a freshness check. Presented it at a team retro with concrete examples of bugs it would have caught. Added the checks as a CI gate in GitHub Actions. Within a sprint, test coverage went from 30% of models to 95%.\n\n**What interviewers look for:** Engineering maturity, evangelism without forcing, measurable outcomes.",
+  "tags": ["behavioral", "interview", "star", "best-practices", "dbt"]
+}

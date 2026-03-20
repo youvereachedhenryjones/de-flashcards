@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-019",
+  "category": "System Design",
+  "question": "Design a fan-out event pattern where a single event must trigger processing in multiple independent downstream systems.",
+  "answer": "**Pattern:** One producer emits an event to Kafka. Multiple consumer groups each read the same event independently and at their own pace. No coupling between consumers.\n\n**Example:** An 'order_completed' event triggers: (1) analytics pipeline writes to warehouse, (2) inventory service decrements stock, (3) notification service sends email, (4) fraud system scores the transaction.\n\n**Implementation:** Separate Kafka consumer group per downstream system. Each consumer commits its own offsets independently. A slow consumer doesn't block the others.\n\n**Reliability:** Use dead letter queues (DLQ) per consumer for failed events. Replay failed events from the DLQ after fixing the bug. Set retention long enough to replay (7-30 days minimum).\n\n**Gotchas:** If downstream systems have different latency requirements, fan-out via Kafka is correct. If they need strict ordering across systems, you need a saga or choreography pattern. Don't use a single queue with routing logic (that's coupling).\n\n**What interviewers look for:** Consumer group isolation, DLQ design, replay capability, decoupling rationale.",
+  "tags": ["system-design", "architecture", "interview", "fan-out", "kafka", "event-driven"]
+}

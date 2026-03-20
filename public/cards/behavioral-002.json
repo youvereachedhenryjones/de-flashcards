@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-002",
+  "category": "Behavioral",
+  "question": "Describe a time you had to respond quickly to a data pipeline outage that was impacting business stakeholders.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Triage speed. Clear incident communication. Workaround before full fix. Post-mortem with action items.\n\n**Sample talking points:** A nightly Airflow DAG that loaded sales data into Snowflake failed silently due to a bad cron schedule after a DST change. Finance noticed stale numbers at 9 AM. Immediately stood up a manual trigger, communicated ETA via Slack, and had fresh data loaded by 9:45 AM. Added an SLA sensor and an on-call PagerDuty integration so future failures wake someone up, not the finance team.\n\n**What interviewers look for:** Calm under pressure, communication to non-engineers, prevention mindset.",
+  "tags": ["behavioral", "interview", "star", "incident-response"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-005",
+  "category": "System Design",
+  "question": "Design a Change Data Capture (CDC) pipeline from a production MySQL database.",
+  "answer": "**Components:** Debezium (reads MySQL binlog), Kafka as event bus, Kafka Connect JDBC sink or Flink for processing, target: Snowflake or S3/Iceberg.\n\n**Flow:** MySQL binlog -> Debezium connector -> Kafka topic (one per table) -> Flink or Kafka Streams consumer -> target.\n\n**Key decisions:** Snapshot mode for initial load (read_committed), then switch to streaming. Use Kafka compacted topics to retain latest state per key. Handle deletes explicitly (Debezium emits tombstone records).\n\n**Gotchas:** DDL changes (ALTER TABLE) can break the binlog stream. Use Confluent Schema Registry to manage schema evolution. Monitor binlog lag. Ensure Debezium user has REPLICATION CLIENT privilege. Resume from checkpoint on failure, not from the beginning.\n\n**What interviewers look for:** Binlog mechanics, snapshot bootstrap, delete handling, schema evolution, exactly-once semantics.",
+  "tags": ["system-design", "architecture", "interview", "cdc", "debezium", "kafka"]
+}

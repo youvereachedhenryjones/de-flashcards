@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-009",
+  "category": "System Design",
+  "question": "Design a multi-tenant data warehouse where each tenant's data must be isolated.",
+  "answer": "**Components:** Snowflake with database-per-tenant or schema-per-tenant isolation, role-based access control per tenant, a metadata registry to map tenant IDs to schemas, dbt with tenant-aware models, a tenant provisioning API.\n\n**Isolation strategies:** Database-per-tenant (strongest isolation, high overhead), schema-per-tenant (good balance), row-level security with a tenant_id column (cheapest but riskiest if misconfigured).\n\n**Key decisions:** Schema-per-tenant is usually the right call for 10-1000 tenants. For 10K+ tenants, use row-level security with strict policy enforcement. Virtual warehouses can be shared or dedicated per large tenant.\n\n**Gotchas:** Schema drift between tenants if migrations aren't applied atomically. Cross-tenant query leakage if RLS policies have bugs. Cost allocation per tenant (tag queries with tenant_id).\n\n**What interviewers look for:** Isolation trade-offs, RLS vs schema vs database, migration orchestration, cost attribution.",
+  "tags": ["system-design", "architecture", "interview", "multi-tenant", "snowflake"]
+}

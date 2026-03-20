@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-001",
+  "category": "Behavioral",
+  "question": "Tell me about a time a data pipeline failed in production.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Monitoring detected it fast. Root cause analysis. Stakeholder communication. Prevention steps added afterward.\n\n**Sample talking points:** Dagster sensor triggered an alert on a failed run at 6 AM. Investigated and found a schema change in the source PostgreSQL table dropped a column downstream dbt models depended on. Notified the analytics team proactively before they hit broken dashboards. Added a dbt source freshness check and a column existence test. Backfilled the missing window with zero downtime.\n\n**What interviewers look for:** Ownership of the incident, fast communication, systemic fix not just a patch.",
+  "tags": ["behavioral", "interview", "star", "incident-response"]
+}

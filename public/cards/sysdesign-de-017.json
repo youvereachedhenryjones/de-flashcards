@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-017",
+  "category": "System Design",
+  "question": "Design an event-driven data architecture where application events flow into analytics and operational systems.",
+  "answer": "**Components:** Application services emit events to Kafka. Kafka topics act as the central nervous system. Multiple consumers read the same events independently: analytics consumer (writes to S3/Iceberg), operational consumer (writes to PostgreSQL for real-time features), notification service (triggers alerts).\n\n**Core principle:** Producers don't know who consumes their events. Events are the contract. Schema Registry enforces schema compatibility.\n\n**Key design decisions:** One event, multiple consumers (fan-out pattern). Events are immutable and stored permanently in Kafka (log compaction for latest state, infinite retention for audit). Consumer groups allow independent processing speeds.\n\n**Gotchas:** Ordering guarantees only within a partition. Cross-partition ordering requires application-level sequencing. Event payload bloat (don't put entire rows in events, use event + lookup pattern). Versioning events when the payload changes.\n\n**What interviewers look for:** Fan-out understanding, event immutability, schema registry, ordering constraints.",
+  "tags": ["system-design", "architecture", "interview", "event-driven", "kafka"]
+}

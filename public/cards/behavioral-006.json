@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-006",
+  "category": "Behavioral",
+  "question": "Describe a time you improved the performance of a data pipeline that was running too slowly.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Profiling first, not guessing. Incremental improvements with measurements. Documenting the fix for the team.\n\n**Sample talking points:** A PySpark job that aggregated clickstream data was taking 3 hours and sometimes timing out. Used Spark UI to find a massive shuffle caused by a skewed user_id join. Applied salting to redistribute the skewed keys, broadcast-joined the small dimension table, and increased executor memory. Runtime fell to 28 minutes. Wrote a team wiki page on Spark skew patterns so others could recognize it next time.\n\n**What interviewers look for:** Spark internals knowledge, profiling approach, knowledge-sharing mindset.",
+  "tags": ["behavioral", "interview", "star", "performance", "spark"]
+}

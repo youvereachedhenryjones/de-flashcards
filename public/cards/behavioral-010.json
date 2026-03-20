@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-010",
+  "category": "Behavioral",
+  "question": "Describe a time you scaled a data system to handle significantly more volume or users.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Identifying the actual bottleneck. Choosing the right scaling strategy (vertical vs horizontal, batch vs streaming). Cost awareness.\n\n**Sample talking points:** Our event ingestion pipeline worked fine at 10K events/second but started dropping data at 50K after a product launch. Profiled the system: Kafka consumers were the bottleneck, not the brokers. Increased consumer group parallelism from 4 to 16 partitions, migrated the Flink job to use keyed state instead of broadcast state, and added auto-scaling policies. Handled 200K events/second in load tests without data loss. Documented the capacity model so the team could predict the next scaling threshold.\n\n**What interviewers look for:** Systems thinking, practical scaling knowledge, cost/performance balance.",
+  "tags": ["behavioral", "interview", "star", "scaling", "kafka"]
+}

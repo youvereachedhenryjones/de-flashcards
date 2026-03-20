@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-013",
+  "category": "Behavioral",
+  "question": "Tell me about a time you delivered a data project under a tight deadline.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Scope negotiation. Ruthless prioritization. Transparent communication if anything slips.\n\n**Sample talking points:** Leadership needed a revenue attribution report for a board meeting in 5 days. Full attribution modeling would take 3 weeks. Negotiated scope: deliver a last-touch attribution model now and a multi-touch model in sprint 2. Built the dbt mart model in 2 days, QA-tested it against known revenue figures, and created a Tableau dashboard in 1 day. Shipped on time with a clear caveat slide explaining the model's limitations. Board accepted it and the multi-touch model shipped 2 weeks later.\n\n**What interviewers look for:** Deadline management, scope negotiation, transparency about trade-offs.",
+  "tags": ["behavioral", "interview", "star", "deadlines"]
+}

@@ -1,0 +1,529 @@
+{
+  "id": "behavioral-sysdesign",
+  "name": "Behavioral + System Design",
+  "description": "STAR-format behavioral questions and system design scenarios for DE interviews",
+  "cards": [
+    {
+      "id": "behavioral-001",
+      "category": "Behavioral",
+      "question": "Tell me about a time a data pipeline failed in production.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Monitoring detected it fast. Root cause analysis. Stakeholder communication. Prevention steps added afterward.\n\n**Sample talking points:** Dagster sensor triggered an alert on a failed run at 6 AM. Investigated and found a schema change in the source PostgreSQL table dropped a column downstream dbt models depended on. Notified the analytics team proactively before they hit broken dashboards. Added a dbt source freshness check and a column existence test. Backfilled the missing window with zero downtime.\n\n**What interviewers look for:** Ownership of the incident, fast communication, systemic fix not just a patch.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "incident-response"
+      ]
+    },
+    {
+      "id": "behavioral-002",
+      "category": "Behavioral",
+      "question": "Describe a time you had to respond quickly to a data pipeline outage that was impacting business stakeholders.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Triage speed. Clear incident communication. Workaround before full fix. Post-mortem with action items.\n\n**Sample talking points:** A nightly Airflow DAG that loaded sales data into Snowflake failed silently due to a bad cron schedule after a DST change. Finance noticed stale numbers at 9 AM. Immediately stood up a manual trigger, communicated ETA via Slack, and had fresh data loaded by 9:45 AM. Added an SLA sensor and an on-call PagerDuty integration so future failures wake someone up, not the finance team.\n\n**What interviewers look for:** Calm under pressure, communication to non-engineers, prevention mindset.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "incident-response"
+      ]
+    },
+    {
+      "id": "behavioral-003",
+      "category": "Behavioral",
+      "question": "Tell me about a time you collaborated with a non-technical stakeholder to deliver a data project.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Translating technical concepts into business language. Active listening to understand the real need. Iterating on outputs together.\n\n**Sample talking points:** A marketing director wanted a 'customer health score' but had no clear definition. Held a requirements session using concrete examples instead of jargon. Translated business goals into metric logic: recency, frequency, spend. Built a dbt mart model and shared a Google Sheets preview before building the full Looker dashboard. She caught a wrong assumption in iteration 2, saving a week of rework.\n\n**What interviewers look for:** Empathy, ability to work across the org, requirement discovery skills.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "collaboration"
+      ]
+    },
+    {
+      "id": "behavioral-004",
+      "category": "Behavioral",
+      "question": "Give an example of working with a product or business team that had different priorities from your data team.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Understanding the 'why' behind each team's priority. Finding shared goals. Negotiating scope without burning trust.\n\n**Sample talking points:** Product wanted a new event tracking schema shipped in 3 days. Data team needed a week to design it properly to avoid future breakage. Scheduled a 30-minute alignment call, showed the product manager what a poorly designed schema had cost us 6 months earlier (a full remodel). Agreed on a phased approach: minimal schema shipped in 3 days, second iteration within 2 weeks with proper normalization. Both teams got what they needed.\n\n**What interviewers look for:** Negotiation, stakeholder management, big-picture thinking.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "collaboration"
+      ]
+    },
+    {
+      "id": "behavioral-005",
+      "category": "Behavioral",
+      "question": "Tell me about a time you optimized a slow query or pipeline that was causing problems.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** How you identified the bottleneck. Measurable before/after. Trade-offs considered (cost, complexity, maintenance).\n\n**Sample talking points:** A Snowflake query powering a daily executive dashboard was taking 45 minutes. Ran EXPLAIN and found a missing clustering key causing full table scans on a 2B-row fact table. Reclustered on event_date, rewrote the JOIN order, and replaced a correlated subquery with a window function. Runtime dropped to 4 minutes. Also added query tagging to catch future regressions in Snowflake's query history.\n\n**What interviewers look for:** SQL/compute proficiency, systematic debugging, quantified impact.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "performance"
+      ]
+    },
+    {
+      "id": "behavioral-006",
+      "category": "Behavioral",
+      "question": "Describe a time you improved the performance of a data pipeline that was running too slowly.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Profiling first, not guessing. Incremental improvements with measurements. Documenting the fix for the team.\n\n**Sample talking points:** A PySpark job that aggregated clickstream data was taking 3 hours and sometimes timing out. Used Spark UI to find a massive shuffle caused by a skewed user_id join. Applied salting to redistribute the skewed keys, broadcast-joined the small dimension table, and increased executor memory. Runtime fell to 28 minutes. Wrote a team wiki page on Spark skew patterns so others could recognize it next time.\n\n**What interviewers look for:** Spark internals knowledge, profiling approach, knowledge-sharing mindset.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "performance",
+        "spark"
+      ]
+    },
+    {
+      "id": "behavioral-007",
+      "category": "Behavioral",
+      "question": "Tell me about a time you disagreed with a teammate about a technical decision.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Disagreement framed as problem-solving, not personal conflict. Data or reasoning used to make the case. Willingness to be wrong or compromise.\n\n**Sample talking points:** Teammate wanted to build a custom CDC framework in Python. I believed Debezium was more reliable and faster to ship. Rather than argue, I ran a two-day spike: set up Debezium on a test Postgres instance and benchmarked it against the prototype. Presented findings in a team design review. Teammate agreed the operational overhead of the custom approach wasn't justified. Shipped Debezium-based CDC in 2 weeks instead of the estimated 6.\n\n**What interviewers look for:** Maturity, evidence-based thinking, collaborative problem solving.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "conflict"
+      ]
+    },
+    {
+      "id": "behavioral-008",
+      "category": "Behavioral",
+      "question": "Describe a situation where you received critical feedback from a peer or manager and how you handled it.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Receiving feedback without defensiveness. Specific action taken. Demonstrating growth.\n\n**Sample talking points:** My manager flagged that my dbt models were hard to follow: no documentation, long SQL files with no intermediate CTEs. It stung at first but I reviewed the models with fresh eyes and she was right. Spent a sprint refactoring: split monolithic models into staging, intermediate, and mart layers; added descriptions to every model and column; wrote a team README on our modeling conventions. Two months later, two new hires onboarded to the warehouse in one day instead of three.\n\n**What interviewers look for:** Self-awareness, coachability, follow-through.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "conflict",
+        "growth"
+      ]
+    },
+    {
+      "id": "behavioral-009",
+      "category": "Behavioral",
+      "question": "Tell me about a time you dealt with ambiguous data requirements and how you moved forward.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Proactive clarification over paralysis. Documenting assumptions explicitly. Iterating with stakeholders.\n\n**Sample talking points:** A VP asked for a 'retention report' with no further definition. Instead of guessing, scheduled a 20-minute discovery call with three questions: what decision will this report inform, what time window matters, and how do we define a 'retained' user? Got answers, then wrote a one-page data contract documenting the agreed definition before touching any code. Shared a dbt model preview after 3 days. The VP said it was exactly what she meant, and the contract became the template for all future metric definitions.\n\n**What interviewers look for:** Structured thinking, requirement discovery, preventing rework.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "ambiguity"
+      ]
+    },
+    {
+      "id": "behavioral-010",
+      "category": "Behavioral",
+      "question": "Describe a time you scaled a data system to handle significantly more volume or users.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Identifying the actual bottleneck. Choosing the right scaling strategy (vertical vs horizontal, batch vs streaming). Cost awareness.\n\n**Sample talking points:** Our event ingestion pipeline worked fine at 10K events/second but started dropping data at 50K after a product launch. Profiled the system: Kafka consumers were the bottleneck, not the brokers. Increased consumer group parallelism from 4 to 16 partitions, migrated the Flink job to use keyed state instead of broadcast state, and added auto-scaling policies. Handled 200K events/second in load tests without data loss. Documented the capacity model so the team could predict the next scaling threshold.\n\n**What interviewers look for:** Systems thinking, practical scaling knowledge, cost/performance balance.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "scaling",
+        "kafka"
+      ]
+    },
+    {
+      "id": "behavioral-011",
+      "category": "Behavioral",
+      "question": "Tell me about a time you discovered and resolved a data quality incident.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** How you caught it (monitoring, not luck). Impact assessment. Fix and prevention.\n\n**Sample talking points:** A Great Expectations suite flagged that 12% of rows in the orders table had null payment_method values after a backend deploy. Immediately notified the data consumers and marked affected rows in a quarantine column so dashboards would exclude them. Traced the root cause to an app deploy that changed the field name. Worked with the backend team to backfill historical nulls from the transaction log. Added a not_null dbt test and a daily anomaly check so future spikes would alert within one pipeline run.\n\n**What interviewers look for:** Data quality awareness, cross-team debugging, proactive consumer communication.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "data-quality"
+      ]
+    },
+    {
+      "id": "behavioral-012",
+      "category": "Behavioral",
+      "question": "Tell me about a time you had to learn a new tool or technology quickly to deliver a project.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Learning strategy (docs, tutorials, small spike). Asking for help without waiting too long. Delivering despite the learning curve.\n\n**Sample talking points:** Was handed a Flink streaming project with a two-week deadline having only worked with Spark before. Spent day 1 reading Flink docs and identifying the 20% of concepts (stateful operators, watermarks, event time vs processing time) that covered 80% of the use case. Built a toy pipeline locally on day 2. By day 4 I was writing production code. Paired with a senior engineer for a 1-hour code review at the end of week 1. Shipped on time and the job has run stably since.\n\n**What interviewers look for:** Learning agility, resourcefulness, knowing when to ask for help.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "learning",
+        "flink"
+      ]
+    },
+    {
+      "id": "behavioral-013",
+      "category": "Behavioral",
+      "question": "Tell me about a time you delivered a data project under a tight deadline.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Scope negotiation. Ruthless prioritization. Transparent communication if anything slips.\n\n**Sample talking points:** Leadership needed a revenue attribution report for a board meeting in 5 days. Full attribution modeling would take 3 weeks. Negotiated scope: deliver a last-touch attribution model now and a multi-touch model in sprint 2. Built the dbt mart model in 2 days, QA-tested it against known revenue figures, and created a Tableau dashboard in 1 day. Shipped on time with a clear caveat slide explaining the model's limitations. Board accepted it and the multi-touch model shipped 2 weeks later.\n\n**What interviewers look for:** Deadline management, scope negotiation, transparency about trade-offs.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "deadlines"
+      ]
+    },
+    {
+      "id": "behavioral-014",
+      "category": "Behavioral",
+      "question": "Describe a time you improved your team's data practices or engineering standards.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Identifying the gap. Getting buy-in before mandating change. Measuring adoption.\n\n**Sample talking points:** Our team had no consistent dbt testing standards. Some models had 50 tests, others had zero, and broken models caused silent downstream failures. Wrote a lightweight testing policy: every model must have unique and not_null on primary keys, every source must have a freshness check. Presented it at a team retro with concrete examples of bugs it would have caught. Added the checks as a CI gate in GitHub Actions. Within a sprint, test coverage went from 30% of models to 95%.\n\n**What interviewers look for:** Engineering maturity, evangelism without forcing, measurable outcomes.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "best-practices",
+        "dbt"
+      ]
+    },
+    {
+      "id": "behavioral-015",
+      "category": "Behavioral",
+      "question": "Tell me about a time you debugged a mysterious or hard-to-reproduce bug in a data system.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Systematic elimination. Using logs, metrics, and reproducible test cases. Documenting the root cause clearly.\n\n**Sample talking points:** A Dagster pipeline intermittently produced duplicate rows in a Snowflake table, but only on weekends. Added detailed logging and found it only happened when two weekend runs overlapped due to a missing concurrency lock. The MERGE statement's ON condition wasn't fully unique so concurrent runs would insert duplicates before either run committed. Fixed by adding a pipeline-level concurrency limit in Dagster and tightening the MERGE key. Wrote a post-mortem that became the team's reference for idempotency design.\n\n**What interviewers look for:** Systematic debugging, understanding of concurrency, clear documentation.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "debugging"
+      ]
+    },
+    {
+      "id": "behavioral-016",
+      "category": "Behavioral",
+      "question": "Describe a time you communicated a complex data finding to a non-technical audience.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Lead with the business question, not the method. Use visuals and analogies. Anticipate 'so what' before they ask.\n\n**Sample talking points:** Ran a cohort analysis showing that users who completed onboarding in under 5 minutes had 3x the 90-day retention rate. The audience was the executive team with zero SQL background. Skipped the methodology slide entirely and opened with: 'For every minute we cut from onboarding, we add roughly 200 retained users per month.' Used a single bar chart. Then tied it to a revenue estimate. Executives approved onboarding redesign budget in that meeting.\n\n**What interviewers look for:** Data storytelling, audience awareness, business impact framing.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "communication"
+      ]
+    },
+    {
+      "id": "behavioral-017",
+      "category": "Behavioral",
+      "question": "Tell me about a time you mentored a junior engineer or shared knowledge with your team.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Meeting people where they are. Teaching by doing together, not just explaining. Measuring their growth.\n\n**Sample talking points:** A junior DE joined the team and struggled with dbt's testing philosophy. Instead of pointing them to docs, we pair-coded a full model together: wrote the SQL, then asked 'what could go wrong here?' to derive the tests organically. After two sessions they were writing tests independently and caught a bug I missed in a PR review. Started a bi-weekly 'DE office hours' session that grew to include three other juniors and became a team ritual.\n\n**What interviewers look for:** Patience, teaching instinct, investment in team growth.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "mentorship"
+      ]
+    },
+    {
+      "id": "behavioral-018",
+      "category": "Behavioral",
+      "question": "Describe a time you had to prioritize across multiple competing deadlines.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Explicit prioritization framework (impact vs effort, stakeholder urgency). Communicating trade-offs. Not silently dropping anything.\n\n**Sample talking points:** Had three simultaneous asks in one sprint: a compliance data export due in 2 days, a new dashboard for a product launch, and a technical debt refactor the team wanted. Listed all three by business impact and consequence of slipping. Compliance export was immovable (legal deadline), product dashboard had a fixed launch date but 1-week buffer, refactor had no hard deadline. Communicated the sequencing to all stakeholders in one message. Delivered compliance first, dashboard second, refactor moved to next sprint. No surprises for anyone.\n\n**What interviewers look for:** Prioritization logic, proactive communication, managing up.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "prioritization"
+      ]
+    },
+    {
+      "id": "behavioral-019",
+      "category": "Behavioral",
+      "question": "Tell me about a failure you experienced as a data engineer and what you learned from it.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Own the failure without deflecting. Concrete lesson extracted. Systemic change made, not just personal resolve.\n\n**Sample talking points:** Deployed a dbt model change on a Friday afternoon without checking downstream dependencies. The change broke three dashboards used for Monday morning executive reviews. Spent Sunday fixing it. The lesson wasn't 'don't deploy on Fridays' but 'always run dbt ls --select +changed_model to see the full dependency graph before merging.' Added that check to our PR checklist and built a pre-merge CI step that visualizes downstream impact. That incident led to our team's best safety practice.\n\n**What interviewers look for:** Accountability, specific lesson, systemic fix rather than self-blame.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "failure",
+        "learning"
+      ]
+    },
+    {
+      "id": "behavioral-020",
+      "category": "Behavioral",
+      "question": "Describe a time you proactively identified and addressed a risk before it became a real problem.",
+      "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Pattern recognition from experience. Raising the flag with evidence, not anxiety. Fixing it before it became urgent.\n\n**Sample talking points:** While reviewing Snowflake query history during a routine check, noticed our largest dbt mart model's runtime had grown 40% over 3 months as data volume grew. No one had flagged it yet, but projecting forward it would breach our SLA window in 6 weeks. Brought the trend chart to the team, proposed adding incremental materialization and reclustering. Fixed it in one sprint. The model's runtime went from 22 minutes back to 8 minutes. Proactive fix cost 2 days; a production SLA breach would have cost a week of firefighting.\n\n**What interviewers look for:** Ownership beyond assigned tickets, data-driven risk sensing, initiative.",
+      "tags": [
+        "behavioral",
+        "interview",
+        "star",
+        "proactive",
+        "performance"
+      ]
+    },
+    {
+      "id": "sysdesign-de-001",
+      "category": "System Design",
+      "question": "Design a batch ETL pipeline from a PostgreSQL OLTP database to a Snowflake data warehouse.",
+      "answer": "**Components:** Fivetran or Airbyte for extraction, S3 staging bucket, Snowflake COPY INTO, dbt for transformations, Dagster for orchestration.\n\n**Key decisions:** Full load vs incremental (use updated_at or CDC). Staging schema separate from analytics schema. dbt models: staging > intermediate > mart.\n\n**Scale considerations:** At 100M rows, switch to Debezium CDC to avoid full table scans on the source. Partition Snowflake tables by date.\n\n**Gotchas:** Schema drift from source. Late-arriving records. Duplicate records from retries (use MERGE not INSERT). Monitor Snowflake credit consumption per dbt model.\n\n**What interviewers look for:** End-to-end flow, incremental design, idempotency, observability.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "etl",
+        "snowflake"
+      ]
+    },
+    {
+      "id": "sysdesign-de-002",
+      "category": "System Design",
+      "question": "Design a real-time streaming pipeline from Kafka to an analytics system.",
+      "answer": "**Components:** Kafka (producers + topics), Flink or Spark Structured Streaming for processing, Apache Iceberg or Delta Lake for sink, Trino or Snowflake for serving, Grafana for monitoring.\n\n**Key decisions:** Event time vs processing time. Exactly-once semantics (use Flink checkpointing + Kafka transactions). Stateful vs stateless processing.\n\n**Scale considerations:** Partition Kafka topics by user_id or entity_id for parallelism. Tune Flink parallelism to match partition count. Use compacted topics for dimension tables.\n\n**Gotchas:** Late-arriving events require watermarks. Schema evolution breaks consumers (use Confluent Schema Registry with Avro). Backpressure from slow sinks. Dead letter queue for malformed records.\n\n**What interviewers look for:** Exactly-once guarantees, watermark handling, schema registry, operational concerns.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "kafka",
+        "streaming",
+        "flink"
+      ]
+    },
+    {
+      "id": "sysdesign-de-003",
+      "category": "System Design",
+      "question": "Design a data quality monitoring system for a production data warehouse.",
+      "answer": "**Components:** dbt tests (schema + custom data tests), Great Expectations for row-level validation, Monte Carlo or Soda Core for anomaly detection, Slack/PagerDuty for alerting, a quality metrics dashboard.\n\n**Key decisions:** Test at ingestion time vs transformation time vs serving time (do all three). Classify failures: blocking (stop the pipeline) vs warning (alert but continue).\n\n**Core checks:** Freshness (data arrived on time?), volume anomaly (row count changed more than X%?), nullability, uniqueness, referential integrity, distribution drift.\n\n**Gotchas:** Too many tests = alert fatigue. Too few = silent corruption. Tune thresholds per table. Store quality check results as data so you can trend them over time.\n\n**What interviewers look for:** Layered validation strategy, anomaly detection, alert design, treating quality as a first-class concern.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "data-quality",
+        "dbt"
+      ]
+    },
+    {
+      "id": "sysdesign-de-004",
+      "category": "System Design",
+      "question": "Design a Medallion Architecture (Bronze/Silver/Gold) data lake for a mid-size company.",
+      "answer": "**Components:** S3 or GCS for storage, Apache Iceberg as table format, Spark or Databricks for processing, dbt for Gold layer transformations, Trino or Athena for serving.\n\n**Layer definitions:** Bronze = raw ingested data, immutable, retained forever. Silver = cleaned, deduplicated, schema-enforced. Gold = business-ready aggregations, marts, and features.\n\n**Key decisions:** Iceberg over Parquet for schema evolution and time-travel. Partition Silver by event_date. Gold layer uses dbt incremental models. Access control enforced per layer (Bronze = data eng only, Gold = all analysts).\n\n**Gotchas:** Small files problem in Bronze (compact with Iceberg rewrite). Silver must not change the grain of Bronze. Gold models should be tested before promotion.\n\n**What interviewers look for:** Layer separation rationale, table format choice, governance, incremental processing.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "medallion",
+        "data-lake",
+        "iceberg"
+      ]
+    },
+    {
+      "id": "sysdesign-de-005",
+      "category": "System Design",
+      "question": "Design a Change Data Capture (CDC) pipeline from a production MySQL database.",
+      "answer": "**Components:** Debezium (reads MySQL binlog), Kafka as event bus, Kafka Connect JDBC sink or Flink for processing, target: Snowflake or S3/Iceberg.\n\n**Flow:** MySQL binlog -> Debezium connector -> Kafka topic (one per table) -> Flink or Kafka Streams consumer -> target.\n\n**Key decisions:** Snapshot mode for initial load (read_committed), then switch to streaming. Use Kafka compacted topics to retain latest state per key. Handle deletes explicitly (Debezium emits tombstone records).\n\n**Gotchas:** DDL changes (ALTER TABLE) can break the binlog stream. Use Confluent Schema Registry to manage schema evolution. Monitor binlog lag. Ensure Debezium user has REPLICATION CLIENT privilege. Resume from checkpoint on failure, not from the beginning.\n\n**What interviewers look for:** Binlog mechanics, snapshot bootstrap, delete handling, schema evolution, exactly-once semantics.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "cdc",
+        "debezium",
+        "kafka"
+      ]
+    },
+    {
+      "id": "sysdesign-de-006",
+      "category": "System Design",
+      "question": "Design a metrics and analytics platform to serve 500+ internal users across multiple business units.",
+      "answer": "**Components:** Snowflake as the warehouse, dbt for metric definitions, MetricFlow or dbt Semantic Layer for consistent metric logic, Looker or Tableau for dashboards, a data catalog (DataHub or Alation) for discovery.\n\n**Key decisions:** Centralized metric definitions (one source of truth for 'revenue', 'DAU', etc.) to avoid metric fragmentation. Row-level security by business unit in Looker. Dedicated virtual warehouses per team to isolate credit consumption.\n\n**Scale considerations:** Aggregate pre-computed summaries in Gold layer for high-traffic dashboards. Use Snowflake result caching. Monitor credit usage by department.\n\n**Gotchas:** Without a semantic layer, every analyst defines metrics differently. Governance decays over time. Implement a metric PR review process.\n\n**What interviewers look for:** Semantic layer understanding, multi-team governance, access control, cost isolation.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "analytics",
+        "metrics",
+        "snowflake"
+      ]
+    },
+    {
+      "id": "sysdesign-de-007",
+      "category": "System Design",
+      "question": "Design an ML feature store for a company with multiple ML teams.",
+      "answer": "**Components:** Offline store (S3 + Iceberg or Hive), online store (Redis or DynamoDB for low-latency serving), feature registry (Feast or Tecton), compute layer (Spark for batch, Flink for streaming features), orchestration via Dagster or Airflow.\n\n**Key decisions:** Offline/online split: offline for training, online for real-time inference. Point-in-time correct joins for training data to prevent data leakage. Feature versioning and deprecation policy.\n\n**Flow:** Raw events -> Spark/Flink computes features -> written to offline Iceberg table + online Redis. Training job reads offline. Inference service reads online.\n\n**Gotchas:** Training/serving skew (offline and online features must use identical logic). Feature freshness SLAs. Backfilling historical features is expensive. Avoid storing raw PII in the feature store.\n\n**What interviewers look for:** Offline vs online split, point-in-time correctness, training/serving skew, feature governance.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "ml",
+        "feature-store",
+        "feast"
+      ]
+    },
+    {
+      "id": "sysdesign-de-008",
+      "category": "System Design",
+      "question": "Design a data catalog and lineage system for a large data platform.",
+      "answer": "**Components:** DataHub or OpenMetadata for catalog and lineage, dbt for column-level lineage within transformations, OpenLineage API for emitting lineage from Spark/Airflow/Flink, a search interface for discovery.\n\n**Core capabilities:** Auto-discovery of datasets (connect to Snowflake, S3, Kafka). Column-level lineage (which upstream column feeds which downstream column). Ownership and stewardship assignment. Impact analysis (which dashboards break if I change this table?).\n\n**Key decisions:** Push vs pull lineage ingestion (push via OpenLineage events is more real-time). Store lineage as a graph (nodes = datasets/fields, edges = transformations).\n\n**Gotchas:** Keeping catalog current is the hard part. Automate ingestion, don't rely on humans to document. Tag sensitive fields (PII) in the catalog to enforce downstream access control.\n\n**What interviewers look for:** Lineage graph design, auto-ingestion, PII handling, impact analysis use case.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "catalog",
+        "lineage",
+        "datahub"
+      ]
+    },
+    {
+      "id": "sysdesign-de-009",
+      "category": "System Design",
+      "question": "Design a multi-tenant data warehouse where each tenant's data must be isolated.",
+      "answer": "**Components:** Snowflake with database-per-tenant or schema-per-tenant isolation, role-based access control per tenant, a metadata registry to map tenant IDs to schemas, dbt with tenant-aware models, a tenant provisioning API.\n\n**Isolation strategies:** Database-per-tenant (strongest isolation, high overhead), schema-per-tenant (good balance), row-level security with a tenant_id column (cheapest but riskiest if misconfigured).\n\n**Key decisions:** Schema-per-tenant is usually the right call for 10-1000 tenants. For 10K+ tenants, use row-level security with strict policy enforcement. Virtual warehouses can be shared or dedicated per large tenant.\n\n**Gotchas:** Schema drift between tenants if migrations aren't applied atomically. Cross-tenant query leakage if RLS policies have bugs. Cost allocation per tenant (tag queries with tenant_id).\n\n**What interviewers look for:** Isolation trade-offs, RLS vs schema vs database, migration orchestration, cost attribution.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "multi-tenant",
+        "snowflake"
+      ]
+    },
+    {
+      "id": "sysdesign-de-010",
+      "category": "System Design",
+      "question": "How do you handle late-arriving data in a streaming pipeline?",
+      "answer": "**Problem:** Events arrive at the processing system after their event_time has passed. A click from 10 minutes ago arrives now. Aggregations computed at T=10 min are now wrong.\n\n**Solutions:** Watermarks (Flink/Spark) define how late is 'too late'. Set watermark = max_event_time - allowed_lateness (e.g., 30 minutes). Events before the watermark are dropped or go to a side output (late data sink).\n\n**Reprocessing approach:** Use Lambda architecture (batch recomputes correct answers nightly) or Kappa with Iceberg time-travel (reprocess from the raw event log on a schedule).\n\n**Key decisions:** What is your lateness SLA? Financial data might require zero tolerance; ad click aggregations might tolerate 2 hours. Store raw events forever so you can always reprocess.\n\n**Gotchas:** Clock skew between producers. Mobile events can be hours late. Don't use processing time as a proxy for event time.\n\n**What interviewers look for:** Watermark mechanics, late data side output, reprocessing strategy.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "streaming",
+        "late-data",
+        "flink"
+      ]
+    },
+    {
+      "id": "sysdesign-de-011",
+      "category": "System Design",
+      "question": "Design a cost-efficient log aggregation pipeline that ingests 1TB of logs per day.",
+      "answer": "**Components:** Fluentd or Vector for log shipping, Kafka as the buffer, Flink or Spark Structured Streaming for filtering/parsing, S3 (Parquet) for cold storage, OpenSearch or ClickHouse for hot/searchable storage.\n\n**Cost levers:** Filter and sample at the agent level before sending to Kafka (drop debug logs in prod). Compress with Snappy or Zstd. Partition S3 by service/date for efficient querying. Use S3 Intelligent-Tiering for older logs.\n\n**Key decisions:** Hot storage (last 7 days) in ClickHouse or OpenSearch for real-time querying. Cold storage (S3 Parquet) for everything else, queried via Athena or Trino when needed.\n\n**Gotchas:** Log format inconsistency across services (use a standard structured logging schema). High cardinality fields in OpenSearch blow up index size. Retention policy is a cost lever: delete logs older than 90 days.\n\n**What interviewers look for:** Hot/cold separation, sampling and filtering strategy, cost-aware design, retention policy.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "logs",
+        "cost",
+        "kafka"
+      ]
+    },
+    {
+      "id": "sysdesign-de-012",
+      "category": "System Design",
+      "question": "Design a financial data pipeline that requires ACID compliance and auditability.",
+      "answer": "**Components:** Source: banking core system or payment processor API. Ingestion: Fivetran or custom Python with idempotent writes. Storage: Snowflake (ACID on DML) or Delta Lake (ACID via transaction log). Audit layer: append-only ledger table + change history with user/timestamp stamps.\n\n**ACID requirements:** Use MERGE with explicit conflict handling. Never UPDATE or DELETE financial records (soft delete only). Every row must have created_at, updated_at, and record_hash for tamper detection.\n\n**Auditability:** Write every change to an audit log table (old value, new value, changed_by, changed_at). Store raw source data indefinitely. dbt snapshots capture slowly changing dimensions with full history.\n\n**Gotchas:** Double-counting from retry logic (deduplicate on transaction_id). Reconciliation jobs must match warehouse totals against source system totals daily. Encryption at rest and column-level masking for sensitive fields.\n\n**What interviewers look for:** Idempotency, soft deletes, audit log design, reconciliation, compliance mindset.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "finance",
+        "acid",
+        "compliance"
+      ]
+    },
+    {
+      "id": "sysdesign-de-013",
+      "category": "System Design",
+      "question": "Walk through your decision framework for choosing batch vs streaming for a new data pipeline.",
+      "answer": "**Start with the business question:** What latency does the consumer actually need?\n\n**Choose batch when:** Latency tolerance is hours or days. Data arrives in natural daily or hourly cadences. Transformations are complex and computationally heavy. Team is small and operational simplicity matters.\n\n**Choose streaming when:** Latency must be under 5 minutes. Real-time triggering is required (fraud detection, live dashboards, push notifications). Data volume is continuous and unbounded.\n\n**Hybrid (Lambda/Kappa):** Streaming for low-latency views, batch reprocessing for correctness guarantees on historical data. Kappa (streaming only) is simpler to operate if Flink checkpointing provides sufficient correctness.\n\n**Cost reality:** Streaming systems cost 3-5x more to operate than batch. Justify the spend with the business value of low latency.\n\n**What interviewers look for:** Latency requirements drive the choice, not technology preference. Awareness of operational complexity and cost.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "batch",
+        "streaming",
+        "decision"
+      ]
+    },
+    {
+      "id": "sysdesign-de-014",
+      "category": "System Design",
+      "question": "Design a reporting and analytics system for a product with 10 million daily active users.",
+      "answer": "**Components:** Event tracking via Kafka (Segment or custom producers), Flink for real-time aggregations, Iceberg on S3 for raw event storage, Snowflake for analytical queries, dbt for metrics layer, Looker or Superset for dashboards, Redis for real-time counters (DAU, live user count).\n\n**Scale design:** Pre-aggregate high-traffic metrics hourly into summary tables (don't run COUNT(DISTINCT user_id) over 10M rows at query time). Use Snowflake clustering on event_date + event_type. Materialize top-10 dashboards nightly.\n\n**Real-time vs batch split:** Real-time DAU counter in Redis (HyperLogLog for approximate distinct count at scale). Exact daily metrics computed in Snowflake via Dagster overnight job.\n\n**Gotchas:** HyperLogLog has ~0.8% error rate (acceptable for product metrics). Exact count queries over billions of rows are expensive. Push aggregation earlier in the pipeline.\n\n**What interviewers look for:** Pre-aggregation strategy, real-time vs batch split, cost-aware query design, approximate algorithms.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "scale",
+        "analytics",
+        "dau"
+      ]
+    },
+    {
+      "id": "sysdesign-de-015",
+      "category": "System Design",
+      "question": "How do you design a system that handles schema evolution without breaking downstream consumers?",
+      "answer": "**Core principle:** Schema changes should be backward-compatible by default. New fields are optional with defaults. Renamed or removed fields go through a deprecation period, not immediate removal.\n\n**Tools:** Confluent Schema Registry with Avro or Protobuf enforces compatibility rules (BACKWARD, FORWARD, FULL). dbt handles schema changes in SQL by making new columns nullable initially. Iceberg supports column adds, renames, and type promotions without rewriting data files.\n\n**Change process:** 1) Propose schema change in a schema PR. 2) Check compatibility against registry. 3) Add new field as nullable. 4) Notify downstream consumers. 5) After migration window, make field required or drop old field.\n\n**Gotchas:** JSON without a schema registry is a silent bomb. Breaking changes break consumers in ways that are hard to detect immediately. Never rename a Kafka field without a compatibility check.\n\n**What interviewers look for:** Schema registry understanding, backward compatibility rules, deprecation process, Iceberg schema evolution.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "schema-evolution",
+        "kafka",
+        "iceberg"
+      ]
+    },
+    {
+      "id": "sysdesign-de-016",
+      "category": "System Design",
+      "question": "Compare data mesh vs a centralized data warehouse. When would you choose each?",
+      "answer": "**Centralized warehouse:** Single team owns all data pipelines and the warehouse (Snowflake or BigQuery). Strong governance, consistent standards, but creates a bottleneck as the company scales. Best for: companies under 100 engineers, teams without mature data practices, or when governance is the top priority.\n\n**Data mesh:** Distributed ownership. Each domain team owns their data as a product: they produce it, maintain it, and publish it with a defined contract. A central platform team provides shared infrastructure (storage, catalog, access control) but not pipelines.\n\n**Data mesh requirements:** Domain teams must be data-capable. You need a data catalog (DataHub) and a data contract standard. Federated governance with global policies (PII handling, retention) enforced centrally.\n\n**Gotchas:** Data mesh adds coordination overhead. Without strong contracts, you get worse consistency, not better. Most companies are NOT ready for data mesh until they have 500+ engineers and multiple mature domain teams.\n\n**What interviewers look for:** Understanding of both models, maturity thresholds, when NOT to choose each.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "data-mesh",
+        "governance"
+      ]
+    },
+    {
+      "id": "sysdesign-de-017",
+      "category": "System Design",
+      "question": "Design an event-driven data architecture where application events flow into analytics and operational systems.",
+      "answer": "**Components:** Application services emit events to Kafka. Kafka topics act as the central nervous system. Multiple consumers read the same events independently: analytics consumer (writes to S3/Iceberg), operational consumer (writes to PostgreSQL for real-time features), notification service (triggers alerts).\n\n**Core principle:** Producers don't know who consumes their events. Events are the contract. Schema Registry enforces schema compatibility.\n\n**Key design decisions:** One event, multiple consumers (fan-out pattern). Events are immutable and stored permanently in Kafka (log compaction for latest state, infinite retention for audit). Consumer groups allow independent processing speeds.\n\n**Gotchas:** Ordering guarantees only within a partition. Cross-partition ordering requires application-level sequencing. Event payload bloat (don't put entire rows in events, use event + lookup pattern). Versioning events when the payload changes.\n\n**What interviewers look for:** Fan-out understanding, event immutability, schema registry, ordering constraints.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "event-driven",
+        "kafka"
+      ]
+    },
+    {
+      "id": "sysdesign-de-018",
+      "category": "System Design",
+      "question": "Design a partition strategy for a fact table with 5 billion rows in a data warehouse.",
+      "answer": "**Core principle:** Partition on the column most queries filter on. For most fact tables that is event_date or created_date.\n\n**Snowflake:** Use clustering keys (not traditional partitions). Cluster on event_date + high-cardinality ID if queries filter on both. Automatic clustering handles maintenance.\n\n**Spark/Iceberg:** Partition by date (year/month/day hierarchy). For high-volume tables use hidden partitioning on a timestamp column. Avoid over-partitioning: target 256MB-1GB per partition file.\n\n**BigQuery:** Partition on DATE column. Cluster on 1-4 additional columns (e.g., user_id, event_type). Partition expiration to auto-delete old data.\n\n**Anti-patterns:** Partitioning on a boolean (only 2 values, useless). Partitioning on user_id for a table with 100M users (too many partitions). Not partitioning at all on a 5B-row table.\n\n**Small files problem:** Too many partitions creates too many small files. Compact regularly with Iceberg's rewrite_data_files procedure.\n\n**What interviewers look for:** Filter-driven partitioning, platform-specific nuances, small files awareness, clustering vs partitioning.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "partitioning",
+        "snowflake",
+        "iceberg"
+      ]
+    },
+    {
+      "id": "sysdesign-de-019",
+      "category": "System Design",
+      "question": "Design a fan-out event pattern where a single event must trigger processing in multiple independent downstream systems.",
+      "answer": "**Pattern:** One producer emits an event to Kafka. Multiple consumer groups each read the same event independently and at their own pace. No coupling between consumers.\n\n**Example:** An 'order_completed' event triggers: (1) analytics pipeline writes to warehouse, (2) inventory service decrements stock, (3) notification service sends email, (4) fraud system scores the transaction.\n\n**Implementation:** Separate Kafka consumer group per downstream system. Each consumer commits its own offsets independently. A slow consumer doesn't block the others.\n\n**Reliability:** Use dead letter queues (DLQ) per consumer for failed events. Replay failed events from the DLQ after fixing the bug. Set retention long enough to replay (7-30 days minimum).\n\n**Gotchas:** If downstream systems have different latency requirements, fan-out via Kafka is correct. If they need strict ordering across systems, you need a saga or choreography pattern. Don't use a single queue with routing logic (that's coupling).\n\n**What interviewers look for:** Consumer group isolation, DLQ design, replay capability, decoupling rationale.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "fan-out",
+        "kafka",
+        "event-driven"
+      ]
+    },
+    {
+      "id": "sysdesign-de-020",
+      "category": "System Design",
+      "question": "Design a reproducible ML training data pipeline that ensures the same dataset can be regenerated at any future point.",
+      "answer": "**Core principle:** Training data must be reproducible. Given a run ID, you must be able to regenerate the exact same dataset 2 years later.\n\n**Components:** Raw events stored in Apache Iceberg (supports time-travel queries). Feature engineering logic versioned in Git. Dataset snapshots stored in S3 with a manifest (run_id, snapshot_timestamp, feature versions, row count, hash). Dagster or Airflow orchestrates the pipeline with run metadata logged to a metadata store.\n\n**Reproducibility guarantees:** Use Iceberg time-travel: SELECT * FROM features FOR SYSTEM_TIME AS OF '2024-01-01'. Pin feature transformation code to a Git SHA. Store train/validation/test split seeds in the manifest. Log data hash (MD5/SHA256 of the final dataset file).\n\n**Point-in-time correctness:** Join features using the label event timestamp, not the current timestamp, to avoid data leakage.\n\n**Gotchas:** Third-party data sources with no historical access break reproducibility. External API calls in feature pipelines are non-deterministic. Snowflake time-travel only goes back 90 days (Iceberg is unlimited).\n\n**What interviewers look for:** Time-travel queries, data versioning, point-in-time correctness, manifest design.",
+      "tags": [
+        "system-design",
+        "architecture",
+        "interview",
+        "ml",
+        "reproducibility",
+        "iceberg"
+      ]
+    }
+  ]
+}

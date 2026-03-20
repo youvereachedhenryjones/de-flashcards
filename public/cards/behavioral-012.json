@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-012",
+  "category": "Behavioral",
+  "question": "Tell me about a time you had to learn a new tool or technology quickly to deliver a project.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Learning strategy (docs, tutorials, small spike). Asking for help without waiting too long. Delivering despite the learning curve.\n\n**Sample talking points:** Was handed a Flink streaming project with a two-week deadline having only worked with Spark before. Spent day 1 reading Flink docs and identifying the 20% of concepts (stateful operators, watermarks, event time vs processing time) that covered 80% of the use case. Built a toy pipeline locally on day 2. By day 4 I was writing production code. Paired with a senior engineer for a 1-hour code review at the end of week 1. Shipped on time and the job has run stably since.\n\n**What interviewers look for:** Learning agility, resourcefulness, knowing when to ask for help.",
+  "tags": ["behavioral", "interview", "star", "learning", "flink"]
+}

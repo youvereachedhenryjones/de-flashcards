@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-014",
+  "category": "System Design",
+  "question": "Design a reporting and analytics system for a product with 10 million daily active users.",
+  "answer": "**Components:** Event tracking via Kafka (Segment or custom producers), Flink for real-time aggregations, Iceberg on S3 for raw event storage, Snowflake for analytical queries, dbt for metrics layer, Looker or Superset for dashboards, Redis for real-time counters (DAU, live user count).\n\n**Scale design:** Pre-aggregate high-traffic metrics hourly into summary tables (don't run COUNT(DISTINCT user_id) over 10M rows at query time). Use Snowflake clustering on event_date + event_type. Materialize top-10 dashboards nightly.\n\n**Real-time vs batch split:** Real-time DAU counter in Redis (HyperLogLog for approximate distinct count at scale). Exact daily metrics computed in Snowflake via Dagster overnight job.\n\n**Gotchas:** HyperLogLog has ~0.8% error rate (acceptable for product metrics). Exact count queries over billions of rows are expensive. Push aggregation earlier in the pipeline.\n\n**What interviewers look for:** Pre-aggregation strategy, real-time vs batch split, cost-aware query design, approximate algorithms.",
+  "tags": ["system-design", "architecture", "interview", "scale", "analytics", "dau"]
+}

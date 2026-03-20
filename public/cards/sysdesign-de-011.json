@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-011",
+  "category": "System Design",
+  "question": "Design a cost-efficient log aggregation pipeline that ingests 1TB of logs per day.",
+  "answer": "**Components:** Fluentd or Vector for log shipping, Kafka as the buffer, Flink or Spark Structured Streaming for filtering/parsing, S3 (Parquet) for cold storage, OpenSearch or ClickHouse for hot/searchable storage.\n\n**Cost levers:** Filter and sample at the agent level before sending to Kafka (drop debug logs in prod). Compress with Snappy or Zstd. Partition S3 by service/date for efficient querying. Use S3 Intelligent-Tiering for older logs.\n\n**Key decisions:** Hot storage (last 7 days) in ClickHouse or OpenSearch for real-time querying. Cold storage (S3 Parquet) for everything else, queried via Athena or Trino when needed.\n\n**Gotchas:** Log format inconsistency across services (use a standard structured logging schema). High cardinality fields in OpenSearch blow up index size. Retention policy is a cost lever: delete logs older than 90 days.\n\n**What interviewers look for:** Hot/cold separation, sampling and filtering strategy, cost-aware design, retention policy.",
+  "tags": ["system-design", "architecture", "interview", "logs", "cost", "kafka"]
+}

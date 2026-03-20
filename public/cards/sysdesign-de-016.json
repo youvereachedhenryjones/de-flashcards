@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-016",
+  "category": "System Design",
+  "question": "Compare data mesh vs a centralized data warehouse. When would you choose each?",
+  "answer": "**Centralized warehouse:** Single team owns all data pipelines and the warehouse (Snowflake or BigQuery). Strong governance, consistent standards, but creates a bottleneck as the company scales. Best for: companies under 100 engineers, teams without mature data practices, or when governance is the top priority.\n\n**Data mesh:** Distributed ownership. Each domain team owns their data as a product: they produce it, maintain it, and publish it with a defined contract. A central platform team provides shared infrastructure (storage, catalog, access control) but not pipelines.\n\n**Data mesh requirements:** Domain teams must be data-capable. You need a data catalog (DataHub) and a data contract standard. Federated governance with global policies (PII handling, retention) enforced centrally.\n\n**Gotchas:** Data mesh adds coordination overhead. Without strong contracts, you get worse consistency, not better. Most companies are NOT ready for data mesh until they have 500+ engineers and multiple mature domain teams.\n\n**What interviewers look for:** Understanding of both models, maturity thresholds, when NOT to choose each.",
+  "tags": ["system-design", "architecture", "interview", "data-mesh", "governance"]
+}

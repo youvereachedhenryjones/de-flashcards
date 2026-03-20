@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-008",
+  "category": "System Design",
+  "question": "Design a data catalog and lineage system for a large data platform.",
+  "answer": "**Components:** DataHub or OpenMetadata for catalog and lineage, dbt for column-level lineage within transformations, OpenLineage API for emitting lineage from Spark/Airflow/Flink, a search interface for discovery.\n\n**Core capabilities:** Auto-discovery of datasets (connect to Snowflake, S3, Kafka). Column-level lineage (which upstream column feeds which downstream column). Ownership and stewardship assignment. Impact analysis (which dashboards break if I change this table?).\n\n**Key decisions:** Push vs pull lineage ingestion (push via OpenLineage events is more real-time). Store lineage as a graph (nodes = datasets/fields, edges = transformations).\n\n**Gotchas:** Keeping catalog current is the hard part. Automate ingestion, don't rely on humans to document. Tag sensitive fields (PII) in the catalog to enforce downstream access control.\n\n**What interviewers look for:** Lineage graph design, auto-ingestion, PII handling, impact analysis use case.",
+  "tags": ["system-design", "architecture", "interview", "catalog", "lineage", "datahub"]
+}

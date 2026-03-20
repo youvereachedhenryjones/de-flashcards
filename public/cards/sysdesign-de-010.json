@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-010",
+  "category": "System Design",
+  "question": "How do you handle late-arriving data in a streaming pipeline?",
+  "answer": "**Problem:** Events arrive at the processing system after their event_time has passed. A click from 10 minutes ago arrives now. Aggregations computed at T=10 min are now wrong.\n\n**Solutions:** Watermarks (Flink/Spark) define how late is 'too late'. Set watermark = max_event_time - allowed_lateness (e.g., 30 minutes). Events before the watermark are dropped or go to a side output (late data sink).\n\n**Reprocessing approach:** Use Lambda architecture (batch recomputes correct answers nightly) or Kappa with Iceberg time-travel (reprocess from the raw event log on a schedule).\n\n**Key decisions:** What is your lateness SLA? Financial data might require zero tolerance; ad click aggregations might tolerate 2 hours. Store raw events forever so you can always reprocess.\n\n**Gotchas:** Clock skew between producers. Mobile events can be hours late. Don't use processing time as a proxy for event time.\n\n**What interviewers look for:** Watermark mechanics, late data side output, reprocessing strategy.",
+  "tags": ["system-design", "architecture", "interview", "streaming", "late-data", "flink"]
+}

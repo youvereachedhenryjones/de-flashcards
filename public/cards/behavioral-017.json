@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-017",
+  "category": "Behavioral",
+  "question": "Tell me about a time you mentored a junior engineer or shared knowledge with your team.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Meeting people where they are. Teaching by doing together, not just explaining. Measuring their growth.\n\n**Sample talking points:** A junior DE joined the team and struggled with dbt's testing philosophy. Instead of pointing them to docs, we pair-coded a full model together: wrote the SQL, then asked 'what could go wrong here?' to derive the tests organically. After two sessions they were writing tests independently and caught a bug I missed in a PR review. Started a bi-weekly 'DE office hours' session that grew to include three other juniors and became a team ritual.\n\n**What interviewers look for:** Patience, teaching instinct, investment in team growth.",
+  "tags": ["behavioral", "interview", "star", "mentorship"]
+}

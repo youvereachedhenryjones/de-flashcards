@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-011",
+  "category": "Behavioral",
+  "question": "Tell me about a time you discovered and resolved a data quality incident.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** How you caught it (monitoring, not luck). Impact assessment. Fix and prevention.\n\n**Sample talking points:** A Great Expectations suite flagged that 12% of rows in the orders table had null payment_method values after a backend deploy. Immediately notified the data consumers and marked affected rows in a quarantine column so dashboards would exclude them. Traced the root cause to an app deploy that changed the field name. Worked with the backend team to backfill historical nulls from the transaction log. Added a not_null dbt test and a daily anomaly check so future spikes would alert within one pipeline run.\n\n**What interviewers look for:** Data quality awareness, cross-team debugging, proactive consumer communication.",
+  "tags": ["behavioral", "interview", "star", "data-quality"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-003",
+  "category": "Behavioral",
+  "question": "Tell me about a time you collaborated with a non-technical stakeholder to deliver a data project.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Translating technical concepts into business language. Active listening to understand the real need. Iterating on outputs together.\n\n**Sample talking points:** A marketing director wanted a 'customer health score' but had no clear definition. Held a requirements session using concrete examples instead of jargon. Translated business goals into metric logic: recency, frequency, spend. Built a dbt mart model and shared a Google Sheets preview before building the full Looker dashboard. She caught a wrong assumption in iteration 2, saving a week of rework.\n\n**What interviewers look for:** Empathy, ability to work across the org, requirement discovery skills.",
+  "tags": ["behavioral", "interview", "star", "collaboration"]
+}

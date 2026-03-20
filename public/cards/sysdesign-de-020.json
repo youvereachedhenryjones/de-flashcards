@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-020",
+  "category": "System Design",
+  "question": "Design a reproducible ML training data pipeline that ensures the same dataset can be regenerated at any future point.",
+  "answer": "**Core principle:** Training data must be reproducible. Given a run ID, you must be able to regenerate the exact same dataset 2 years later.\n\n**Components:** Raw events stored in Apache Iceberg (supports time-travel queries). Feature engineering logic versioned in Git. Dataset snapshots stored in S3 with a manifest (run_id, snapshot_timestamp, feature versions, row count, hash). Dagster or Airflow orchestrates the pipeline with run metadata logged to a metadata store.\n\n**Reproducibility guarantees:** Use Iceberg time-travel: SELECT * FROM features FOR SYSTEM_TIME AS OF '2024-01-01'. Pin feature transformation code to a Git SHA. Store train/validation/test split seeds in the manifest. Log data hash (MD5/SHA256 of the final dataset file).\n\n**Point-in-time correctness:** Join features using the label event timestamp, not the current timestamp, to avoid data leakage.\n\n**Gotchas:** Third-party data sources with no historical access break reproducibility. External API calls in feature pipelines are non-deterministic. Snowflake time-travel only goes back 90 days (Iceberg is unlimited).\n\n**What interviewers look for:** Time-travel queries, data versioning, point-in-time correctness, manifest design.",
+  "tags": ["system-design", "architecture", "interview", "ml", "reproducibility", "iceberg"]
+}

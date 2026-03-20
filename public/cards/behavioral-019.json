@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-019",
+  "category": "Behavioral",
+  "question": "Tell me about a failure you experienced as a data engineer and what you learned from it.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Own the failure without deflecting. Concrete lesson extracted. Systemic change made, not just personal resolve.\n\n**Sample talking points:** Deployed a dbt model change on a Friday afternoon without checking downstream dependencies. The change broke three dashboards used for Monday morning executive reviews. Spent Sunday fixing it. The lesson wasn't 'don't deploy on Fridays' but 'always run dbt ls --select +changed_model to see the full dependency graph before merging.' Added that check to our PR checklist and built a pre-merge CI step that visualizes downstream impact. That incident led to our team's best safety practice.\n\n**What interviewers look for:** Accountability, specific lesson, systemic fix rather than self-blame.",
+  "tags": ["behavioral", "interview", "star", "failure", "learning"]
+}

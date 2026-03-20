@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-012",
+  "category": "System Design",
+  "question": "Design a financial data pipeline that requires ACID compliance and auditability.",
+  "answer": "**Components:** Source: banking core system or payment processor API. Ingestion: Fivetran or custom Python with idempotent writes. Storage: Snowflake (ACID on DML) or Delta Lake (ACID via transaction log). Audit layer: append-only ledger table + change history with user/timestamp stamps.\n\n**ACID requirements:** Use MERGE with explicit conflict handling. Never UPDATE or DELETE financial records (soft delete only). Every row must have created_at, updated_at, and record_hash for tamper detection.\n\n**Auditability:** Write every change to an audit log table (old value, new value, changed_by, changed_at). Store raw source data indefinitely. dbt snapshots capture slowly changing dimensions with full history.\n\n**Gotchas:** Double-counting from retry logic (deduplicate on transaction_id). Reconciliation jobs must match warehouse totals against source system totals daily. Encryption at rest and column-level masking for sensitive fields.\n\n**What interviewers look for:** Idempotency, soft deletes, audit log design, reconciliation, compliance mindset.",
+  "tags": ["system-design", "architecture", "interview", "finance", "acid", "compliance"]
+}

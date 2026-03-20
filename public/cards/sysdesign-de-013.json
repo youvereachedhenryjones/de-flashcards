@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-013",
+  "category": "System Design",
+  "question": "Walk through your decision framework for choosing batch vs streaming for a new data pipeline.",
+  "answer": "**Start with the business question:** What latency does the consumer actually need?\n\n**Choose batch when:** Latency tolerance is hours or days. Data arrives in natural daily or hourly cadences. Transformations are complex and computationally heavy. Team is small and operational simplicity matters.\n\n**Choose streaming when:** Latency must be under 5 minutes. Real-time triggering is required (fraud detection, live dashboards, push notifications). Data volume is continuous and unbounded.\n\n**Hybrid (Lambda/Kappa):** Streaming for low-latency views, batch reprocessing for correctness guarantees on historical data. Kappa (streaming only) is simpler to operate if Flink checkpointing provides sufficient correctness.\n\n**Cost reality:** Streaming systems cost 3-5x more to operate than batch. Justify the spend with the business value of low latency.\n\n**What interviewers look for:** Latency requirements drive the choice, not technology preference. Awareness of operational complexity and cost.",
+  "tags": ["system-design", "architecture", "interview", "batch", "streaming", "decision"]
+}

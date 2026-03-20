@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-020",
+  "category": "Behavioral",
+  "question": "Describe a time you proactively identified and addressed a risk before it became a real problem.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Pattern recognition from experience. Raising the flag with evidence, not anxiety. Fixing it before it became urgent.\n\n**Sample talking points:** While reviewing Snowflake query history during a routine check, noticed our largest dbt mart model's runtime had grown 40% over 3 months as data volume grew. No one had flagged it yet, but projecting forward it would breach our SLA window in 6 weeks. Brought the trend chart to the team, proposed adding incremental materialization and reclustering. Fixed it in one sprint. The model's runtime went from 22 minutes back to 8 minutes. Proactive fix cost 2 days; a production SLA breach would have cost a week of firefighting.\n\n**What interviewers look for:** Ownership beyond assigned tickets, data-driven risk sensing, initiative.",
+  "tags": ["behavioral", "interview", "star", "proactive", "performance"]
+}

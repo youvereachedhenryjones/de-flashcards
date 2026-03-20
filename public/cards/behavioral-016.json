@@ -1,0 +1,7 @@
+{
+  "id": "behavioral-016",
+  "category": "Behavioral",
+  "question": "Describe a time you communicated a complex data finding to a non-technical audience.",
+  "answer": "**Framework (STAR):** Situation, Task, Action, Result\n\n**Key themes to hit:** Lead with the business question, not the method. Use visuals and analogies. Anticipate 'so what' before they ask.\n\n**Sample talking points:** Ran a cohort analysis showing that users who completed onboarding in under 5 minutes had 3x the 90-day retention rate. The audience was the executive team with zero SQL background. Skipped the methodology slide entirely and opened with: 'For every minute we cut from onboarding, we add roughly 200 retained users per month.' Used a single bar chart. Then tied it to a revenue estimate. Executives approved onboarding redesign budget in that meeting.\n\n**What interviewers look for:** Data storytelling, audience awareness, business impact framing.",
+  "tags": ["behavioral", "interview", "star", "communication"]
+}

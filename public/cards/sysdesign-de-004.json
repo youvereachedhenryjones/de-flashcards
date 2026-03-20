@@ -1,0 +1,7 @@
+{
+  "id": "sysdesign-de-004",
+  "category": "System Design",
+  "question": "Design a Medallion Architecture (Bronze/Silver/Gold) data lake for a mid-size company.",
+  "answer": "**Components:** S3 or GCS for storage, Apache Iceberg as table format, Spark or Databricks for processing, dbt for Gold layer transformations, Trino or Athena for serving.\n\n**Layer definitions:** Bronze = raw ingested data, immutable, retained forever. Silver = cleaned, deduplicated, schema-enforced. Gold = business-ready aggregations, marts, and features.\n\n**Key decisions:** Iceberg over Parquet for schema evolution and time-travel. Partition Silver by event_date. Gold layer uses dbt incremental models. Access control enforced per layer (Bronze = data eng only, Gold = all analysts).\n\n**Gotchas:** Small files problem in Bronze (compact with Iceberg rewrite). Silver must not change the grain of Bronze. Gold models should be tested before promotion.\n\n**What interviewers look for:** Layer separation rationale, table format choice, governance, incremental processing.",
+  "tags": ["system-design", "architecture", "interview", "medallion", "data-lake", "iceberg"]
+}
