@@ -1,0 +1,8 @@
+{
+  "id": "terraform-029",
+  "deck": "terraform",
+  "front": "What are DRY module patterns in Terraform and how do you structure a data platform repo?",
+  "back": "DRY (Don't Repeat Yourself) Terraform uses modules to share configuration and Terragrunt or workspace patterns to manage environments without duplicating code.\n\nRepo structure (industry standard for data platforms):\n```\nterraform/\n  modules/\n    s3-data-lake/        # reusable S3 + lifecycle + encryption\n    rds-postgres/        # RDS with standard backup/security defaults\n    emr-cluster/         # EMR with cost controls baked in\n    airflow-mwaa/        # MWAA environment\n    vpc-standard/        # VPC with standard subnet layout\n  environments/\n    dev/\n      main.tf            # calls modules with dev-specific vars\n      terraform.tfvars\n    staging/\n      main.tf\n      terraform.tfvars\n    prod/\n      main.tf\n      terraform.tfvars\n  shared/\n    state-backend/       # bootstrap: S3 + DynamoDB for remote state\n```\n\nModule versioning:\n```hcl\n# Pin module versions like you pin providers\nmodule \"data_lake\" {\n  source  = \"git::https://github.com/myorg/tf-modules.git//s3-data-lake?ref=v1.3.0\"\n  # OR from local path during development:\n  source = \"../modules/s3-data-lake\"\n}\n```\n\nTerragrunt (optional but popular at larger orgs):\n- Generates backend config per env automatically\n- Enforces module versioning\n- Eliminates copy-paste between environment dirs\n- Common at $200K+ DE roles; worth knowing exists\n\nInterviewer signal: candidates who describe repo structure show real production experience.",
+  "tags": ["terraform", "modules", "best-practices", "architecture"],
+  "difficulty": "medium"
+}

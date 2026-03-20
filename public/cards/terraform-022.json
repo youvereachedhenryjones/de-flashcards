@@ -1,0 +1,8 @@
+{
+  "id": "terraform-022",
+  "deck": "terraform",
+  "front": "How do you use the Snowflake Terraform provider to manage data warehouse resources?",
+  "back": "The Snowflake provider (Snowflake-Labs/snowflake) lets you manage warehouses, databases, schemas, roles, grants, and users as code.\n\nProvider setup:\n```hcl\nterraform {\n  required_providers {\n    snowflake = {\n      source  = \"Snowflake-Labs/snowflake\"\n      version = \"~> 0.87\"\n    }\n  }\n}\n\nprovider \"snowflake\" {\n  account  = var.snowflake_account\n  username = var.snowflake_username\n  # Use key pair auth, not password:\n  private_key_path = \"~/.ssh/snowflake_rsa_key.p8\"\n  role             = \"SYSADMIN\"\n}\n```\n\nManaging core DE resources:\n```hcl\nresource \"snowflake_warehouse\" \"transform\" {\n  name           = \"TRANSFORM_WH\"\n  warehouse_size = \"MEDIUM\"\n  auto_suspend   = 60    # suspend after 60s idle\n  auto_resume    = true\n  initially_suspended = true\n}\n\nresource \"snowflake_database\" \"analytics\" {\n  name = \"ANALYTICS\"\n}\n\nresource \"snowflake_schema\" \"marts\" {\n  database = snowflake_database.analytics.name\n  name     = \"MARTS\"\n}\n\nresource \"snowflake_role\" \"dbt_role\" {\n  name = \"DBT_ROLE\"\n}\n\nresource \"snowflake_grant_privileges_to_role\" \"dbt_schema\" {\n  role_name  = snowflake_role.dbt_role.name\n  privileges = [\"USAGE\", \"CREATE TABLE\", \"CREATE VIEW\"]\n  on_schema {\n    schema_name = \"\\\"${snowflake_database.analytics.name}\\\".\\\"${snowflake_schema.marts.name}\\\"\"\n  }\n}\n```\n\nDE use case: provision dbt service account, warehouse, and RBAC permissions reproducibly across environments.",
+  "tags": ["terraform", "snowflake", "data-warehouse", "rbac"],
+  "difficulty": "medium"
+}

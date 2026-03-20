@@ -1,7 +1,8 @@
 {
   "id": "terraform-003",
-  "category": "Terraform",
-  "question": "How do you configure remote state in Terraform using S3 and DynamoDB?",
-  "answer": "Declare a backend block with type s3, specifying bucket, key (path), region, and dynamodb_table for state locking. DynamoDB prevents two engineers from running apply simultaneously, which could corrupt state. Example: `terraform { backend \"s3\" { bucket = \"my-tf-state\" key = \"prod/data-infra.tfstate\" region = \"us-east-1\" dynamodb_table = \"tf-state-lock\" } }`. The DynamoDB table needs a partition key named LockID (String).",
-  "tags": ["terraform", "remote-state", "s3", "dynamodb"]
+  "deck": "terraform",
+  "front": "What is a Terraform resource and how is it defined?",
+  "back": "A resource is a single infrastructure object managed by Terraform: an S3 bucket, an RDS instance, a VPC, an IAM role, etc.\n\nSyntax:\n```hcl\nresource \"<PROVIDER>_<TYPE>\" \"<LOCAL_NAME>\" {\n  argument1 = value1\n  argument2 = value2\n}\n```\n\nExample: S3 bucket for a data lake:\n```hcl\nresource \"aws_s3_bucket\" \"data_lake\" {\n  bucket = \"my-company-data-lake\"\n  \n  tags = {\n    Environment = \"production\"\n    Team        = \"data-engineering\"\n  }\n}\n\nresource \"aws_s3_bucket_versioning\" \"data_lake\" {\n  bucket = aws_s3_bucket.data_lake.id\n  versioning_configuration {\n    status = \"Enabled\"\n  }\n}\n```\n\nReference pattern: aws_s3_bucket.data_lake.id\n- First part: resource type (aws_s3_bucket)\n- Second part: local name (data_lake)\n- Third part: exported attribute (id, arn, bucket, etc.)\n\nTerraform tracks every resource in state so it can detect changes on next plan.",
+  "tags": ["terraform", "resources", "fundamentals"],
+  "difficulty": "easy"
 }

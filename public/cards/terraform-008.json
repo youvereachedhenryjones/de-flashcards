@@ -1,7 +1,8 @@
 {
   "id": "terraform-008",
-  "category": "Terraform",
-  "question": "What is the difference between Terraform variables, locals, and outputs?",
-  "answer": "Variables (var.*) are inputs -- they parameterize a module or config and can be set via CLI, .tfvars files, or environment variables. Locals (local.*) are computed values within a module, useful for string construction or complex expressions that don't need external input. Outputs (output) expose values from a module or root config, like a database endpoint or S3 bucket name, for use in other modules or CI/CD.",
-  "tags": ["terraform", "variables", "locals", "outputs"]
+  "deck": "terraform",
+  "front": "Explain the Terraform plan/apply/destroy workflow.",
+  "back": "The core Terraform workflow is a three-step cycle: write, plan, apply.\n\nterraform plan:\n- Compares desired state (your HCL) with current state (tfstate)\n- Shows what will be created (+), destroyed (-), or updated (~)\n- Does NOT make any changes\n- Always review the plan before applying\n- Save plan to file: terraform plan -out=tfplan\n\nterraform apply:\n- Executes the changes shown in the plan\n- Prompts for confirmation (type 'yes') or use -auto-approve in CI\n- Updates state file after each resource is created/modified\n- If it fails midway, re-running apply is safe (idempotent)\n\nterraform destroy:\n- Removes ALL resources managed by the current state\n- Shows a plan of what will be deleted first\n- Use targeted destroy for just one resource:\n  terraform destroy -target=aws_emr_cluster.analytics\n\nUseful DE pattern: scheduled destroy for dev clusters:\n```bash\n# In a cron job or CI pipeline:\nterraform destroy -auto-approve -target=aws_emr_cluster.dev\n```\n\nIdempotency: running apply multiple times with no config changes makes zero API calls and changes nothing.",
+  "tags": ["terraform", "fundamentals", "workflow"],
+  "difficulty": "easy"
 }

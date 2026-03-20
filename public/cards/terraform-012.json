@@ -1,7 +1,8 @@
 {
   "id": "terraform-012",
-  "category": "Terraform",
-  "question": "What is the difference between `for_each` and `count` in Terraform?",
-  "answer": "`count` creates N copies of a resource indexed by number (0, 1, 2...). `for_each` creates copies keyed by a map or set of strings, making each instance addressable by name. For DE infrastructure, prefer `for_each` when creating per-team S3 buckets or per-environment IAM roles -- removing one item from the middle of a count list renumbers all subsequent resources and triggers unnecessary destroys.",
-  "tags": ["terraform", "for-each", "count", "loops"]
+  "deck": "terraform",
+  "front": "What are Terraform data sources and how do DEs use them?",
+  "back": "Data sources let you fetch read-only information from external systems or existing infrastructure without managing that infrastructure in your config.\n\nSyntax:\n```hcl\ndata \"<PROVIDER>_<TYPE>\" \"<LOCAL_NAME>\" {\n  filter_argument = value\n}\n```\n\nCommon DE data source patterns:\n\n1. Fetch existing VPC (created by networking team):\n```hcl\ndata \"aws_vpc\" \"main\" {\n  tags = { Name = \"production-vpc\" }\n}\n\nresource \"aws_db_subnet_group\" \"rds\" {\n  subnet_ids = data.aws_vpc.main.private_subnets\n}\n```\n\n2. Fetch latest Amazon Linux AMI for EMR:\n```hcl\ndata \"aws_ami\" \"amazon_linux\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n}\n```\n\n3. Fetch secret from AWS Secrets Manager:\n```hcl\ndata \"aws_secretsmanager_secret_version\" \"db_password\" {\n  secret_id = \"prod/airflow/db_password\"\n}\n\n# Use as: data.aws_secretsmanager_secret_version.db_password.secret_string\n```\n\nData sources do NOT create resources. They only read. Perfect for referencing infrastructure owned by another team or another Terraform state.",
+  "tags": ["terraform", "hcl", "data-sources"],
+  "difficulty": "medium"
 }

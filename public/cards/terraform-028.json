@@ -1,0 +1,8 @@
+{
+  "id": "terraform-028",
+  "deck": "terraform",
+  "front": "What is Terraform state drift and how do you detect and resolve it?",
+  "back": "State drift occurs when real infrastructure differs from what Terraform's state file records, caused by manual changes in the AWS console, direct CLI edits, or out-of-band automation.\n\nDetecting drift:\n```bash\n# Refresh state from real cloud resources:\nterraform refresh\n\n# Then plan to see what changed:\nterraform plan\n# Any diff shown = drift\n\n# Targeted refresh for one resource:\nterraform apply -refresh-only -target=aws_s3_bucket.data_lake\n```\n\nResolving drift (choose one):\n\n1. Bring infrastructure back to config (most common):\n```bash\nterraform apply  # overwrites manual changes\n```\n\n2. Update config to match real state:\n```bash\nterraform apply -refresh-only  # updates state to match reality\n# Then edit HCL to match what actually exists\n```\n\n3. Remove drifted resource from state (rare):\n```bash\nterraform state rm aws_s3_bucket.data_lake\n```\n\nterraform taint (deprecated in Terraform 1.x, replaced by -replace):\n```bash\n# Force recreate a specific resource:\nterraform apply -replace=aws_instance.worker\n```\n\nPreventing drift:\n- Use Service Control Policies (SCPs) in AWS Orgs to prevent manual console changes\n- Run 'terraform plan' in CI daily and alert on unexpected diffs\n- Require all infrastructure changes go through Terraform PRs (GitOps)\n\nDE interview tip: Explain how you would detect and alert on drift using scheduled CI pipeline runs.",
+  "tags": ["terraform", "state", "drift", "operations"],
+  "difficulty": "hard"
+}

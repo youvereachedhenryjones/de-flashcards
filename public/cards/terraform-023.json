@@ -1,0 +1,8 @@
+{
+  "id": "terraform-023",
+  "deck": "terraform",
+  "front": "How do you provision an EMR cluster for Spark jobs with Terraform?",
+  "back": "Amazon EMR runs managed Spark, Hive, and Presto clusters. Terraform provisions clusters that can be persistent (always-on) or transient (one job, then terminate).\n\n```hcl\nresource \"aws_emr_cluster\" \"spark_batch\" {\n  name          = \"spark-batch-prod\"\n  release_label = \"emr-7.0.0\"\n  applications  = [\"Spark\", \"Hadoop\"]\n\n  service_role = aws_iam_role.emr_service.arn\n\n  ec2_attributes {\n    instance_profile                  = aws_iam_instance_profile.emr_ec2.arn\n    subnet_id                         = module.vpc.private_subnets[0]\n    emr_managed_master_security_group = aws_security_group.emr_master.id\n    emr_managed_slave_security_group  = aws_security_group.emr_worker.id\n  }\n\n  master_instance_group {\n    instance_type = \"m5.xlarge\"\n  }\n\n  core_instance_group {\n    instance_type  = \"m5.2xlarge\"\n    instance_count = var.environment == \"prod\" ? 5 : 2\n    # Use Spot for cost savings:\n    bid_price = \"0.40\"\n    ebs_config {\n      size = 100\n      type = \"gp2\"\n    }\n  }\n\n  configurations_json = jsonencode([{\n    Classification = \"spark-defaults\"\n    Properties = {\n      \"spark.sql.adaptive.enabled\" = \"true\"\n      \"spark.dynamicAllocation.enabled\" = \"true\"\n    }\n  }])\n\n  auto_termination_policy {\n    idle_timeout = 3600  # terminate after 1h idle (cost control)\n  }\n}\n```\n\nDe interview tip: Transient EMR (auto-terminate after job) is cheaper than persistent. Use Step Functions or Airflow to trigger transient clusters.",
+  "tags": ["terraform", "aws", "emr", "spark"],
+  "difficulty": "hard"
+}

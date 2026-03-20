@@ -1,7 +1,8 @@
 {
   "id": "terraform-004",
-  "category": "Terraform",
-  "question": "What does `terraform plan` do and when should you always run it?",
-  "answer": "`terraform plan` shows exactly what Terraform will create, modify, or destroy without making any changes. Always run it before `apply` in CI/CD pipelines and before any production change. The output marks additions with +, destructions with -, and in-place updates with ~. A forced-replacement (destroy + recreate) shows -/+, which is a red flag for stateful DE resources like RDS or Redshift.",
-  "tags": ["terraform", "plan", "iac"]
+  "deck": "terraform",
+  "front": "What is Terraform state and why is it important?",
+  "back": "Terraform state is a JSON file (terraform.tfstate) that maps your HCL configuration to real-world cloud resources. It is Terraform's source of truth.\n\nWhat state tracks:\n- Resource IDs and attributes from the cloud provider\n- Dependency graph between resources\n- Metadata for performance (avoids querying every resource on each plan)\n\nStorage options:\n- Local: terraform.tfstate in your working directory (fine for solo projects)\n- Remote: S3 bucket, Terraform Cloud, GCS (required for teams)\n\nCritical rules:\n- NEVER edit terraform.tfstate manually\n- NEVER commit terraform.tfstate to git (add to .gitignore)\n- Use 'terraform state' commands for any manual operations\n- Enable state locking to prevent concurrent modifications\n\nState problems DEs encounter:\n- State drift: real resources changed outside Terraform\n- State corruption: concurrent applies without locking\n- Lost state: local file deleted with no backup\n\nBest practice: S3 backend with DynamoDB locking for all team projects.",
+  "tags": ["terraform", "state", "fundamentals"],
+  "difficulty": "medium"
 }

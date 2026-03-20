@@ -1,7 +1,8 @@
 {
   "id": "terraform-013",
-  "category": "Terraform",
-  "question": "What are dynamic blocks in Terraform and when do you need them?",
-  "answer": "Dynamic blocks let you generate repeated nested configuration blocks (like ingress rules or tags) programmatically using for_each. Without them, you'd have to hardcode every ingress rule on a security group. Example: `dynamic \"ingress\" { for_each = var.allowed_ports content { from_port = ingress.value to_port = ingress.value protocol = \"tcp\" cidr_blocks = [\"0.0.0.0/0\"] } }`. Use them to avoid copy-paste repetition in security groups, ECS task definitions, or Glue job configurations.",
-  "tags": ["terraform", "dynamic-blocks", "iac"]
+  "deck": "terraform",
+  "front": "How does 'count' work in Terraform and when should you use it?",
+  "back": "count creates multiple instances of a resource from a single block. Use it when you need N identical (or nearly identical) copies of a resource.\n\nBasic count:\n```hcl\nresource \"aws_s3_bucket\" \"data_zones\" {\n  count  = 3\n  bucket = \"mycompany-zone-${count.index}\"\n}\n# Creates: mycompany-zone-0, mycompany-zone-1, mycompany-zone-2\n```\n\nCount with a list variable (common pattern):\n```hcl\nvariable \"data_zones\" {\n  default = [\"raw\", \"curated\", \"processed\"]\n}\n\nresource \"aws_s3_bucket\" \"zones\" {\n  count  = length(var.data_zones)\n  bucket = \"mycompany-${var.data_zones[count.index]}\"\n}\n# Creates: mycompany-raw, mycompany-curated, mycompany-processed\n```\n\nConditional resource (count = 0 or 1):\n```hcl\nresource \"aws_cloudwatch_alarm\" \"high_cost\" {\n  count = var.environment == \"prod\" ? 1 : 0\n  # Only create cost alarm in prod\n}\n```\n\nLimitation of count: resources are addressed by INDEX (aws_s3_bucket.zones[0]). If you remove an item from the middle of the list, Terraform shifts all higher indexes and may destroy/recreate many resources. Use for_each with a set/map for stable identities.",
+  "tags": ["terraform", "hcl", "count", "loops"],
+  "difficulty": "medium"
 }

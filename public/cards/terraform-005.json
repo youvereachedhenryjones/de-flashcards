@@ -1,7 +1,8 @@
 {
   "id": "terraform-005",
-  "category": "Terraform",
-  "question": "What is the difference between `terraform apply` and `terraform destroy`?",
-  "answer": "`terraform apply` creates or updates infrastructure to match your configuration. `terraform destroy` tears down everything Terraform manages in the current state. For DE environments, use `destroy` carefully with targeted flags (`-target=module.dev_cluster`) to avoid wiping production data stores. A common pattern is separate state files per environment so a destroy in dev never touches prod.",
-  "tags": ["terraform", "apply", "destroy"]
+  "deck": "terraform",
+  "front": "What are Terraform modules and when should you use them?",
+  "back": "A module is a reusable package of Terraform configuration. Every directory with .tf files is a module. Modules enforce DRY (Don't Repeat Yourself) principles.\n\nTypes:\n- Root module: your main working directory\n- Child module: called by root or another module\n- Published module: from Terraform Registry (registry.terraform.io)\n\nExample: calling a module:\n```hcl\nmodule \"data_lake\" {\n  source  = \"./modules/s3-data-lake\"\n  version = \"1.2.0\"\n\n  bucket_name  = \"prod-data-lake\"\n  environment  = \"production\"\n  enable_versioning = true\n}\n\n# Access module outputs:\noutput \"data_lake_arn\" {\n  value = module.data_lake.bucket_arn\n}\n```\n\nWhen to create a module:\n- Same resource pattern used in 2+ places (dev/staging/prod)\n- Complex resource groups (VPC + subnets + security groups)\n- Shared infrastructure owned by platform/infra team\n\nDE use cases:\n- Reusable EMR cluster module\n- Standard Airflow deployment module\n- Shared RDS module with backup policies baked in",
+  "tags": ["terraform", "modules", "fundamentals"],
+  "difficulty": "medium"
 }

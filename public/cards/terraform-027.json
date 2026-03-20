@@ -1,0 +1,8 @@
+{
+  "id": "terraform-027",
+  "deck": "terraform",
+  "front": "How do you import existing AWS resources into Terraform state?",
+  "back": "Import lets you bring existing infrastructure (created manually or by another tool) under Terraform management without recreating it.\n\nModern approach: import block (Terraform 1.5+, preferred):\n```hcl\nimport {\n  to = aws_s3_bucket.data_lake\n  id = \"my-existing-data-lake-bucket\"\n}\n\n# Then run:\n# terraform plan   -- shows what config would look like\n# terraform apply  -- imports the resource into state\n```\n\nLegacy CLI approach:\n```bash\n# Syntax: terraform import <resource_type>.<name> <provider_id>\nterraform import aws_s3_bucket.data_lake my-existing-data-lake-bucket\nterraform import aws_db_instance.airflow my-rds-instance-id\nterraform import aws_iam_role.glue arn:aws:iam::123456789:role/GlueRole\n```\n\nImport workflow:\n1. Write the resource block in your HCL (approximate config)\n2. Run terraform import with the real resource ID\n3. Run terraform plan: it shows the diff between your HCL and actual state\n4. Update HCL until plan shows no changes\n5. Commit the HCL\n\nFinding resource IDs:\n- Each resource type has a documented import ID format\n- S3: bucket name\n- RDS: db instance identifier\n- IAM role: role name or ARN\n- DynamoDB: table name\n\nDE use case: the data team created an S3 bucket and RDS manually 2 years ago. Now you want to manage them with Terraform.",
+  "tags": ["terraform", "state", "import", "migration"],
+  "difficulty": "medium"
+}

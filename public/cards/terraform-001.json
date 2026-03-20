@@ -1,7 +1,8 @@
 {
   "id": "terraform-001",
-  "category": "Terraform",
-  "question": "What is a Terraform provider and how do you configure one?",
-  "answer": "A provider is a plugin that lets Terraform manage a specific platform's resources (AWS, GCP, Snowflake, etc.). You declare it in a required_providers block with source and version constraints, then configure it with credentials and region. Pro tip: pin provider versions with ~> to get patch updates without unexpected breaking changes.",
-  "tags": ["terraform", "provider", "iac"]
+  "deck": "terraform",
+  "front": "What is Terraform and why do Data Engineers use it?",
+  "back": "Terraform is an open-source Infrastructure as Code (IaC) tool by HashiCorp that lets you define, provision, and manage cloud resources using declarative configuration files.\n\nWhy DEs use it:\n- Provision data infrastructure (S3, RDS, Redshift, EMR) reproducibly\n- Version-control your infrastructure alongside your data pipelines\n- Spin up identical dev/staging/prod environments\n- Tear down expensive clusters when not in use (cost control)\n- Onboard new team members fast: one 'terraform apply' sets up the whole stack\n\nCore workflow:\n1. Write HCL config files\n2. terraform init (download providers)\n3. terraform plan (preview changes)\n4. terraform apply (create/update resources)\n5. terraform destroy (tear down when done)\n\nTerraform appears in ~40% of senior DE job postings. It is the de-facto standard for cloud infrastructure provisioning.",
+  "tags": ["terraform", "fundamentals", "iac"],
+  "difficulty": "easy"
 }

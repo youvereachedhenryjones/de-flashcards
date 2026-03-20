@@ -1,7 +1,8 @@
 {
   "id": "terraform-011",
-  "category": "Terraform",
-  "question": "What are resource lifecycle rules in Terraform, and when do you use `create_before_destroy` vs `prevent_destroy`?",
-  "answer": "Lifecycle rules override Terraform's default resource management. `create_before_destroy = true` ensures a replacement is provisioned before the old one is deleted -- critical for zero-downtime updates to RDS or Redshift clusters. `prevent_destroy = true` causes `terraform destroy` to error if it would delete that resource, protecting irreplaceable data stores like production S3 buckets or databases from accidental deletion.",
-  "tags": ["terraform", "lifecycle", "prevent-destroy"]
+  "deck": "terraform",
+  "front": "What are Terraform locals and how do they differ from variables?",
+  "back": "Locals are computed values within a module. Unlike variables (which accept external input), locals are calculated internally and cannot be overridden from outside.\n\nUse locals for:\n- Avoiding repetition of complex expressions\n- Building derived values (names, tags, ARNs)\n- Centralizing logic that multiple resources share\n\nExample:\n```hcl\nlocals {\n  # Build consistent naming prefix\n  name_prefix = \"${var.project}-${var.environment}\"\n\n  # Standard tags applied to every resource\n  common_tags = {\n    Project     = var.project\n    Environment = var.environment\n    ManagedBy   = \"terraform\"\n    Team        = \"data-engineering\"\n  }\n\n  # Compute cluster size based on env\n  emr_core_nodes = var.environment == \"prod\" ? 10 : 2\n}\n\nresource \"aws_s3_bucket\" \"data_lake\" {\n  bucket = \"${local.name_prefix}-data-lake\"\n  tags   = local.common_tags\n}\n\nresource \"aws_emr_cluster\" \"analytics\" {\n  name          = \"${local.name_prefix}-analytics\"\n  core_instance_count = local.emr_core_nodes\n  tags          = local.common_tags\n}\n```\n\nKey distinction:\n- var.x: input from outside (tfvars, CLI, env vars)\n- local.x: computed inside the module, not settable externally",
+  "tags": ["terraform", "hcl", "locals"],
+  "difficulty": "medium"
 }

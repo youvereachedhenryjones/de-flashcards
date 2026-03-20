@@ -1,7 +1,8 @@
 {
   "id": "terraform-014",
-  "category": "Terraform",
-  "question": "What is Terragrunt and why do DE teams use it?",
-  "answer": "Terragrunt is a thin wrapper around Terraform that adds DRY (Don't Repeat Yourself) features: automatic remote state config, environment-based overrides, and dependency management between modules. Instead of duplicating backend config across 10 environment folders, Terragrunt reads a root terragrunt.hcl and generates the backend block. It's especially useful for managing multi-account DE platforms with dozens of modules.",
-  "tags": ["terraform", "terragrunt", "iac"]
+  "deck": "terraform",
+  "front": "How does 'for_each' work in Terraform and how does it differ from count?",
+  "back": "for_each creates multiple resource instances from a map or set of strings. Each instance has a stable KEY identity instead of a numeric index.\n\nfor_each with a set:\n```hcl\nresource \"aws_s3_bucket\" \"data_zones\" {\n  for_each = toset([\"raw\", \"curated\", \"processed\"])\n  bucket   = \"mycompany-${each.key}\"\n}\n# Instances: aws_s3_bucket.data_zones[\"raw\"], [\"curated\"], [\"processed\"]\n```\n\nfor_each with a map (richer configuration per item):\n```hcl\nvariable \"databases\" {\n  default = {\n    airflow_meta = { engine = \"postgres\", size = \"db.t3.medium\" }\n    dbt_results  = { engine = \"postgres\", size = \"db.t3.large\" }\n    mlflow       = { engine = \"mysql\",    size = \"db.t3.small\" }\n  }\n}\n\nresource \"aws_db_instance\" \"de_databases\" {\n  for_each       = var.databases\n  identifier     = each.key\n  engine         = each.value.engine\n  instance_class = each.value.size\n}\n```\n\nfor_each vs count:\n- count: use for truly identical resources or on/off toggle (count = 0 or 1)\n- for_each: use when resources differ by config OR when you need stable identifiers (removing an item does NOT shift other resources)\n\nInterview tip: Prefer for_each over count in almost all real-world module design.",
+  "tags": ["terraform", "hcl", "for_each", "loops"],
+  "difficulty": "hard"
 }

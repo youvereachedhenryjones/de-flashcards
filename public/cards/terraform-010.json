@@ -1,7 +1,8 @@
 {
   "id": "terraform-010",
-  "category": "Terraform",
-  "question": "What are Terraform data sources and how do you use them?",
-  "answer": "Data sources let you fetch read-only information about existing infrastructure that Terraform doesn't manage. Use a data block: `data \"aws_vpc\" \"main\" { tags = { Name = \"prod\" } }` then reference it as `data.aws_vpc.main.id`. Essential for DE pipelines that need to look up VPC IDs, AMIs, or IAM role ARNs without hardcoding values that differ across environments.",
-  "tags": ["terraform", "data-sources", "iac"]
+  "deck": "terraform",
+  "front": "What are Terraform outputs and when should you use them?",
+  "back": "Outputs expose values from your Terraform configuration so they can be used by other modules, other Terraform states, or displayed after apply.\n\nDefining outputs:\n```hcl\noutput \"data_lake_bucket_arn\" {\n  description = \"ARN of the S3 data lake bucket\"\n  value       = aws_s3_bucket.data_lake.arn\n}\n\noutput \"rds_endpoint\" {\n  description = \"Connection endpoint for the metadata database\"\n  value       = aws_db_instance.metadata.endpoint\n  sensitive   = true  # hides value in CLI output and logs\n}\n```\n\nAccessing outputs:\n```bash\nterraform output                        # show all outputs\nterraform output data_lake_bucket_arn  # show one output\nterraform output -json                  # machine-readable JSON\n```\n\nCross-module usage:\n```hcl\nmodule \"networking\" {\n  source = \"./modules/vpc\"\n}\n\nresource \"aws_db_instance\" \"metadata\" {\n  db_subnet_group_name = module.networking.db_subnet_group_name\n}\n```\n\nRemote state data source (cross-state sharing):\n```hcl\ndata \"terraform_remote_state\" \"network\" {\n  backend = \"s3\"\n  config = {\n    bucket = \"my-terraform-state\"\n    key    = \"network/terraform.tfstate\"\n    region = \"us-east-1\"\n  }\n}\n```\n\nDE use case: output the Redshift endpoint so your dbt profiles.yml can reference it.",
+  "tags": ["terraform", "hcl", "outputs"],
+  "difficulty": "easy"
 }

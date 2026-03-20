@@ -1,7 +1,8 @@
 {
   "id": "terraform-015",
-  "category": "Terraform",
-  "question": "How do you manage secrets in Terraform without storing them in state or code?",
-  "answer": "Never put secrets directly in .tf files or pass them via -var flags (they appear in logs). Two patterns: (1) Use AWS SSM Parameter Store or Secrets Manager and fetch at deploy time with a data source. (2) Use HashiCorp Vault with the Vault provider to generate dynamic credentials. The state file still contains sensitive outputs in plaintext, so encrypt it at rest using S3 SSE and restrict access via bucket policy and IAM.",
-  "tags": ["terraform", "secrets", "security", "vault"]
+  "deck": "terraform",
+  "front": "How do you provision a production-ready S3 data lake bucket with Terraform?",
+  "back": "A production S3 data lake needs versioning, encryption, access logging, and lifecycle policies. Here is a complete example:\n\n```hcl\nresource \"aws_s3_bucket\" \"data_lake\" {\n  bucket = \"mycompany-data-lake-prod\"\n  tags   = local.common_tags\n}\n\nresource \"aws_s3_bucket_versioning\" \"data_lake\" {\n  bucket = aws_s3_bucket.data_lake.id\n  versioning_configuration { status = \"Enabled\" }\n}\n\nresource \"aws_s3_bucket_server_side_encryption_configuration\" \"data_lake\" {\n  bucket = aws_s3_bucket.data_lake.id\n  rule {\n    apply_server_side_encryption_by_default {\n      sse_algorithm = \"AES256\"\n    }\n  }\n}\n\nresource \"aws_s3_bucket_lifecycle_configuration\" \"data_lake\" {\n  bucket = aws_s3_bucket.data_lake.id\n  rule {\n    id     = \"archive-raw-after-90-days\"\n    status = \"Enabled\"\n    filter { prefix = \"raw/\" }\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"data_lake\" {\n  bucket                  = aws_s3_bucket.data_lake.id\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\n```\n\nNote: Since AWS provider v4+, each S3 feature is a separate resource (not nested blocks). This is a common interview gotcha.",
+  "tags": ["terraform", "aws", "s3", "data-lake"],
+  "difficulty": "medium"
 }

@@ -1,7 +1,8 @@
 {
   "id": "terraform-009",
-  "category": "Terraform",
-  "question": "How do you import existing infrastructure into Terraform state?",
-  "answer": "`terraform import <resource_type>.<name> <real_world_id>` maps an existing resource into Terraform state without re-creating it. For example, `terraform import aws_s3_bucket.data_lake my-existing-bucket`. After import, run `plan` to see any config drift. Terraform 1.5+ adds an import block for declarative imports that work in CI pipelines without manual CLI commands.",
-  "tags": ["terraform", "import", "state"]
+  "deck": "terraform",
+  "front": "How do you define and use variables in Terraform (HCL)?",
+  "back": "Variables make configurations reusable and environment-agnostic. Define them in variables.tf, set values in terraform.tfvars or via environment variables.\n\nDefining a variable:\n```hcl\nvariable \"environment\" {\n  description = \"Deployment environment (dev, staging, prod)\"\n  type        = string\n  default     = \"dev\"\n}\n\nvariable \"cluster_size\" {\n  description = \"Number of EMR worker nodes\"\n  type        = number\n  validation {\n    condition     = var.cluster_size >= 1 && var.cluster_size <= 50\n    error_message = \"Cluster size must be between 1 and 50.\"\n  }\n}\n```\n\nSetting values (in order of precedence, highest first):\n1. Command line: -var=\"environment=prod\"\n2. .auto.tfvars files (auto-loaded)\n3. terraform.tfvars\n4. Environment variables: TF_VAR_environment=prod\n5. Default value in variable block\n\nterraform.tfvars example:\n```hcl\nenvironment  = \"prod\"\ncluster_size = 10\ndb_password  = \"NEVER_PUT_SECRETS_HERE\"\n```\n\nFor secrets: use TF_VAR_ env vars, AWS Secrets Manager data sources, or HashiCorp Vault. Never hardcode passwords in tfvars files committed to git.",
+  "tags": ["terraform", "hcl", "variables"],
+  "difficulty": "medium"
 }

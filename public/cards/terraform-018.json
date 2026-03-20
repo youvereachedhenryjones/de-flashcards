@@ -1,7 +1,8 @@
 {
   "id": "terraform-018",
-  "category": "Terraform",
-  "question": "What is Terraform state locking and what happens if a lock gets stuck?",
-  "answer": "State locking prevents concurrent applies that could corrupt state. With an S3 + DynamoDB backend, Terraform writes a lock entry to DynamoDB at the start of plan/apply and deletes it when done. If a process crashes mid-run, the lock stays. You can force-unlock with `terraform force-unlock <lock-id>` (get the ID from the DynamoDB table or the error message). Always verify no other apply is running before force-unlocking.",
-  "tags": ["terraform", "state-locking", "dynamodb"]
+  "deck": "terraform",
+  "front": "How do you manage IAM roles and policies for data pipelines with Terraform?",
+  "back": "IAM is the security backbone for AWS data pipelines. Each service (Glue, EMR, Lambda, ECS) needs a role with least-privilege policies.\n\nPattern: role + policy attachment:\n```hcl\n# IAM role for Glue jobs\nresource \"aws_iam_role\" \"glue_role\" {\n  name = \"glue-etl-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Effect    = \"Allow\"\n      Principal = { Service = \"glue.amazonaws.com\" }\n      Action    = \"sts:AssumeRole\"\n    }]\n  })\n}\n\n# Attach managed policy\nresource \"aws_iam_role_policy_attachment\" \"glue_service\" {\n  role       = aws_iam_role.glue_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole\"\n}\n\n# Custom inline policy for S3 data lake access\nresource \"aws_iam_role_policy\" \"glue_s3_access\" {\n  name = \"glue-s3-data-lake\"\n  role = aws_iam_role.glue_role.id\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Effect   = \"Allow\"\n      Action   = [\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"]\n      Resource = \"${aws_s3_bucket.data_lake.arn}/*\"\n    }]\n  })\n}\n```\n\nBest practices:\n- Use least-privilege: only grant what the service needs\n- Prefer managed policies for standard services, inline for custom S3/resource access\n- Never use AdministratorAccess for pipeline roles\n- Use resource ARNs (not '*') wherever possible",
+  "tags": ["terraform", "aws", "iam", "security"],
+  "difficulty": "medium"
 }

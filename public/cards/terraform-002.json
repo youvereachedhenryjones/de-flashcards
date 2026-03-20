@@ -1,7 +1,8 @@
 {
   "id": "terraform-002",
-  "category": "Terraform",
-  "question": "What is Terraform state and why does it matter for data infrastructure?",
-  "answer": "Terraform state is a JSON file (terraform.tfstate) that maps your configuration to real-world resources. It's how Terraform knows what exists, what changed, and what to destroy. For data infrastructure, corrupted or out-of-sync state can cause duplicate S3 buckets, dropped RDS instances, or failed pipeline deployments -- always use remote state with locking.",
-  "tags": ["terraform", "state", "iac"]
+  "deck": "terraform",
+  "front": "What is a Terraform provider and how do you configure one?",
+  "back": "A provider is a plugin that lets Terraform interact with a specific cloud or service API. Each provider exposes resources and data sources you can manage.\n\nCommon DE providers:\n- aws (Amazon Web Services)\n- google (GCP)\n- azurerm (Azure)\n- snowflake (Snowflake data warehouse)\n- databricks (Databricks)\n- kubernetes (K8s)\n\nExample configuration:\n```hcl\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    snowflake = {\n      source  = \"Snowflake-Labs/snowflake\"\n      version = \"~> 0.87\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\"\n}\n```\n\nKey points:\n- Always pin provider versions with ~> to avoid breaking changes\n- Credentials come from env vars, AWS profiles, or IAM roles (never hardcode)\n- Run 'terraform init' after adding a new provider to download it",
+  "tags": ["terraform", "providers", "fundamentals"],
+  "difficulty": "easy"
 }

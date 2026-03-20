@@ -1,7 +1,8 @@
 {
   "id": "terraform-016",
-  "category": "Terraform",
-  "question": "How do you implement Terraform in a CI/CD pipeline with GitHub Actions?",
-  "answer": "Typical pattern: on PR, run `terraform fmt -check`, `terraform validate`, and `terraform plan`, posting the plan output as a PR comment. On merge to main, run `terraform apply -auto-approve`. Use OIDC (not static keys) to authenticate GitHub Actions to AWS: configure an IAM OIDC identity provider, then `aws-actions/configure-aws-credentials` with `role-to-assume`. This avoids long-lived credentials in GitHub secrets.",
-  "tags": ["terraform", "cicd", "github-actions"]
+  "deck": "terraform",
+  "front": "How do you provision an RDS instance for a data pipeline metadata database with Terraform?",
+  "back": "RDS is commonly used for Airflow metadata, MLflow tracking, and dbt results storage. Key concerns: subnet placement, security groups, backups, and NOT committing passwords.\n\n```hcl\nresource \"aws_db_instance\" \"airflow_meta\" {\n  identifier        = \"airflow-metadata-prod\"\n  engine            = \"postgres\"\n  engine_version    = \"15.4\"\n  instance_class    = \"db.t3.medium\"\n  allocated_storage = 50\n  storage_encrypted = true\n\n  db_name  = \"airflow\"\n  username = \"airflow_admin\"\n  password = data.aws_secretsmanager_secret_version.db_pass.secret_string\n\n  db_subnet_group_name   = aws_db_subnet_group.private.name\n  vpc_security_group_ids = [aws_security_group.rds.id]\n\n  backup_retention_period = 7\n  deletion_protection     = true\n  skip_final_snapshot     = false\n  final_snapshot_identifier = \"airflow-meta-final-snapshot\"\n\n  tags = local.common_tags\n}\n\nresource \"aws_db_subnet_group\" \"private\" {\n  name       = \"private-db-subnets\"\n  subnet_ids = data.aws_subnets.private.ids\n}\n```\n\nKey DE interview points:\n- Never put RDS in a public subnet\n- Use deletion_protection = true in prod to prevent accidental destroy\n- Fetch passwords from Secrets Manager via data source, never hardcode\n- Multi-AZ for prod: add multi_az = true",
+  "tags": ["terraform", "aws", "rds", "databases"],
+  "difficulty": "medium"
 }

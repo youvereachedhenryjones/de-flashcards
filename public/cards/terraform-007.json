@@ -1,7 +1,8 @@
 {
   "id": "terraform-007",
-  "category": "Terraform",
-  "question": "How do Terraform modules work and why are they critical for DE teams?",
-  "answer": "Modules are reusable packages of Terraform configuration called with a module block pointing to a local path, Git URL, or Terraform Registry. For DE teams, a well-designed module for EMR clusters or Redshift namespaces lets any team member spin up standardized, policy-compliant infrastructure. Use input variables to customize and outputs to expose key attributes like endpoint URLs or ARNs.",
-  "tags": ["terraform", "modules", "reusability"]
+  "deck": "terraform",
+  "front": "What does 'terraform init' do and when must you run it?",
+  "back": "terraform init initializes a working directory containing Terraform configuration files. It is always the first command you run.\n\nWhat it does:\n1. Downloads provider plugins (aws, snowflake, databricks, etc.)\n2. Downloads module sources (registry, git, local)\n3. Sets up the backend (configures where state is stored)\n4. Creates .terraform/ directory (do NOT commit this)\n5. Creates .terraform.lock.hcl (DO commit this for reproducible builds)\n\nWhen to re-run:\n- First time cloning a repo\n- After adding/changing a provider\n- After adding/changing a module source\n- After changing backend configuration\n- After deleting the .terraform/ directory\n\nUseful flags:\n```bash\nterraform init -upgrade        # upgrade providers to latest allowed version\nterraform init -reconfigure    # force backend reconfiguration\nterraform init -backend=false  # skip backend init (useful in CI for validation only)\n```\n\n.gitignore for Terraform repos:\n```\n.terraform/\nterraform.tfstate\nterraform.tfstate.backup\n*.tfvars (if they contain secrets)\n```",
+  "tags": ["terraform", "fundamentals", "workflow"],
+  "difficulty": "easy"
 }

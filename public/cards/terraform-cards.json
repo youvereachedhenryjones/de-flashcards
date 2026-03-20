@@ -1,8 +1,8 @@
 {
-  "id": "terraform",
-  "name": "Terraform & IaC",
-  "description": "Infrastructure as Code for Data Engineers",
-  "icon": "🏗️",
+  "deck": "terraform",
+  "title": "Terraform & IaC for Data Engineers",
+  "description": "Infrastructure as Code essentials: provision data pipelines, cloud resources, and DE infrastructure with confidence. Covers Terraform basics, HCL syntax, AWS services, Snowflake, EMR, Airflow, state management, and CI/CD.",
+  "count": 30,
   "cards": [
     "terraform-001",
     "terraform-002",
@@ -23,6 +23,16 @@
     "terraform-017",
     "terraform-018",
     "terraform-019",
-    "terraform-020"
+    "terraform-020",
+    "terraform-021",
+    "terraform-022",
+    "terraform-023",
+    "terraform-024",
+    "terraform-025",
+    "terraform-026",
+    "terraform-027",
+    "terraform-028",
+    "terraform-029",
+    "terraform-030"
   ]
 }

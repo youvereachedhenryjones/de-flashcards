@@ -1,0 +1,8 @@
+{
+  "id": "terraform-021",
+  "deck": "terraform",
+  "front": "How do you deploy Apache Airflow on AWS (MWAA) using Terraform?",
+  "back": "Amazon MWAA (Managed Workflows for Apache Airflow) is the fastest path to production Airflow on AWS. Terraform provisions the environment, S3 bucket for DAGs, and required networking.\n\n```hcl\nresource \"aws_mwaa_environment\" \"airflow\" {\n  name              = \"data-platform-airflow\"\n  airflow_version   = \"2.8.1\"\n  environment_class = \"mw1.medium\"  # mw1.small / mw1.medium / mw1.large\n\n  source_bucket_arn    = aws_s3_bucket.airflow.arn\n  dag_s3_path          = \"dags/\"\n  requirements_s3_path = \"requirements.txt\"\n\n  execution_role_arn = aws_iam_role.mwaa.arn\n\n  network_configuration {\n    security_group_ids = [aws_security_group.mwaa.id]\n    subnet_ids         = module.vpc.private_subnets\n  }\n\n  logging_configuration {\n    dag_processing_logs { enabled = true; log_level = \"INFO\" }\n    scheduler_logs      { enabled = true; log_level = \"WARNING\" }\n    worker_logs         { enabled = true; log_level = \"WARNING\" }\n  }\n\n  airflow_configuration_options = {\n    \"core.default_timezone\"          = \"America/New_York\"\n    \"webserver.dag_default_view\"     = \"graph\"\n    \"scheduler.dag_dir_list_interval\" = \"30\"\n  }\n}\n```\n\nKey DE points:\n- DAGs and requirements live in S3, not in the Terraform config\n- MWAA only works in private subnets\n- Use webserver_access_mode = PUBLIC_ONLY for internet access to UI, PRIVATE_ONLY for VPN-only\n- Cost: MWAA is expensive. For cost-sensitive teams, self-hosted Airflow on EKS is cheaper.",
+  "tags": ["terraform", "aws", "airflow", "mwaa", "orchestration"],
+  "difficulty": "hard"
+}
