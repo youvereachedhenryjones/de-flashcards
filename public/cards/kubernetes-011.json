@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-011",
+  "category": "Kubernetes",
+  "question": "What are the most important kubectl commands for a data engineer to know?",
+  "answer": "`kubectl get pods -n <ns>` lists running pods. `kubectl logs <pod> -f` streams logs. `kubectl exec -it <pod> -- bash` opens a shell. `kubectl describe pod <pod>` shows events and resource usage -- critical for debugging scheduling failures. `kubectl apply -f manifest.yaml` applies a config. `kubectl port-forward svc/airflow 8080:8080` tunnels a service locally for debugging without exposing it externally.",
+  "tags": ["kubernetes", "kubectl", "commands"]
+}

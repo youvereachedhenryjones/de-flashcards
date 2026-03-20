@@ -1,0 +1,7 @@
+{
+  "id": "terraform-019",
+  "category": "Terraform",
+  "question": "What naming conventions should data engineers use for Terraform-managed resources?",
+  "answer": "Use a consistent pattern: `{env}-{team}-{service}-{resource}`, e.g., `prod-dataeng-etl-s3-bucket` or `staging-analytics-warehouse-rds`. Store the pattern in a local variable and reference it everywhere to avoid inconsistency. Add mandatory tags (environment, team, cost_center, terraform = true) using a default_tags block on the provider -- this ensures every resource is tagged without repeating it on each resource block.",
+  "tags": ["terraform", "naming", "tagging", "iac"]
+}

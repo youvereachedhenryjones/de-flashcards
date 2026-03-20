@@ -1,0 +1,7 @@
+{
+  "id": "terraform-007",
+  "category": "Terraform",
+  "question": "How do Terraform modules work and why are they critical for DE teams?",
+  "answer": "Modules are reusable packages of Terraform configuration called with a module block pointing to a local path, Git URL, or Terraform Registry. For DE teams, a well-designed module for EMR clusters or Redshift namespaces lets any team member spin up standardized, policy-compliant infrastructure. Use input variables to customize and outputs to expose key attributes like endpoint URLs or ARNs.",
+  "tags": ["terraform", "modules", "reusability"]
+}

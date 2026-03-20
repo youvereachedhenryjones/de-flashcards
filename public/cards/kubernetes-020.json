@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-020",
+  "category": "Kubernetes",
+  "question": "How do you debug a Kubernetes Pod that is stuck in Pending or CrashLoopBackOff?",
+  "answer": "For Pending: run `kubectl describe pod <pod>` and check Events -- common causes are insufficient CPU/memory on available nodes, a node selector that matches no nodes, or a PVC that can't bind. For CrashLoopBackOff: run `kubectl logs <pod> --previous` to see the logs from the crashed container. Common DE causes: wrong database URL in environment variables, missing Secret mounts, or an Airflow migration that failed on startup. Fix the root cause before the backoff timer escalates.",
+  "tags": ["kubernetes", "debugging", "troubleshooting"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-012",
+  "category": "Kubernetes",
+  "question": "How does Spark run on Kubernetes using the SparkApplication CRD?",
+  "answer": "The Spark Operator adds a SparkApplication custom resource to Kubernetes. You define driver and executor specs (image, cores, memory, instances) in a YAML manifest and `kubectl apply` it. The operator manages the driver Pod, creates executor Pods dynamically, and cleans up after completion. Advantages over YARN: better resource isolation, native K8s RBAC, and no Hadoop cluster to maintain. Use `sparkapplication.spec.executor.instances` and spot/preemptible nodes for cost savings.",
+  "tags": ["kubernetes", "spark", "spark-operator", "crds"]
+}

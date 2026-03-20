@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-006",
+  "category": "Kubernetes",
+  "question": "What are Kubernetes Namespaces and how do DE teams use them?",
+  "answer": "Namespaces provide logical isolation within a cluster -- separate resource quotas, RBAC policies, and network policies per namespace. Common DE pattern: namespace per team (data-engineering, analytics, ml-platform) or per environment (de-dev, de-prod). Resources in different namespaces communicate via fully-qualified DNS: `service.namespace.svc.cluster.local`. `kubectl get pods -n data-engineering` targets a specific namespace.",
+  "tags": ["kubernetes", "namespaces", "isolation"]
+}

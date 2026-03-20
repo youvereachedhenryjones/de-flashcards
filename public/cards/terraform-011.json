@@ -1,0 +1,7 @@
+{
+  "id": "terraform-011",
+  "category": "Terraform",
+  "question": "What are resource lifecycle rules in Terraform, and when do you use `create_before_destroy` vs `prevent_destroy`?",
+  "answer": "Lifecycle rules override Terraform's default resource management. `create_before_destroy = true` ensures a replacement is provisioned before the old one is deleted -- critical for zero-downtime updates to RDS or Redshift clusters. `prevent_destroy = true` causes `terraform destroy` to error if it would delete that resource, protecting irreplaceable data stores like production S3 buckets or databases from accidental deletion.",
+  "tags": ["terraform", "lifecycle", "prevent-destroy"]
+}

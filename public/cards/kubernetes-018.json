@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-018",
+  "category": "Kubernetes",
+  "question": "How does Kubernetes RBAC work for service accounts in data pipelines?",
+  "answer": "RBAC grants permissions via Roles (namespace-scoped) or ClusterRoles (cluster-wide), bound to users or ServiceAccounts via RoleBinding/ClusterRoleBinding. Each Pod can be assigned a ServiceAccount. For Spark Operator, the driver Pod's ServiceAccount needs permission to create/delete executor Pods. For Airflow KubernetesExecutor, the scheduler's ServiceAccount needs pod create/watch/delete. Least-privilege principle: grant only the exact verbs and resources each workload needs.",
+  "tags": ["kubernetes", "rbac", "security", "service-accounts"]
+}

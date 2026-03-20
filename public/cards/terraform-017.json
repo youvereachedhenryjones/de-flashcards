@@ -1,0 +1,7 @@
+{
+  "id": "terraform-017",
+  "category": "Terraform",
+  "question": "What is Terraform drift and how do you detect and resolve it?",
+  "answer": "Drift occurs when real infrastructure diverges from Terraform state -- someone manually changed a security group rule or resized an RDS instance in the console. Run `terraform plan` to detect drift; it shows what Terraform would change to reconcile. To refresh state without applying, use `terraform refresh` (or `plan -refresh-only`). Fix drift by either updating your config to match reality or running apply to revert the manual change.",
+  "tags": ["terraform", "drift", "state"]
+}

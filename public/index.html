@@ -760,7 +760,9 @@ async function mergePackCards(){
     'cards/gcp-cards.json',
     'cards/dbt-adv-cards.json',
     'cards/databricks-cards.json',
-    'cards/iceberg-cards.json'
+    'cards/iceberg-cards.json',
+    'cards/terraform-cards.json',
+    'cards/kubernetes-cards.json'
   ];
   const existingQuestions=new Set(cards.map(c=>normalizeQuestion(c.q)));
   try{

@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-001",
+  "category": "Kubernetes",
+  "question": "What is a Kubernetes Pod and why is it the basic unit of deployment?",
+  "answer": "A Pod is the smallest deployable unit in Kubernetes -- a wrapper around one or more containers that share a network namespace and storage. Containers in the same Pod communicate via localhost and share mounted volumes. For DE workloads, a Spark executor or a single Airflow worker task runs in its own Pod. Pods are ephemeral: if they die, Kubernetes restarts them but doesn't guarantee the same node or IP.",
+  "tags": ["kubernetes", "pods", "containers"]
+}

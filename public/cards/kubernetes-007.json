@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-007",
+  "category": "Kubernetes",
+  "question": "What are resource requests and limits in Kubernetes, and why are they critical for data workloads?",
+  "answer": "Requests are the guaranteed minimum CPU/memory a Pod receives -- used by the scheduler to place Pods on nodes with sufficient capacity. Limits are the maximum -- exceeding CPU limits causes throttling; exceeding memory limits causes the Pod to be OOMKilled. For Spark and Flink, always set requests matching expected steady-state usage and limits 20-30% higher. A Spark executor with no limits can exhaust a node's memory and evict all other Pods.",
+  "tags": ["kubernetes", "resources", "limits", "requests"]
+}

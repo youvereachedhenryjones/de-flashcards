@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-003",
+  "category": "Kubernetes",
+  "question": "What are the main Kubernetes Service types and when do you use each?",
+  "answer": "ClusterIP (default) exposes a service on an internal IP only -- used for internal microservices and data pipelines. NodePort exposes a port on every node, useful for dev/testing. LoadBalancer provisions a cloud load balancer with an external IP, used to expose Airflow UI or dashboards publicly. For Spark on K8s, the driver creates a headless Service so executors can connect back to it by stable DNS name.",
+  "tags": ["kubernetes", "services", "networking"]
+}

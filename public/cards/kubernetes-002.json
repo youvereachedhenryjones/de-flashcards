@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-002",
+  "category": "Kubernetes",
+  "question": "What is a Kubernetes Deployment and how does it manage Pods?",
+  "answer": "A Deployment is a controller that ensures a specified number of Pod replicas are always running. It manages rolling updates, rollbacks, and self-healing. For stateless DE services (API servers, dbt runners), use Deployments. Key commands: `kubectl rollout status deployment/my-app` to watch a rollout, `kubectl rollout undo deployment/my-app` to roll back to the previous version. Deployments own ReplicaSets, which own Pods.",
+  "tags": ["kubernetes", "deployments", "replicas"]
+}

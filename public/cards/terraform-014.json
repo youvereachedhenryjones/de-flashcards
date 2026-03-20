@@ -1,0 +1,7 @@
+{
+  "id": "terraform-014",
+  "category": "Terraform",
+  "question": "What is Terragrunt and why do DE teams use it?",
+  "answer": "Terragrunt is a thin wrapper around Terraform that adds DRY (Don't Repeat Yourself) features: automatic remote state config, environment-based overrides, and dependency management between modules. Instead of duplicating backend config across 10 environment folders, Terragrunt reads a root terragrunt.hcl and generates the backend block. It's especially useful for managing multi-account DE platforms with dozens of modules.",
+  "tags": ["terraform", "terragrunt", "iac"]
+}

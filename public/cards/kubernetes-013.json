@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-013",
+  "category": "Kubernetes",
+  "question": "How does the Airflow KubernetesExecutor work and what are its advantages?",
+  "answer": "With KubernetesExecutor, Airflow spawns a fresh Pod for each task instance and tears it down on completion -- no persistent worker Pods. Configuration lives in the executor_config parameter per task, allowing different images, resources, and environment variables per task. Advantages: true isolation (no shared dependencies between tasks), auto-scaling to zero between runs, and direct K8s resource limits per task. Trade-off: Pod startup overhead (5-30s) means it's less ideal for thousands of tiny tasks.",
+  "tags": ["kubernetes", "airflow", "executor", "data-engineering"]
+}

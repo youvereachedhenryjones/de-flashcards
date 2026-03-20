@@ -1,0 +1,7 @@
+{
+  "id": "terraform-001",
+  "category": "Terraform",
+  "question": "What is a Terraform provider and how do you configure one?",
+  "answer": "A provider is a plugin that lets Terraform manage a specific platform's resources (AWS, GCP, Snowflake, etc.). You declare it in a required_providers block with source and version constraints, then configure it with credentials and region. Pro tip: pin provider versions with ~> to get patch updates without unexpected breaking changes.",
+  "tags": ["terraform", "provider", "iac"]
+}

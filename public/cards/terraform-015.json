@@ -1,0 +1,7 @@
+{
+  "id": "terraform-015",
+  "category": "Terraform",
+  "question": "How do you manage secrets in Terraform without storing them in state or code?",
+  "answer": "Never put secrets directly in .tf files or pass them via -var flags (they appear in logs). Two patterns: (1) Use AWS SSM Parameter Store or Secrets Manager and fetch at deploy time with a data source. (2) Use HashiCorp Vault with the Vault provider to generate dynamic credentials. The state file still contains sensitive outputs in plaintext, so encrypt it at rest using S3 SSE and restrict access via bucket policy and IAM.",
+  "tags": ["terraform", "secrets", "security", "vault"]
+}

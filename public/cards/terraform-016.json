@@ -1,0 +1,7 @@
+{
+  "id": "terraform-016",
+  "category": "Terraform",
+  "question": "How do you implement Terraform in a CI/CD pipeline with GitHub Actions?",
+  "answer": "Typical pattern: on PR, run `terraform fmt -check`, `terraform validate`, and `terraform plan`, posting the plan output as a PR comment. On merge to main, run `terraform apply -auto-approve`. Use OIDC (not static keys) to authenticate GitHub Actions to AWS: configure an IAM OIDC identity provider, then `aws-actions/configure-aws-credentials` with `role-to-assume`. This avoids long-lived credentials in GitHub secrets.",
+  "tags": ["terraform", "cicd", "github-actions"]
+}

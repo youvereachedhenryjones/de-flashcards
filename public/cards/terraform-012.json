@@ -1,0 +1,7 @@
+{
+  "id": "terraform-012",
+  "category": "Terraform",
+  "question": "What is the difference between `for_each` and `count` in Terraform?",
+  "answer": "`count` creates N copies of a resource indexed by number (0, 1, 2...). `for_each` creates copies keyed by a map or set of strings, making each instance addressable by name. For DE infrastructure, prefer `for_each` when creating per-team S3 buckets or per-environment IAM roles -- removing one item from the middle of a count list renumbers all subsequent resources and triggers unnecessary destroys.",
+  "tags": ["terraform", "for-each", "count", "loops"]
+}

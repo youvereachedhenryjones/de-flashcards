@@ -1,0 +1,7 @@
+{
+  "id": "terraform-005",
+  "category": "Terraform",
+  "question": "What is the difference between `terraform apply` and `terraform destroy`?",
+  "answer": "`terraform apply` creates or updates infrastructure to match your configuration. `terraform destroy` tears down everything Terraform manages in the current state. For DE environments, use `destroy` carefully with targeted flags (`-target=module.dev_cluster`) to avoid wiping production data stores. A common pattern is separate state files per environment so a destroy in dev never touches prod.",
+  "tags": ["terraform", "apply", "destroy"]
+}

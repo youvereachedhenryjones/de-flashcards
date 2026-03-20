@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-010",
+  "category": "Kubernetes",
+  "question": "What is Helm and why do data engineering teams use it?",
+  "answer": "Helm is the package manager for Kubernetes -- it bundles K8s manifests into Charts that can be versioned, shared, and deployed with a single command. `helm install airflow apache-airflow/airflow -f values.yaml` deploys Airflow with your custom config. DE teams use Helm to standardize deployments of Airflow, Spark Operator, Kafka, and monitoring stacks. Use `helm upgrade --install` for idempotent CI/CD deploys.",
+  "tags": ["kubernetes", "helm", "packaging"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "terraform-020",
+  "category": "Terraform",
+  "question": "How do you structure a Terraform repository for a data engineering team with multiple environments?",
+  "answer": "Common pattern: a modules/ directory with reusable building blocks (vpc, rds, s3-data-lake, emr-cluster) and an environments/ directory with dev/, staging/, prod/ subdirectories each containing main.tf that calls modules with environment-specific vars. Use a shared remote state backend and separate state files per environment. Terragrunt can automate the backend config boilerplate. Keep modules versioned in Git tags so environments can pin to specific versions.",
+  "tags": ["terraform", "structure", "modules", "environments"]
+}

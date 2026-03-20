@@ -1,0 +1,7 @@
+{
+  "id": "terraform-010",
+  "category": "Terraform",
+  "question": "What are Terraform data sources and how do you use them?",
+  "answer": "Data sources let you fetch read-only information about existing infrastructure that Terraform doesn't manage. Use a data block: `data \"aws_vpc\" \"main\" { tags = { Name = \"prod\" } }` then reference it as `data.aws_vpc.main.id`. Essential for DE pipelines that need to look up VPC IDs, AMIs, or IAM role ARNs without hardcoding values that differ across environments.",
+  "tags": ["terraform", "data-sources", "iac"]
+}

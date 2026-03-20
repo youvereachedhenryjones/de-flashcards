@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-017",
+  "category": "Kubernetes",
+  "question": "What is the difference between a rolling update and blue-green deployment in Kubernetes?",
+  "answer": "Rolling updates (Deployment default) gradually replace old Pods with new ones -- zero downtime but both versions run simultaneously during the transition, which can cause issues with schema migrations. Blue-green swaps all traffic at once by pointing the Service selector to the new Deployment after it's fully ready. For data platform components with DB migrations (Airflow, Dagster), blue-green is safer. Control rolling update speed with `maxSurge` and `maxUnavailable`.",
+  "tags": ["kubernetes", "deployments", "blue-green", "rolling-update"]
+}

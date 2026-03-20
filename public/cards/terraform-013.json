@@ -1,0 +1,7 @@
+{
+  "id": "terraform-013",
+  "category": "Terraform",
+  "question": "What are dynamic blocks in Terraform and when do you need them?",
+  "answer": "Dynamic blocks let you generate repeated nested configuration blocks (like ingress rules or tags) programmatically using for_each. Without them, you'd have to hardcode every ingress rule on a security group. Example: `dynamic \"ingress\" { for_each = var.allowed_ports content { from_port = ingress.value to_port = ingress.value protocol = \"tcp\" cidr_blocks = [\"0.0.0.0/0\"] } }`. Use them to avoid copy-paste repetition in security groups, ECS task definitions, or Glue job configurations.",
+  "tags": ["terraform", "dynamic-blocks", "iac"]
+}

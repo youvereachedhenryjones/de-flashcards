@@ -1,0 +1,7 @@
+{
+  "id": "terraform-006",
+  "category": "Terraform",
+  "question": "What are Terraform workspaces and when should you use them?",
+  "answer": "Workspaces let you maintain multiple state files from the same configuration, commonly used to separate dev/staging/prod environments. Switch with `terraform workspace select prod`. The current workspace is available as `terraform.workspace` inside configs. Limitation: all workspaces share the same backend bucket, so many teams prefer separate backend configs per environment for stronger isolation.",
+  "tags": ["terraform", "workspaces", "environments"]
+}

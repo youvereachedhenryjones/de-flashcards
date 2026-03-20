@@ -1,0 +1,7 @@
+{
+  "id": "terraform-009",
+  "category": "Terraform",
+  "question": "How do you import existing infrastructure into Terraform state?",
+  "answer": "`terraform import <resource_type>.<name> <real_world_id>` maps an existing resource into Terraform state without re-creating it. For example, `terraform import aws_s3_bucket.data_lake my-existing-bucket`. After import, run `plan` to see any config drift. Terraform 1.5+ adds an import block for declarative imports that work in CI pipelines without manual CLI commands.",
+  "tags": ["terraform", "import", "state"]
+}

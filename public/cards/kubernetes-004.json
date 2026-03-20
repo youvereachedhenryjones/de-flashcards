@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-004",
+  "category": "Kubernetes",
+  "question": "What is the difference between Kubernetes ConfigMaps and Secrets?",
+  "answer": "ConfigMaps store non-sensitive configuration (env vars, config files, connection strings without passwords) as key-value pairs. Secrets store sensitive data (passwords, tokens, keys) base64-encoded and can be restricted via RBAC. Mount both as environment variables or files in a Pod. Pro tip: base64 is NOT encryption -- always enable envelope encryption for Secrets at rest using AWS KMS or similar, especially for DE workloads handling database credentials.",
+  "tags": ["kubernetes", "configmaps", "secrets", "security"]
+}

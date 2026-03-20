@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-005",
+  "category": "Kubernetes",
+  "question": "What are PersistentVolumes and PersistentVolumeClaims in Kubernetes?",
+  "answer": "A PersistentVolume (PV) is a piece of storage provisioned by an admin or dynamically via a StorageClass. A PersistentVolumeClaim (PVC) is a request for storage by a Pod -- it binds to a PV matching its size and access mode requirements. For DE workloads, use PVCs when running stateful services like Airflow's database or a local Kafka broker. For Spark, prefer S3/GCS over PVCs to avoid node affinity constraints.",
+  "tags": ["kubernetes", "storage", "pvc", "pv"]
+}

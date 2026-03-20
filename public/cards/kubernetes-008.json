@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-008",
+  "category": "Kubernetes",
+  "question": "What is the Kubernetes Horizontal Pod Autoscaler (HPA) and when is it useful for DE?",
+  "answer": "HPA automatically scales the number of Pod replicas based on metrics like CPU utilization, memory, or custom metrics (e.g., Kafka consumer lag via KEDA). Configure with: `kubectl autoscale deployment my-service --cpu-percent=70 --min=2 --max=20`. For DE, HPA is useful for API servers or stream processors that see variable load, but NOT for batch Spark jobs where you want fixed resources per job rather than autoscaling a long-running service.",
+  "tags": ["kubernetes", "hpa", "autoscaling"]
+}

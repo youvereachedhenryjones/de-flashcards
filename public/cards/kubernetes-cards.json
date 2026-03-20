@@ -1,0 +1,28 @@
+{
+  "id": "kubernetes",
+  "name": "Kubernetes for Data Engineers",
+  "description": "K8s concepts for orchestrating data workloads",
+  "icon": "⚙️",
+  "cards": [
+    "kubernetes-001",
+    "kubernetes-002",
+    "kubernetes-003",
+    "kubernetes-004",
+    "kubernetes-005",
+    "kubernetes-006",
+    "kubernetes-007",
+    "kubernetes-008",
+    "kubernetes-009",
+    "kubernetes-010",
+    "kubernetes-011",
+    "kubernetes-012",
+    "kubernetes-013",
+    "kubernetes-014",
+    "kubernetes-015",
+    "kubernetes-016",
+    "kubernetes-017",
+    "kubernetes-018",
+    "kubernetes-019",
+    "kubernetes-020"
+  ]
+}

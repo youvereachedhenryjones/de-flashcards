@@ -1,0 +1,7 @@
+{
+  "id": "terraform-018",
+  "category": "Terraform",
+  "question": "What is Terraform state locking and what happens if a lock gets stuck?",
+  "answer": "State locking prevents concurrent applies that could corrupt state. With an S3 + DynamoDB backend, Terraform writes a lock entry to DynamoDB at the start of plan/apply and deletes it when done. If a process crashes mid-run, the lock stays. You can force-unlock with `terraform force-unlock <lock-id>` (get the ID from the DynamoDB table or the error message). Always verify no other apply is running before force-unlocking.",
+  "tags": ["terraform", "state-locking", "dynamodb"]
+}

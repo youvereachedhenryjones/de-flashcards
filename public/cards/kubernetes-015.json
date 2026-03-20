@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-015",
+  "category": "Kubernetes",
+  "question": "What is a Kubernetes Ingress and how do you use it to expose data platform UIs?",
+  "answer": "Ingress is an API object that manages external HTTP/HTTPS access to Services, typically via an Ingress Controller (nginx, AWS ALB). It routes traffic by hostname or path: `airflow.data.mycompany.com -> airflow-service:8080`. For DE platforms, use Ingress to expose Airflow, Spark History Server, Trino UI, and Grafana under a single load balancer with TLS termination. Add annotations for SSL redirect and auth (oauth2-proxy for SSO).",
+  "tags": ["kubernetes", "ingress", "networking"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-019",
+  "category": "Kubernetes",
+  "question": "What are node selectors and tolerations in Kubernetes and how do you use them for memory-heavy data workloads?",
+  "answer": "Node selectors constrain Pods to run only on nodes with matching labels: `nodeSelector: node-type: memory-optimized`. Tolerations allow Pods to schedule on tainted nodes -- useful for dedicated high-memory or GPU node pools that repel general workloads. Pattern: taint a node pool `kubectl taint nodes <node> dedicated=spark:NoSchedule`, then add a matching toleration to Spark executor Pods. This reserves expensive nodes for Spark/ML while general services run on cheaper nodes.",
+  "tags": ["kubernetes", "node-selectors", "tolerations", "scheduling"]
+}

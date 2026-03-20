@@ -1,0 +1,7 @@
+{
+  "id": "terraform-004",
+  "category": "Terraform",
+  "question": "What does `terraform plan` do and when should you always run it?",
+  "answer": "`terraform plan` shows exactly what Terraform will create, modify, or destroy without making any changes. Always run it before `apply` in CI/CD pipelines and before any production change. The output marks additions with +, destructions with -, and in-place updates with ~. A forced-replacement (destroy + recreate) shows -/+, which is a red flag for stateful DE resources like RDS or Redshift.",
+  "tags": ["terraform", "plan", "iac"]
+}

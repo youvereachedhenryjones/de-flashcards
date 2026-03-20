@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-009",
+  "category": "Kubernetes",
+  "question": "What are Kubernetes Jobs and CronJobs and how do they relate to batch DE workloads?",
+  "answer": "A Job runs one or more Pods to completion -- ideal for batch ETL tasks, data migrations, or one-time transformations. A CronJob creates Jobs on a schedule (standard cron syntax). For DE, CronJobs replace traditional cron-on-server patterns with retries, parallelism, and observability built in. Key settings: `backoffLimit` (retry count), `concurrencyPolicy` (Allow/Forbid/Replace), and `successfulJobsHistoryLimit` to control log retention.",
+  "tags": ["kubernetes", "jobs", "cronjobs", "batch"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-014",
+  "category": "Kubernetes",
+  "question": "How do you deploy Dagster on Kubernetes and what is the user-code deployment pattern?",
+  "answer": "Dagster on K8s uses the Dagster Helm chart, which deploys dagster-webserver, dagster-daemon, and a PostgreSQL instance. The key pattern is user-code deployments: your pipeline code runs in separate Pods (one per code location), fully isolated from the core Dagster services. Update pipeline code by pushing a new image and doing a rolling restart of only that user-code Deployment -- no downtime to the webserver. The K8s run launcher spawns a new Pod per pipeline run.",
+  "tags": ["kubernetes", "dagster", "deployments", "data-engineering"]
+}

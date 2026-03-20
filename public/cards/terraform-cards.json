@@ -1,0 +1,28 @@
+{
+  "id": "terraform",
+  "name": "Terraform & IaC",
+  "description": "Infrastructure as Code for Data Engineers",
+  "icon": "🏗️",
+  "cards": [
+    "terraform-001",
+    "terraform-002",
+    "terraform-003",
+    "terraform-004",
+    "terraform-005",
+    "terraform-006",
+    "terraform-007",
+    "terraform-008",
+    "terraform-009",
+    "terraform-010",
+    "terraform-011",
+    "terraform-012",
+    "terraform-013",
+    "terraform-014",
+    "terraform-015",
+    "terraform-016",
+    "terraform-017",
+    "terraform-018",
+    "terraform-019",
+    "terraform-020"
+  ]
+}

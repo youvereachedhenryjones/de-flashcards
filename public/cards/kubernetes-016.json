@@ -1,0 +1,7 @@
+{
+  "id": "kubernetes-016",
+  "category": "Kubernetes",
+  "question": "What are liveness and readiness probes in Kubernetes and why do they matter for data services?",
+  "answer": "Liveness probes detect if a container is stuck and needs restarting (checks if the process is alive). Readiness probes detect if a container is ready to serve traffic -- K8s removes the Pod from Service endpoints until it passes. For Airflow webserver, a failing readiness probe prevents traffic from routing to a Pod still loading DAGs. For Spark drivers, misconfigured probes can cause premature restarts mid-job. Always configure both with appropriate initialDelaySeconds for slow-starting data apps.",
+  "tags": ["kubernetes", "probes", "health-checks"]
+}

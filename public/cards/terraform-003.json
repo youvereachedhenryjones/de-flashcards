@@ -1,0 +1,7 @@
+{
+  "id": "terraform-003",
+  "category": "Terraform",
+  "question": "How do you configure remote state in Terraform using S3 and DynamoDB?",
+  "answer": "Declare a backend block with type s3, specifying bucket, key (path), region, and dynamodb_table for state locking. DynamoDB prevents two engineers from running apply simultaneously, which could corrupt state. Example: `terraform { backend \"s3\" { bucket = \"my-tf-state\" key = \"prod/data-infra.tfstate\" region = \"us-east-1\" dynamodb_table = \"tf-state-lock\" } }`. The DynamoDB table needs a partition key named LockID (String).",
+  "tags": ["terraform", "remote-state", "s3", "dynamodb"]
+}
