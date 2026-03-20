@@ -1,0 +1,13 @@
+{
+  "id": "python-035",
+  "category": "Python for DE",
+  "question": "How do you implement data quality assertions with pandera and great_expectations?",
+  "answer": "pandera: lightweight DataFrame validation for pandas/Polars\n\n  import pandera as pa\n  from pandera import Column, DataFrameSchema, Check\n\n  schema = DataFrameSchema(\n      columns={\n          'user_id': Column(int, nullable=False, unique=False),\n          'revenue': Column(float, checks=[\n              Check.ge(0),         # >= 0\n              Check.le(1_000_000)  # <= 1M\n          ]),\n          'region': Column(str, checks=Check.isin(['US', 'EU', 'APAC'])),\n          'created_at': Column('datetime64[ns]', nullable=False)\n      },\n      checks=[\n          Check(lambda df: df['revenue'].notna().mean() > 0.95, error='Revenue null rate > 5%')\n      ]\n  )\n  validated = schema.validate(df)  # raises SchemaError with field-level details\n\npandera as decorator:\n  @pa.check_input(schema)\n  def process(df: pd.DataFrame) -> pd.DataFrame: ...\n\ngreat_expectations: enterprise-grade, config-driven DQ framework\n\n  import great_expectations as gx\n  context = gx.get_context()\n  validator = context.sources.pandas_default.read_dataframe(df)\n  validator.expect_column_values_to_not_be_null('user_id')\n  validator.expect_column_values_to_be_between('revenue', min_value=0)\n  validator.expect_column_values_to_be_in_set('region', ['US', 'EU', 'APAC'])\n  results = validator.validate()\n  print(results['success'])  # True/False\n\nWhen to use which:\n- pandera: fast setup, Pythonic, great for unit tests and pipeline assertions\n- great_expectations: full DQ platform with HTML reports, data docs, checkpoints, CI integration",
+  "tags": [
+    "python",
+    "pandera",
+    "great-expectations",
+    "data-quality",
+    "testing"
+  ]
+}

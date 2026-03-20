@@ -1,0 +1,14 @@
+{
+  "id": "python-029",
+  "category": "Python for DE",
+  "question": "JSON vs Parquet vs Avro vs ORC: when do you use each format in data engineering?",
+  "answer": "JSON:\n- Human-readable, schema-flexible, universal compatibility\n- Verbose (no compression, no columnar storage), slow to parse at scale\n- Use for: API responses, configuration files, small event payloads, inter-service messages\n- Avoid for: analytical queries, large-scale storage, data lakes\n\nParquet:\n- Columnar, binary, highly compressed (Snappy/ZSTD), schema-embedded\n- Excellent for analytical reads (only reads needed columns)\n- Good for: data lakes (S3/GCS), Spark/Trino/BigQuery, long-term storage\n- Write-once, read-many pattern. Poor for frequent small appends\n\nAvro:\n- Row-based, binary, schema stored in file header (schema evolution friendly)\n- Excellent for streaming (Kafka messages): compact, fast serialization\n- Schema registry integration for Kafka pipelines\n- Use for: Kafka event streaming, Hadoop HDFS ingestion, CDC events\n\nORC:\n- Columnar, binary, Hive-native, excellent compression with ACID support\n- Best for: Hive workloads, transactional data in Hadoop/HDFS ecosystems\n- Less common outside Hive; prefer Parquet for Spark and modern lake formats\n\nRule of thumb:\n- Kafka messages: Avro or JSON\n- Data lake storage: Parquet (or Delta/Iceberg over Parquet)\n- Hive with ACID: ORC\n- Config and APIs: JSON",
+  "tags": [
+    "python",
+    "parquet",
+    "avro",
+    "orc",
+    "json",
+    "data-formats"
+  ]
+}

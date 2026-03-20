@@ -1,0 +1,11 @@
+{
+  "id": "python-025",
+  "category": "Python for DE",
+  "question": "What are the key differences between pathlib and os.path, and what are the essential pathlib patterns for DE scripts?",
+  "answer": "pathlib.Path (Python 3.4+) is the modern object-oriented path API. os.path is the older string-based API.\n\nKey pathlib patterns:\n  from pathlib import Path\n\n  # Construction and joining (use / operator):\n  base = Path('/data/raw')\n  file_path = base / 'events' / '2024-01-01.parquet'\n\n  # Properties:\n  file_path.name         # '2024-01-01.parquet'\n  file_path.stem         # '2024-01-01'\n  file_path.suffix       # '.parquet'\n  file_path.parent       # Path('/data/raw/events')\n\n  # Checks:\n  file_path.exists()     # True/False\n  file_path.is_file()    # True if file\n  file_path.is_dir()     # True if directory\n\n  # Creating directories:\n  Path('/data/processed').mkdir(parents=True, exist_ok=True)\n\n  # Globbing:\n  list(Path('/data').glob('*.parquet'))       # non-recursive\n  list(Path('/data').rglob('**/*.json'))      # recursive\n\n  # Reading/writing:\n  text = Path('config.yaml').read_text(encoding='utf-8')\n  Path('output.txt').write_text(result)\n\n  # Converting:\n  str(file_path)                             # back to string for libraries needing strings\n\nWhen to use os.path: os.environ for env vars; shutil for copy/move/rmtree. Otherwise default to pathlib.",
+  "tags": [
+    "python",
+    "pathlib",
+    "file-handling"
+  ]
+}

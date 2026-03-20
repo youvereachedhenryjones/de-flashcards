@@ -1,0 +1,12 @@
+{
+  "id": "python-004",
+  "category": "Python for DE",
+  "question": "What is the difference between pandas pivot_table and crosstab, and when do you use each?",
+  "answer": "pivot_table reshapes a DataFrame by aggregating values:\n  pd.pivot_table(\n      df,\n      values='revenue',\n      index='region',\n      columns='product',\n      aggfunc='sum',\n      fill_value=0\n  )\n- Works on any numeric column with any aggregation function\n- Can aggregate (no need for unique index/column combinations)\n- Supports multiple value columns and multiple aggfuncs\n\ncrosstab computes a frequency table (counts by default):\n  pd.crosstab(df['region'], df['product'])            # frequency counts\n  pd.crosstab(df['region'], df['product'], normalize='index')  # row percentages\n- Primarily for counting co-occurrences (contingency tables)\n- Supports normalize to get proportions (row/column/all)\n- More concise for pure frequency analysis\n\nKey difference: pivot_table is for aggregating any metric; crosstab is optimized for counting and frequency analysis. Both return a DataFrame with hierarchical index.",
+  "tags": [
+    "python",
+    "pandas",
+    "pivot",
+    "reshape"
+  ]
+}

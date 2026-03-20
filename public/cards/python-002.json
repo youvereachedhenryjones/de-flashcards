@@ -1,0 +1,12 @@
+{
+  "id": "python-002",
+  "category": "Python for DE",
+  "question": "What are the key pandas groupby + agg patterns a data engineer must know?",
+  "answer": "Basic multi-column agg:\n  df.groupby('region').agg({'revenue': 'sum', 'orders': 'count'})\n\nNamed aggregations (preferred, pandas 0.25+):\n  df.groupby('region').agg(\n      total_rev=('revenue', 'sum'),\n      n_orders=('order_id', 'nunique'),\n      avg_val=('order_value', 'mean')\n  )\n\nMulti-level groupby:\n  df.groupby(['region', 'product'])['revenue'].sum()\n\ntransform() returns a same-size Series (adds group stats back to rows):\n  df['pct_of_region'] = df['revenue'] / df.groupby('region')['revenue'].transform('sum')\n\nfilter() drops entire groups not meeting a condition:\n  df.groupby('user')['orders'].filter(lambda g: g.sum() > 10)\n\nPerformance: groupby + agg with built-in functions (sum, mean, count) is vectorized and fast. groupby + apply() with a custom function is slow (Python loop per group). For large DataFrames, prefer DuckDB or Polars for groupby-heavy workloads.",
+  "tags": [
+    "python",
+    "pandas",
+    "groupby",
+    "aggregation"
+  ]
+}

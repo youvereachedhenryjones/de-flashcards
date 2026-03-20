@@ -1,0 +1,13 @@
+{
+  "id": "python-012",
+  "category": "Python for DE",
+  "question": "What is the difference between RDD, DataFrame, and Dataset APIs in PySpark?",
+  "answer": "RDD (Resilient Distributed Dataset):\n- Low-level API, distributed collection of JVM objects\n- No schema, no query optimizer\n- Full flexibility but verbose and slow (Python serialization overhead)\n- Use case: unstructured data, custom partitioning logic, legacy code\n  rdd = sc.parallelize([1, 2, 3]).map(lambda x: x * 2)\n\nDataFrame:\n- Distributed table with named columns and schema (like a SQL table)\n- Powered by Catalyst optimizer and Tungsten execution engine\n- Python, Scala, Java, R APIs all compile to the same execution plan\n- Default choice for all structured/semi-structured data\n  df = spark.read.parquet('s3://bucket/data')\n  df.select('col1').filter('col2 > 10').groupBy('col3').count()\n\nDataset:\n- Typed DataFrame (strongly typed API) available in Scala/Java only\n- Python does not have Dataset API (Python is dynamically typed)\n- Python DataFrames are equivalent to Dataset[Row] under the hood\n\nRule of thumb: always use DataFrame API in Python. Avoid RDDs unless you have a specific need (custom partitioner, non-tabular data). Never use Python UDFs when DataFrame operations suffice.",
+  "tags": [
+    "python",
+    "pyspark",
+    "rdd",
+    "dataframe",
+    "api"
+  ]
+}

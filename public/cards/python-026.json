@@ -1,0 +1,12 @@
+{
+  "id": "python-026",
+  "category": "Python for DE",
+  "question": "What are Python logging best practices for data pipelines?",
+  "answer": "Never use print() in production pipelines. Use the logging module for level control, timestamps, structured output, and compatibility with log aggregators.\n\nBasic setup:\n  import logging\n  logging.basicConfig(\n      level=logging.INFO,\n      format='%(asctime)s %(name)s %(levelname)s %(message)s',\n      datefmt='%Y-%m-%dT%H:%M:%S'\n  )\n  logger = logging.getLogger(__name__)  # one logger per module\n\nKey practices:\n1. Use lazy formatting: logger.info('Processing %d rows', n)\n   NOT: logger.info(f'Processing {n} rows')  # f-string evaluates even if level is disabled\n2. Log at appropriate levels:\n   DEBUG: per-row/per-record details (disabled in prod)\n   INFO: pipeline milestones (start, end, counts)\n   WARNING: unexpected but recoverable (null values, schema mismatches)\n   ERROR: failures that need attention\n   CRITICAL: system-level failures\n3. Include context in log messages: table name, batch ID, row count\n4. For cloud/container environments, use python-json-logger for structured JSON logs:\n   from pythonjsonlogger import jsonlogger  # logs as JSON for Datadog/CloudWatch\n5. In Airflow: use task.log instead of the root logger\n6. Propagate=False on noisy libraries: logging.getLogger('boto3').setLevel(logging.WARNING)",
+  "tags": [
+    "python",
+    "logging",
+    "pipeline",
+    "best-practices"
+  ]
+}

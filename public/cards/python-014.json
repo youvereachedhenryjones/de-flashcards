@@ -1,0 +1,12 @@
+{
+  "id": "python-014",
+  "category": "Python for DE",
+  "question": "What are the core PySpark DataFrame operations: select, filter, withColumn, groupBy, and agg?",
+  "answer": "from pyspark.sql import functions as F\n\nselect: choose and transform columns\n  df.select('col1', 'col2')\n  df.select(F.col('price') * 1.1, F.col('name').alias('customer'))\n\nfilter (alias: where): row filtering\n  df.filter(F.col('revenue') > 1000)\n  df.filter(\"status = 'active' AND region = 'US'\")\n  df.filter(F.col('col').isNotNull())\n\nwithColumn: add or replace a column\n  df.withColumn('tax', F.col('revenue') * 0.08)\n  df.withColumn('name_upper', F.upper(F.col('name')))\n  df.withColumn('bucket', F.when(F.col('score') > 90, 'A').otherwise('B'))\n\ngroupBy + agg:\n  df.groupBy('region').agg(\n      F.sum('revenue').alias('total_rev'),\n      F.countDistinct('user_id').alias('unique_users'),\n      F.avg('order_value').alias('avg_order')\n  )\n\nKey functions: F.sum, F.count, F.avg, F.min, F.max, F.countDistinct, F.collect_list, F.collect_set, F.first, F.last\n\nAvoid chaining multiple withColumn calls (creates many plan nodes). Prefer df.select() with expressions or withColumns() (PySpark 3.3+) for multiple column additions.",
+  "tags": [
+    "python",
+    "pyspark",
+    "dataframe",
+    "operations"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "python-009",
+  "category": "Python for DE",
+  "question": "What is the pandas chained assignment warning and when do you need .copy()?",
+  "answer": "Chained assignment occurs when you index a DataFrame twice in one expression:\n  df[df['status'] == 'active']['revenue'] = 0   # WRONG: SettingWithCopyWarning\n\nThis fails because the first index (df[df['status'] == 'active']) may return a COPY, not a view. The assignment goes to the copy, not the original DataFrame.\n\nCorrect patterns:\n  # Use .loc for single-step conditional assignment:\n  df.loc[df['status'] == 'active', 'revenue'] = 0    # correct\n\n  # Use .copy() when you intentionally want a separate DataFrame:\n  active_df = df[df['status'] == 'active'].copy()    # explicit copy\n  active_df['revenue'] = 0   # modifies only active_df, not df\n\nWhen .copy() is required:\n- When you filter a DataFrame and plan to modify the result\n- To avoid modifying the original when that would be unexpected\n- When passing a slice to a function that will modify it\n\nPandas 3.0 (Copy-on-Write): CoW makes slices always return copies; the warning becomes obsolete but .copy() pattern remains good practice for explicitness.",
+  "tags": [
+    "python",
+    "pandas",
+    "copy",
+    "indexing"
+  ]
+}

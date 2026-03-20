@@ -1,0 +1,12 @@
+{
+  "id": "python-015",
+  "category": "Python for DE",
+  "question": "What are the join types in PySpark and how does the broadcast join hint work?",
+  "answer": "PySpark join types:\n  df1.join(df2, on='key', how='inner')   # default\n  df1.join(df2, on='key', how='left')\n  df1.join(df2, on='key', how='right')\n  df1.join(df2, on='key', how='outer')   # full outer\n  df1.join(df2, on='key', how='semi')    # left semi: only left rows with a match\n  df1.join(df2, on='key', how='anti')    # left anti: only left rows WITHOUT a match\n  df1.join(df2, on='key', how='cross')   # cartesian product (no key)\n\nMultiple join keys:\n  df1.join(df2, on=['user_id', 'date'], how='inner')\n\nBroadcast join hint:\nWhen one side is small (<= spark.sql.autoBroadcastJoinThreshold, default 10MB), Spark auto-broadcasts. Force it:\n  from pyspark.sql.functions import broadcast\n  df_large.join(broadcast(df_small), on='key', how='inner')\n\nWhy broadcast joins matter:\n- Avoids shuffle (most expensive Spark operation)\n- Small table sent to ALL executors and stored in memory\n- Dramatically faster when one DataFrame fits in executor memory\n- AQE can auto-detect and broadcast at runtime if adaptive.enabled=true\n\nCommon pitfall: joining on different column types (e.g., string vs int key) silently produces no matches.",
+  "tags": [
+    "python",
+    "pyspark",
+    "join",
+    "broadcast"
+  ]
+}

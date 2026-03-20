@@ -1,0 +1,12 @@
+{
+  "id": "python-005",
+  "category": "Python for DE",
+  "question": "When should you use pandas apply() vs vectorized operations, and why does it matter for performance?",
+  "answer": "Vectorized operations run in C/NumPy and operate on entire columns at once. apply() runs a Python function row-by-row or element-by-element in a Python loop.\n\nVectorized (fast):\n  df['full_name'] = df['first'] + ' ' + df['last']     # string concat\n  df['tax'] = df['revenue'] * 0.08                      # arithmetic\n  df['upper'] = df['name'].str.upper()                   # .str accessor\n  df['date'] = pd.to_datetime(df['date_str'])            # .dt accessor\n\napply() (slow, avoid unless necessary):\n  df['result'] = df['col'].apply(lambda x: complex_logic(x))  # Python loop\n\nPerformance gap: vectorized ops are typically 10-100x faster than apply(). For a 1M-row DataFrame, apply() may take seconds; vectorized ops take milliseconds.\n\nWhen apply() is acceptable:\n- Complex row-wise logic that genuinely cannot be vectorized\n- Prototype code before optimization\n- When correctness matters more than speed on small DataFrames\n\nAlways try: df.assign(), .str methods, .dt methods, np.where(), np.select() before reaching for apply().",
+  "tags": [
+    "python",
+    "pandas",
+    "performance",
+    "vectorization"
+  ]
+}

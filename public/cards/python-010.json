@@ -1,0 +1,12 @@
+{
+  "id": "python-010",
+  "category": "Python for DE",
+  "question": "How do you handle missing data in pandas: fillna, dropna, and interpolate?",
+  "answer": "Detecting nulls:\n  df.isna().sum()           # null count per column\n  df.isna().any(axis=1)     # rows with any null\n\ndropna():\n  df.dropna()                          # drop rows with any null\n  df.dropna(subset=['id', 'revenue'])  # drop rows with nulls in specific columns\n  df.dropna(thresh=5)                  # keep rows with at least 5 non-null values\n  df.dropna(axis=1)                    # drop columns with any null\n\nfillna():\n  df['col'].fillna(0)                  # fill with constant\n  df['col'].fillna(df['col'].mean())   # fill with column mean\n  df['col'].fillna(method='ffill')     # forward fill (propagate last valid value)\n  df['col'].fillna(method='bfill')     # backward fill\n  df.fillna({'col1': 0, 'col2': 'unknown'})  # per-column fill values\n\ninterpolate() for numeric time series:\n  df['price'].interpolate(method='linear')   # linear interpolation\n  df['price'].interpolate(method='time')     # time-weighted (needs DatetimeIndex)\n\nDE best practice: understand WHY values are null before filling. Filling revenue with 0 vs mean has very different business implications. Document null handling decisions in pipeline code.",
+  "tags": [
+    "python",
+    "pandas",
+    "missing-data",
+    "null"
+  ]
+}

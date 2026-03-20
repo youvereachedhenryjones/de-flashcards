@@ -1,0 +1,12 @@
+{
+  "id": "python-007",
+  "category": "Python for DE",
+  "question": "How do you handle datetime data in pandas: pd.to_datetime, the dt accessor, and resample?",
+  "answer": "Parsing datetimes:\n  df['ts'] = pd.to_datetime(df['ts_str'])                  # auto-detect format\n  df['ts'] = pd.to_datetime(df['ts_str'], format='%Y-%m-%d %H:%M:%S')  # explicit (faster)\n  df['ts'] = pd.to_datetime(df['ts_ms'], unit='ms')        # from epoch milliseconds\n  df['ts'] = pd.to_datetime(df['ts_str'], utc=True)        # timezone-aware\n\ndt accessor for component extraction:\n  df['ts'].dt.year, .dt.month, .dt.day\n  df['ts'].dt.hour, .dt.minute\n  df['ts'].dt.dayofweek     # 0=Monday\n  df['ts'].dt.date          # Python date objects\n  df['ts'].dt.tz_convert('America/New_York')\n\nresample for time-series downsampling/upsampling (requires DatetimeIndex):\n  df.set_index('ts').resample('1H')['revenue'].sum()    # hourly totals\n  df.set_index('ts').resample('1D')['events'].count()   # daily counts\n  df.set_index('ts').resample('1W').agg({'revenue': 'sum', 'orders': 'count'})\n\nCommon pitfall: mixing timezone-aware and timezone-naive datetimes raises TypeError. Use utc=True in read_csv and convert explicitly.",
+  "tags": [
+    "python",
+    "pandas",
+    "datetime",
+    "timeseries"
+  ]
+}

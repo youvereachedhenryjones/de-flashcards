@@ -1,0 +1,11 @@
+{
+  "id": "python-001",
+  "category": "Python for DE",
+  "question": "How do you create a pandas DataFrame and what is the difference between .loc and .iloc for indexing?",
+  "answer": "DataFrame creation: pd.DataFrame({'col1': [1,2,3], 'col2': ['a','b','c']}) from a dict, pd.DataFrame(list_of_dicts), or pd.read_csv/read_parquet.\n\n.loc uses LABEL-based indexing:\n  df.loc[0]           # row with index label 0\n  df.loc[0, 'name']   # row 0, column 'name'\n  df.loc[0:5, 'a':'c'] # label slices (inclusive on both ends)\n\n.iloc uses INTEGER POSITION-based indexing:\n  df.iloc[0]          # first row (position 0)\n  df.iloc[0, 1]       # first row, second column\n  df.iloc[0:5, 0:3]   # positional slices (exclusive end)\n\nKey gotcha: .loc slices are inclusive on both ends; .iloc slices follow standard Python exclusive-end convention. Use .loc when working with named indexes (dates, IDs), .iloc when you need positional access regardless of index labels.",
+  "tags": [
+    "python",
+    "pandas",
+    "indexing"
+  ]
+}

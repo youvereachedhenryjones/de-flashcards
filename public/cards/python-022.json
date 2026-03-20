@@ -1,0 +1,11 @@
+{
+  "id": "python-022",
+  "category": "Python for DE",
+  "question": "How do context managers work in Python and what are the common DE use cases?",
+  "answer": "Context managers implement the with statement protocol, guaranteeing cleanup (close, release, commit) even if an exception occurs.\n\nClass-based implementation:\n  class DBConnection:\n      def __enter__(self):\n          self.conn = create_connection()\n          return self.conn\n      def __exit__(self, exc_type, exc_val, tb):\n          self.conn.close()\n          return False  # False = re-raise exceptions; True = suppress\n\ncontextlib.contextmanager decorator (simpler):\n  from contextlib import contextmanager\n\n  @contextmanager\n  def db_transaction(conn):\n      try:\n          yield conn\n          conn.commit()\n      except Exception:\n          conn.rollback()\n          raise\n\nDE use cases:\n- Database connections and transactions (auto-commit/rollback)\n- Temporary S3 downloads (download -> process -> delete)\n- Acquiring/releasing distributed locks (DynamoDB, Redis)\n- Timed checkpoints (log duration of pipeline stages)\n- Temporary directory creation (tempfile.TemporaryDirectory)\n- Suppressing specific exceptions: contextlib.suppress(FileNotFoundError)\n\nNesting context managers:\n  with open('in.csv') as fin, open('out.csv', 'w') as fout:\n      ...",
+  "tags": [
+    "python",
+    "context-managers",
+    "resource-management"
+  ]
+}

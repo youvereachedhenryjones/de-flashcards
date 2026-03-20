@@ -1,0 +1,13 @@
+{
+  "id": "python-013",
+  "category": "Python for DE",
+  "question": "What is lazy evaluation in Spark and what is the difference between transformations and actions?",
+  "answer": "Lazy evaluation means Spark builds an execution plan but does NOT compute anything until an action is called.\n\nTransformations (lazy, return a new DataFrame/RDD):\n  df.select(), .filter(), .withColumn(), .groupBy(), .join(), .distinct()\n  df.map(), .flatMap(), .union(), .repartition()\n- Spark records these as a DAG (Directed Acyclic Graph) of operations\n- No data is read or computed\n\nActions (trigger computation, return results or write data):\n  df.count()       # returns Int\n  df.collect()     # returns list of Rows to driver (dangerous on large data)\n  df.show(20)      # prints rows\n  df.write.parquet(...)\n  df.take(10)      # returns first N rows\n  df.first()       # returns first Row\n  df.toPandas()    # collects all data to driver as pandas DataFrame\n\nWhy it matters:\n1. You can chain many transformations cheaply; only pay compute on action\n2. Catalyst optimizer sees the full plan before executing\n3. Calling count() twice runs the job twice (no automatic caching)\n4. Use cache()/persist() before multiple actions on the same DataFrame\n5. Each action triggers a new Spark job; minimize actions in loops",
+  "tags": [
+    "python",
+    "pyspark",
+    "lazy-evaluation",
+    "transformations",
+    "actions"
+  ]
+}

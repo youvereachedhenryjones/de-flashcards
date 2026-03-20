@@ -1,0 +1,13 @@
+{
+  "id": "python-006",
+  "category": "Python for DE",
+  "question": "What are the key options for pd.read_csv and pd.read_parquet, and how do you handle chunked reading for large files?",
+  "answer": "pd.read_csv() key options:\n  pd.read_csv(\n      'data.csv',\n      usecols=['id', 'revenue'],     # load only needed columns\n      dtype={'id': 'int32', 'revenue': 'float32'},  # prevent upcasting\n      parse_dates=['created_at'],    # auto-parse date columns\n      na_values=['NULL', 'N/A'],     # custom null markers\n      chunksize=100_000,             # returns iterator, not DataFrame\n      sep='|',                       # delimiter\n      encoding='utf-8',\n      skiprows=1                     # skip header rows\n  )\n\npd.read_parquet() key options:\n  pd.read_parquet(\n      'data.parquet',\n      columns=['id', 'revenue'],    # column pruning (pushed to reader)\n      filters=[('region', '=', 'US')],  # predicate pushdown\n      engine='pyarrow'              # or 'fastparquet'\n  )\n\nChunked reading pattern:\n  for chunk in pd.read_csv('large.csv', chunksize=100_000):\n      results.append(chunk.groupby('user')['rev'].sum())\n  final = pd.concat(results).groupby(level=0).sum()\n\nFor files over 1GB, prefer converting to Parquet first. Parquet with column pruning is dramatically faster than CSV chunking.",
+  "tags": [
+    "python",
+    "pandas",
+    "io",
+    "parquet",
+    "csv"
+  ]
+}

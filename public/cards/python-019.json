@@ -1,0 +1,13 @@
+{
+  "id": "python-019",
+  "category": "Python for DE",
+  "question": "What is the difference between cache() and persist() in PySpark and what are storage levels?",
+  "answer": "Both cache() and persist() store a DataFrame in memory to avoid recomputing it on each action.\n\ncache():\n  df_cached = df.cache()   # shorthand for persist(StorageLevel.MEMORY_AND_DISK)\n  df_cached.count()        # triggers materialization (first action after cache)\n\npersist() with explicit storage level:\n  from pyspark import StorageLevel\n  df.persist(StorageLevel.MEMORY_ONLY)         # fastest, evicts if no room\n  df.persist(StorageLevel.MEMORY_AND_DISK)     # spills to disk if memory full\n  df.persist(StorageLevel.DISK_ONLY)           # always on disk (slow)\n  df.persist(StorageLevel.MEMORY_AND_DISK_SER) # serialized (less memory, more CPU)\n  df.persist(StorageLevel.OFF_HEAP)            # outside JVM heap (Tungsten)\n\nWhen to cache:\n- DataFrame used in multiple actions (count + write + show)\n- DataFrame after an expensive join or aggregation\n- Iterative algorithms (ML, graph processing)\n\nWhen NOT to cache:\n- DataFrames used only once\n- Very large DataFrames that won't fit in memory (causes spill/OOM)\n- Streaming DataFrames\n\nunpersist(): release cache when no longer needed to free memory:\n  df_cached.unpersist()\n\nNote: cache/persist is LAZY -- data is only materialized when the first action is called.",
+  "tags": [
+    "python",
+    "pyspark",
+    "cache",
+    "persist",
+    "storage-levels"
+  ]
+}

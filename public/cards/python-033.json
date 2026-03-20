@@ -1,0 +1,12 @@
+{
+  "id": "python-033",
+  "category": "Python for DE",
+  "question": "How do you use pytest fixtures for testing DataFrame transformations in a DE pipeline?",
+  "answer": "pytest fixtures provide reusable test setup, injected into test functions by name.\n\nBasic DataFrame fixture:\n  import pytest\n  import pandas as pd\n\n  @pytest.fixture\n  def sample_orders():\n      return pd.DataFrame({\n          'order_id': [1, 2, 3, 4],\n          'user_id': [10, 10, 20, 20],\n          'revenue': [100.0, 200.0, 50.0, None],\n          'status': ['active', 'active', 'cancelled', 'active']\n      })\n\nTest using fixture:\n  def test_filter_active(sample_orders):\n      result = filter_active_orders(sample_orders)\n      assert len(result) == 3\n      assert result['status'].unique().tolist() == ['active']\n\n  def test_null_handling(sample_orders):\n      result = fill_nulls(sample_orders)\n      assert result['revenue'].isna().sum() == 0\n\nDataFrame equality assertion:\n  from pandas.testing import assert_frame_equal\n  def test_aggregation(sample_orders):\n      result = aggregate_by_user(sample_orders.dropna())\n      expected = pd.DataFrame({'user_id': [10, 20], 'revenue': [300.0, 50.0]})\n      assert_frame_equal(result.reset_index(drop=True), expected, check_dtype=False)\n\nKey fixture scopes: function (default, fresh per test), class, module, session (once per test session -- use for expensive setup like Spark context).\n\ntmp_path fixture for file I/O tests:\n  def test_write_parquet(sample_orders, tmp_path):\n      output = tmp_path / 'orders.parquet'\n      write_parquet(sample_orders, str(output))\n      assert output.exists()",
+  "tags": [
+    "python",
+    "pytest",
+    "testing",
+    "dataframe"
+  ]
+}

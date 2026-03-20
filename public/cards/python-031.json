@@ -1,0 +1,12 @@
+{
+  "id": "python-031",
+  "category": "Python for DE",
+  "question": "How do you handle schema evolution in Python: pyarrow schema enforcement and pandera validation?",
+  "answer": "Schema evolution = handling changes to data structure over time (new columns, type changes, renamed fields).\n\npyarrow schema enforcement:\n  import pyarrow as pa\n\n  expected_schema = pa.schema([\n      pa.field('user_id', pa.int64()),\n      pa.field('revenue', pa.float64()),\n      pa.field('region', pa.string())\n  ])\n\n  # Cast incoming table to expected schema:\n  table = pq.read_table('data.parquet')\n  table = table.cast(expected_schema)  # raises if incompatible types\n\n  # Merge schemas for schema evolution (new columns get null values):\n  merged = pa.unify_schemas([schema1, schema2])\n\npandera for DataFrame validation (pandas/polars):\n  import pandera as pa\n  from pandera import Column, DataFrameSchema, Check\n\n  schema = DataFrameSchema({\n      'user_id': Column(int, nullable=False),\n      'revenue': Column(float, checks=Check.ge(0)),  # >= 0\n      'region': Column(str, checks=Check.isin(['US', 'EU', 'APAC']))\n  }, strict=True)  # strict=True: reject extra columns\n\n  validated_df = schema.validate(df)  # raises SchemaError with details\n\nSchema evolution strategies:\n- Add new columns: backward-compatible (old readers ignore new columns)\n- Remove columns: forward-compatible only if readers treat missing as null\n- Change types: dangerous; always test downstream impact\n- Use Delta Lake / Iceberg for managed schema evolution with version history",
+  "tags": [
+    "python",
+    "pyarrow",
+    "pandera",
+    "schema-evolution"
+  ]
+}

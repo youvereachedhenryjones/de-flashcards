@@ -1,0 +1,13 @@
+{
+  "id": "python-017",
+  "category": "Python for DE",
+  "question": "How do you read and write Parquet, Delta, and CSV files in PySpark with key options?",
+  "answer": "Reading:\n  # Parquet (schema auto-inferred, column pruning and predicate pushdown built-in)\n  df = spark.read.parquet('s3://bucket/data/')\n  df = spark.read.parquet('s3://bucket/data/', mergeSchema=True)  # schema evolution\n\n  # Delta Lake\n  df = spark.read.format('delta').load('s3://bucket/delta-table/')\n  df = spark.read.format('delta').option('versionAsOf', 5).load(...)  # time travel\n\n  # CSV with options\n  df = spark.read.csv('s3://bucket/data.csv', header=True, inferSchema=True,\n                      sep=',', quote='\"', escape='\\\\', nullValue='NULL')\n\nWriting:\n  # Parquet\n  df.write.mode('overwrite').partitionBy('year', 'month').parquet('s3://bucket/out/')\n\n  # Delta\n  df.write.format('delta').mode('append').partitionBy('date').save('s3://bucket/delta/')\n\n  # CSV (avoid for large data)\n  df.write.mode('overwrite').option('header', True).csv('s3://bucket/out/')\n\nWrite modes: overwrite, append, ignore, errorIfExists\n\nKey options: partitionBy for hive-style partitioning, repartition() before write to control file count, coalesce(1) to write a single file (only for small data).",
+  "tags": [
+    "python",
+    "pyspark",
+    "parquet",
+    "delta",
+    "io"
+  ]
+}

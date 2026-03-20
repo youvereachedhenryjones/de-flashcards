@@ -1,0 +1,12 @@
+{
+  "id": "python-030",
+  "category": "Python for DE",
+  "question": "How do you read and write Parquet files with pyarrow and what are the key options?",
+  "answer": "import pyarrow as pa\nimport pyarrow.parquet as pq\n\nWriting:\n  # From pandas:\n  table = pa.Table.from_pandas(df)\n  pq.write_table(table, 'output.parquet', compression='snappy')\n\n  # With partitioning:\n  pq.write_to_dataset(\n      table,\n      root_path='s3://bucket/data/',\n      partition_cols=['year', 'month'],\n      compression='zstd'\n  )\n\nReading:\n  # Full table:\n  table = pq.read_table('data.parquet')\n  df = table.to_pandas()\n\n  # Column pruning and predicate pushdown:\n  table = pq.read_table(\n      'data.parquet',\n      columns=['id', 'revenue', 'region'],\n      filters=[('region', '=', 'US'), ('revenue', '>', 1000)]\n  )\n\n  # Reading a dataset (multiple files/partitions):\n  dataset = pq.ParquetDataset('s3://bucket/data/', filters=[('year', '=', 2024)])\n  table = dataset.read(columns=['id', 'revenue'])\n\n  # Inspect schema without reading data:\n  schema = pq.read_schema('data.parquet')\n  meta = pq.read_metadata('data.parquet')\n\nCompression options: snappy (fast, moderate compression), zstd (slower write, better compression), gzip (best compression, slowest), none.\nFor S3: use s3fs or pass S3FileSystem to pyarrow.fs.",
+  "tags": [
+    "python",
+    "pyarrow",
+    "parquet",
+    "io"
+  ]
+}

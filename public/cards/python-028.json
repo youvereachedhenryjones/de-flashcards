@@ -1,0 +1,13 @@
+{
+  "id": "python-028",
+  "category": "Python for DE",
+  "question": "How do you use async IO for parallel API calls in Python data pipelines?",
+  "answer": "asyncio enables concurrent I/O (HTTP, DB) without threads by yielding control during waits.\n\nBasic pattern with aiohttp:\n  import asyncio, aiohttp\n\n  async def fetch(session, url):\n      async with session.get(url) as resp:\n          return await resp.json()\n\n  async def fetch_all(urls):\n      async with aiohttp.ClientSession() as session:\n          tasks = [fetch(session, url) for url in urls]\n          return await asyncio.gather(*tasks, return_exceptions=True)\n\n  results = asyncio.run(fetch_all(urls))  # Python 3.7+\n\nasyncio.gather runs tasks concurrently (not parallel). With 100 URLs each taking 1s, gather takes ~1s total vs 100s serial.\n\nRate limiting (avoid overwhelming APIs):\n  sem = asyncio.Semaphore(10)  # max 10 concurrent requests\n  async def fetch_limited(session, url):\n      async with sem:\n          return await fetch(session, url)\n\nHandling errors:\n  results = await asyncio.gather(*tasks, return_exceptions=True)\n  successes = [r for r in results if not isinstance(r, Exception)]\n\nWhen NOT to use asyncio:\n- CPU-bound work (pandas transformations, Spark): use multiprocessing\n- When libraries are not async-native: use ThreadPoolExecutor instead\n- For simple sequential scripts: sync code is simpler and easier to debug\n\nFor DB async: asyncpg (PostgreSQL), aiomysql, motor (MongoDB).",
+  "tags": [
+    "python",
+    "asyncio",
+    "async",
+    "api-calls",
+    "concurrency"
+  ]
+}

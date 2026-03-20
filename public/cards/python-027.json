@@ -1,0 +1,12 @@
+{
+  "id": "python-027",
+  "category": "Python for DE",
+  "question": "How do you manage environment variables and configuration in Python DE pipelines: python-dotenv and pydantic Settings?",
+  "answer": "Never hardcode credentials or environment-specific settings. Use environment variables.\n\npython-dotenv (simple .env file loading):\n  # .env file:\n  # DATABASE_URL=postgresql://user:pass@host/db\n  # AWS_REGION=us-east-1\n\n  from dotenv import load_dotenv\n  import os\n  load_dotenv()  # loads .env into os.environ\n  db_url = os.environ['DATABASE_URL']  # raises KeyError if missing\n  db_url = os.getenv('DATABASE_URL', 'sqlite:///dev.db')  # with default\n\npydantic Settings (type-safe, validated config):\n  from pydantic_settings import BaseSettings\n\n  class Settings(BaseSettings):\n      database_url: str\n      aws_region: str = 'us-east-1'\n      batch_size: int = 1000\n      debug: bool = False\n\n      class Config:\n          env_file = '.env'\n          env_file_encoding = 'utf-8'\n\n  settings = Settings()  # raises ValidationError if required vars missing/wrong type\n  settings.database_url  # typed, validated, IDE-autocompleted\n\nAdvantages of pydantic Settings over raw os.environ:\n- Type coercion (string env var -> int, bool, list)\n- Validation with clear error messages\n- Documentation via field annotations\n- Works with .env files AND real environment variables\n- Testable (pass overrides via constructor)\n\nSecret management in prod: use AWS Secrets Manager, Vault, or GCP Secret Manager instead of .env files.",
+  "tags": [
+    "python",
+    "configuration",
+    "environment-variables",
+    "pydantic"
+  ]
+}

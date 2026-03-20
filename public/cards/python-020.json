@@ -1,0 +1,13 @@
+{
+  "id": "python-020",
+  "category": "Python for DE",
+  "question": "How do you use Spark's explain() and what optimizations should you know: predicate pushdown and partition pruning?",
+  "answer": "explain() shows the execution plan:\n  df.explain()                  # parsed, analyzed, optimized, physical plan\n  df.explain(extended=True)     # all plan stages\n  df.explain(mode='cost')       # with cost estimates\n  df.explain(mode='formatted')  # formatted (Spark 3.0+, most readable)\n\nKey things to look for in the plan:\n- PushedFilters: predicates pushed to the data source (good)\n- PartitionFilters: partition columns used to skip partitions (good)\n- BroadcastHashJoin vs SortMergeJoin (broadcast = faster)\n- Exchange (shuffle) nodes: minimize these\n\nPredicate pushdown:\n  # Filter BEFORE reading data -- Parquet/Delta readers skip non-matching row groups\n  df = spark.read.parquet('s3://data/')\n  df.filter(F.col('status') == 'active').count()  # filter pushed to reader\n  # Verify: look for 'PushedFilters: [IsNotNull(status), EqualTo(status,active)]'\n\nPartition pruning:\n  # With partitionBy('year', 'month'), Spark skips irrelevant directories:\n  df.filter(F.col('year') == 2024).filter(F.col('month') == 1)\n  # Verify: look for 'PartitionFilters: [isnotnull(year), (year = 2024)]'\n\nAQE (Adaptive Query Execution):\n  spark.conf.set('spark.sql.adaptive.enabled', 'true')\n  # Auto-coalesces small partitions, converts SortMergeJoin to BroadcastHashJoin dynamically",
+  "tags": [
+    "python",
+    "pyspark",
+    "optimization",
+    "explain",
+    "predicate-pushdown"
+  ]
+}

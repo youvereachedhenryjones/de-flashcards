@@ -1,0 +1,12 @@
+{
+  "id": "python-024",
+  "category": "Python for DE",
+  "question": "How do you use type hints effectively in DE pipeline code: TypedDict, dataclass, and key typing patterns?",
+  "answer": "Type hints (PEP 484+) are not enforced at runtime but enable mypy/pyright static analysis and IDE autocomplete. They are essential for maintainable shared DE codebases.\n\nBasic function annotations:\n  def process(df: pd.DataFrame, config: dict[str, str]) -> pd.DataFrame:\n      ...\n\nTypedDict for structured dicts (stays dict-compatible, works with JSON):\n  from typing import TypedDict\n  class EventPayload(TypedDict):\n      user_id: int\n      event_type: str\n      timestamp: str\n      metadata: dict[str, str]\n\ndataclass for in-pipeline data objects with methods:\n  from dataclasses import dataclass, field\n  @dataclass\n  class PipelineConfig:\n      source_path: str\n      dest_path: str\n      batch_size: int = 1000\n      tags: list[str] = field(default_factory=list)\n\nKey typing patterns:\n  from typing import Optional, Generator, Callable, Iterator\n  Optional[str]              # str | None\n  list[dict[str, int]]       # nested generics\n  Generator[dict, None, None]  # yield type, send type, return type\n  Callable[[int, str], bool] # function signatures\n\nRun mypy for static checking:\n  mypy pipeline.py --strict",
+  "tags": [
+    "python",
+    "type-hints",
+    "TypedDict",
+    "dataclass"
+  ]
+}

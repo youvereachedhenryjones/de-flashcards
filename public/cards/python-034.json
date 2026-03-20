@@ -1,0 +1,12 @@
+{
+  "id": "python-034",
+  "category": "Python for DE",
+  "question": "How do you test PySpark code with pyspark.testing utilities?",
+  "answer": "PySpark testing requires a SparkSession. Use a session-scoped fixture to create it once per test run (startup is expensive: 5-15s).\n\nSparkSession fixture:\n  import pytest\n  from pyspark.sql import SparkSession\n\n  @pytest.fixture(scope='session')\n  def spark():\n      spark = (\n          SparkSession.builder\n          .master('local[2]')\n          .appName('test')\n          .config('spark.sql.shuffle.partitions', '2')  # reduce for tests\n          .getOrCreate()\n      )\n      yield spark\n      spark.stop()\n\nTest with pyspark.testing:\n  from pyspark.testing import assertDataFrameEqual, assertSchemaEqual\n\n  def test_transform(spark):\n      input_df = spark.createDataFrame(\n          [(1, 'Alice', 100.0), (2, 'Bob', 200.0)],\n          schema='id INT, name STRING, revenue DOUBLE'\n      )\n      result = my_transform(input_df)\n      expected = spark.createDataFrame(\n          [(1, 'ALICE', 100.0), (2, 'BOB', 200.0)],\n          schema='id INT, name STRING, revenue DOUBLE'\n      )\n      assertDataFrameEqual(result, expected)  # order-insensitive by default\n      assertSchemaEqual(result.schema, expected.schema)\n\nKey notes:\n- assertDataFrameEqual (PySpark 3.5+) handles ordering automatically\n- For earlier versions: result.orderBy('id').collect() == expected.orderBy('id').collect()\n- Keep tests focused on single transformations (pure function design)\n- Use createDataFrame with explicit schema string instead of inferring from Python types",
+  "tags": [
+    "python",
+    "pyspark",
+    "testing",
+    "pytest"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "python-003",
+  "category": "Python for DE",
+  "question": "What are the pandas merge/join types and how do you avoid common merge pitfalls?",
+  "answer": "pd.merge(left, right, on='key', how='inner|left|right|outer|cross')\n\nJoin types:\n- inner: only rows where key exists in both (default)\n- left: all left rows, NaN for unmatched right\n- right: all right rows, NaN for unmatched left\n- outer: all rows from both, NaN where no match\n- cross: cartesian product of all row combinations (no key needed)\n\nCommon pitfalls:\n1. Duplicate keys cause row explosion: if key is not unique, you get one row per combination. Assert uniqueness before merging:\n   assert right['key'].is_unique, 'Right side has duplicate keys'\n2. Column name conflicts: use suffixes=('_left', '_right') or rename beforehand\n3. NaN coercion: int columns with NaN from outer join become float. Use Int64 nullable integer dtype\n4. Validate parameter catches bad data early:\n   pd.merge(..., validate='1:m')  # 1:1, 1:m, m:1, m:m\n5. For large merges, ensure both DataFrames fit in memory simultaneously",
+  "tags": [
+    "python",
+    "pandas",
+    "merge",
+    "join"
+  ]
+}

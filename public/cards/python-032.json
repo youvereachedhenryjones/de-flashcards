@@ -1,0 +1,13 @@
+{
+  "id": "python-032",
+  "category": "Python for DE",
+  "question": "How do msgpack, pickle, and JSON compare for serialization in Python DE pipelines?",
+  "answer": "JSON:\n- Human-readable, universal, language-agnostic\n- Only supports: str, int, float, bool, list, dict, null\n- No native datetime, bytes, or custom objects\n- Slowest of the three; use orjson for performance\n- Use for: APIs, config files, interoperability\n\npickle:\n- Python-native binary serialization\n- Supports ANY Python object (functions, classes, DataFrames, NumPy arrays)\n- NOT safe with untrusted data (arbitrary code execution on unpickle)\n- Version-specific: pickled objects may not load across Python versions\n- Use for: caching Python objects within a trusted pipeline, ML model persistence (prefer joblib)\n- NEVER for cross-language or public-facing data\n\nmsgpack:\n- Binary serialization, language-agnostic (like JSON but compact and fast)\n- Smaller payload than JSON (20-50%), faster than JSON\n- Supports bytes natively (unlike JSON), limited to JSON-like type system\n- Use for: high-throughput message queues (Kafka), Redis caching, internal service communication\n  import msgpack\n  packed = msgpack.packb({'key': 'value', 'num': 42})\n  data = msgpack.unpackb(packed, raw=False)\n\nSummary:\n- Cross-service/API: JSON (or orjson for speed)\n- High-throughput internal messaging: msgpack\n- Python-only caching: pickle (with caution)\n- Arrow IPC: pyarrow for DataFrame-to-DataFrame transfer (zero-copy)",
+  "tags": [
+    "python",
+    "serialization",
+    "msgpack",
+    "pickle",
+    "json"
+  ]
+}

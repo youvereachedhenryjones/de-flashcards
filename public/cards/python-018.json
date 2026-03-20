@@ -1,0 +1,13 @@
+{
+  "id": "python-018",
+  "category": "Python for DE",
+  "question": "What is the performance difference between Python UDFs and pandas UDFs in PySpark?",
+  "answer": "Python UDFs (row-at-a-time):\n  from pyspark.sql.functions import udf\n  from pyspark.sql.types import StringType\n\n  @udf(returnType=StringType())\n  def clean_name(name):\n      return name.strip().lower() if name else None\n\n  df.withColumn('clean', clean_name(F.col('name')))\n\nProblem: data is serialized (JVM -> Python), processed row-by-row in Python, then deserialized back. This breaks Tungsten execution and causes 10-100x slowdown vs native DataFrame operations.\n\nPandas UDFs (vectorized, much faster):\n  from pyspark.sql.functions import pandas_udf\n  import pandas as pd\n\n  @pandas_udf(StringType())\n  def clean_name(series: pd.Series) -> pd.Series:\n      return series.str.strip().str.lower()\n\n  df.withColumn('clean', clean_name(F.col('name')))\n\nPandas UDFs use Apache Arrow for zero-copy transfer between JVM and Python, processing entire column batches. Typically 5-20x faster than row-at-a-time UDFs.\n\nBest practice priority:\n1. Use built-in Spark SQL functions (F.upper, F.trim, etc.) -- fastest\n2. Use pandas UDF if built-in functions can't handle the logic\n3. Use Python UDF only as last resort\n4. Never use UDFs for logic that can be expressed in Spark SQL",
+  "tags": [
+    "python",
+    "pyspark",
+    "udf",
+    "pandas-udf",
+    "performance"
+  ]
+}

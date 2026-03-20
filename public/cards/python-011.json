@@ -1,0 +1,12 @@
+{
+  "id": "python-011",
+  "category": "Python for DE",
+  "question": "How do you create and configure a SparkSession in PySpark?",
+  "answer": "SparkSession is the entry point to all Spark functionality:\n\nfrom pyspark.sql import SparkSession\n\nspark = (\n    SparkSession.builder\n    .appName('my-pipeline')\n    .master('local[*]')            # local mode; use 'yarn' or 'k8s://...' in prod\n    .config('spark.executor.memory', '4g')\n    .config('spark.executor.cores', '2')\n    .config('spark.sql.shuffle.partitions', '200')  # default is 200; reduce for small data\n    .config('spark.sql.adaptive.enabled', 'true')   # AQE auto-tunes at runtime\n    .config('spark.sql.extensions', 'io.delta.sql.DeltaSparkSessionExtension')\n    .config('spark.sql.catalog.spark_catalog', 'org.apache.spark.sql.delta.catalog.DeltaCatalog')\n    .enableHiveSupport()           # if using Hive metastore\n    .getOrCreate()\n)\n\nKey configs for DE work:\n- spark.sql.shuffle.partitions: reduce from 200 to 8-20 for dev/small data\n- spark.sql.adaptive.enabled: true enables Adaptive Query Execution (AQE)\n- spark.driver.memory: increase for collect() heavy workloads\n- getOrCreate() returns existing session if one exists (safe to call multiple times)\n\nIn managed environments (Databricks, EMR), SparkSession is pre-created as spark.",
+  "tags": [
+    "python",
+    "pyspark",
+    "sparksession",
+    "configuration"
+  ]
+}

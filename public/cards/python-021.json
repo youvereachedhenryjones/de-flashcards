@@ -1,0 +1,12 @@
+{
+  "id": "python-021",
+  "category": "Python for DE",
+  "question": "How do generator functions enable memory-efficient data processing in Python pipelines?",
+  "answer": "A generator function uses yield instead of return, producing values lazily one at a time. The caller gets an iterator; values are computed only when requested. Memory stays bounded to one item (or batch) at a time.\n\ndef read_csv_chunks(path, batch_size=1000):\n    with open(path, newline='') as f:\n        import csv\n        reader = csv.DictReader(f)\n        batch = []\n        for row in reader:\n            batch.append(row)\n            if len(batch) >= batch_size:\n                yield batch\n                batch = []\n        if batch:  # flush remaining rows\n            yield batch\n\n# Chain generators for pipeline composition:\ndef filter_active(batches):\n    for batch in batches:\n        yield [r for r in batch if r['status'] == 'active']\n\ndef transform(batches):\n    for batch in batches:\n        yield [{'id': r['id'], 'rev': float(r['revenue'])} for r in batch]\n\n# Compose without materializing intermediate results:\nfor batch in transform(filter_active(read_csv_chunks('large.csv'))):\n    load_to_db(batch)\n\nyield from delegates to a sub-generator: yield from sub_gen() is equivalent to for item in sub_gen(): yield item, but also handles send() and throw() correctly. Use it to flatten nested generators or compose pipeline stages.",
+  "tags": [
+    "python",
+    "generators",
+    "memory",
+    "pipeline"
+  ]
+}

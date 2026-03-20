@@ -1,0 +1,13 @@
+{
+  "id": "python-008",
+  "category": "Python for DE",
+  "question": "How do you optimize pandas DataFrame memory usage and what is the category dtype?",
+  "answer": "Diagnose memory:\n  df.info(memory_usage='deep')   # actual memory per column including strings\n  df.memory_usage(deep=True).sum() / 1e6  # total MB\n\nDowncast numerics:\n  df['id'] = pd.to_numeric(df['id'], downcast='integer')    # picks smallest int type\n  df['score'] = df['score'].astype('float32')                # float64 -> float32\n\ncategory dtype for low-cardinality strings (key technique):\n  df['status'] = df['status'].astype('category')  # 'active'/'inactive' -> int8 codes\n  df['country'] = df['country'].astype('category')\n  # Typically 10-20x memory reduction for columns with <100 unique values\n  # Also speeds up groupby on category columns\n\nRead selectively:\n  pd.read_csv(path, usecols=['id', 'revenue'], dtype={'id': 'int32', 'revenue': 'float32'})\n\nOther techniques:\n- Drop unused columns immediately after load\n- Use sparse arrays for columns with >90% zeros/NaNs\n- For truly large data, switch to Polars (lazy Arrow memory) or PyArrow directly\n\nRule of thumb: category for strings with <1% unique values; downcast ints from int64 to int32/int16; float64 to float32 if precision allows.",
+  "tags": [
+    "python",
+    "pandas",
+    "memory",
+    "optimization",
+    "dtype"
+  ]
+}

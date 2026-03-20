@@ -1,0 +1,12 @@
+{
+  "id": "python-023",
+  "category": "Python for DE",
+  "question": "How do you implement decorators for retry logic and logging in Python DE code?",
+  "answer": "Retry decorator with exponential backoff:\n  import functools, time, logging\n\n  def retry(max_attempts=3, delay=1.0, exceptions=(Exception,)):\n      def decorator(fn):\n          @functools.wraps(fn)  # preserves fn.__name__, __doc__\n          def wrapper(*args, **kwargs):\n              for attempt in range(max_attempts):\n                  try:\n                      return fn(*args, **kwargs)\n                  except exceptions as e:\n                      if attempt == max_attempts - 1:\n                          raise\n                      wait = delay * (2 ** attempt)  # exponential backoff\n                      logging.warning(f'{fn.__name__} failed (attempt {attempt+1}), retrying in {wait}s: {e}')\n                      time.sleep(wait)\n          return wrapper\n      return decorator\n\n  @retry(max_attempts=5, delay=2.0, exceptions=(requests.HTTPError, ConnectionError))\n  def fetch_api_data(url): ...\n\nLogging decorator:\n  def log_call(fn):\n      @functools.wraps(fn)\n      def wrapper(*args, **kwargs):\n          logger.info('START %s', fn.__name__)\n          start = time.perf_counter()\n          result = fn(*args, **kwargs)\n          logger.info('END %s in %.2fs', fn.__name__, time.perf_counter() - start)\n          return result\n      return wrapper\n\nProduction alternative: the tenacity library provides retry with jitter, conditional retry, and structured logging out of the box.\nDecorator order matters: @log_call @retry means log_call wraps retry, so logging sees total time including retries.",
+  "tags": [
+    "python",
+    "decorators",
+    "retry",
+    "logging"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "python-016",
+  "category": "Python for DE",
+  "question": "How do Window functions work in PySpark: partitionBy, orderBy, and rangeBetween?",
+  "answer": "Window functions compute values across a set of rows related to the current row, without collapsing them (unlike groupBy).\n\nfrom pyspark.sql import Window\nfrom pyspark.sql import functions as F\n\nBasic window spec:\n  w = Window.partitionBy('user_id').orderBy('event_time')\n\nRanking functions:\n  df.withColumn('rank', F.rank().over(w))\n  df.withColumn('dense_rank', F.dense_rank().over(w))\n  df.withColumn('row_num', F.row_number().over(w))\n\nAggregation over window (running totals):\n  df.withColumn('running_sum', F.sum('revenue').over(w))\n\nrowsBetween vs rangeBetween:\n  # Last 7 rows by position:\n  w_rows = Window.partitionBy('user').orderBy('date').rowsBetween(-7, 0)\n  # Last 7 days by value (requires numeric/date order col):\n  w_range = Window.partitionBy('user').orderBy('date').rangeBetween(-7, 0)\n\nLag/lead:\n  df.withColumn('prev_revenue', F.lag('revenue', 1).over(w))\n  df.withColumn('next_revenue', F.lead('revenue', 1).over(w))\n\nPerformance note: window functions trigger a shuffle by partitionBy. Avoid orderBy on large unbounded windows without partitionBy.",
+  "tags": [
+    "python",
+    "pyspark",
+    "window-functions",
+    "analytics"
+  ]
+}
