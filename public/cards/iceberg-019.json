@@ -1,5 +1,8 @@
 {
-  "category": "Lakehouse Architecture",
-  "question": "What is the Data Lakehouse pattern? How does it combine data lake and data warehouse strengths?",
-  "answer": "A Data Lakehouse stores data in open file formats (Parquet, ORC) on cheap cloud object storage like a data lake, but adds a metadata and transaction layer (Iceberg, Delta Lake, or Hudi) that provides data warehouse features: ACID transactions, schema enforcement, indexing, and SQL query performance. Traditional data lakes are cheap but unreliable (no ACID, no schema enforcement, poor query performance). Traditional data warehouses are fast and reliable but expensive and proprietary, requiring data to be copied in. The Lakehouse eliminates the copy step, so BI, ML, and streaming workloads all read the same data in the same format, reducing duplication and keeping a single source of truth."
+  "id": "iceberg-019",
+  "deck": "iceberg-cards",
+  "front": "How do you maintain an Iceberg table — expiring snapshots, removing orphan files?",
+  "back": "Iceberg tables require routine maintenance to prevent unbounded storage growth. Snapshot expiration removes old snapshots and their associated metadata files, making the data files they exclusively referenced eligible for deletion. In Spark: `SparkActions.get().expireSnapshots(table).expireOlderThan(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)).execute()`. This keeps 7 days of history for time travel. Orphan file removal deletes data files that exist on storage but aren't referenced by any snapshot (leftover from failed writes, aborted jobs). In Spark: `SparkActions.get().deleteOrphanFiles(table).olderThan(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(3)).execute()` — the 3-day buffer prevents deleting files from in-progress commits. In Flink SQL: `CALL system.expire_snapshots('db.table', TIMESTAMPADD(DAY, -7, NOW()))`. Schedule both procedures in a daily maintenance job. Don't skip orphan removal — a table with millions of small streaming files plus failed write orphans can accumulate significant storage cost over months.",
+  "tags": ["iceberg", "maintenance", "snapshots", "orphan-files", "storage-management"],
+  "difficulty": "medium"
 }

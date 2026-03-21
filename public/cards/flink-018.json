@@ -1,0 +1,8 @@
+{
+  "id": "flink-018",
+  "deck": "flink-cards",
+  "front": "How does Flink handle late data — what are allowed lateness and side outputs?",
+  "back": "When using event-time windows, events arriving after the window's watermark has passed are 'late.' By default, Flink drops late data. Allowed lateness lets you specify an additional wait period after the watermark: `.allowedLateness(Time.minutes(2))` keeps the window state open for 2 extra minutes and re-fires the window each time a late element arrives. This is useful when occasional late data should update results without full re-computation. For data that arrives even later than the allowed lateness, side outputs capture those events into a separate stream for auditing or DLQ processing: define an OutputTag and call `.sideOutputLateData(lateTag)` on the window; then retrieve with `mainStream.getSideOutput(lateTag)`. The tradeoff: larger allowed lateness = more state held in memory, longer before results are final, and more re-emissions. Set based on your SLA and observed data delay patterns.",
+  "tags": ["flink", "late-data", "allowed-lateness", "side-outputs", "windowing", "event-time"],
+  "difficulty": "hard"
+}

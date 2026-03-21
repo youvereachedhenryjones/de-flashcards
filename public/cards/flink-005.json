@@ -1,0 +1,8 @@
+{
+  "id": "flink-005",
+  "deck": "flink-cards",
+  "front": "Describe Flink's KeyedState types: ValueState, ListState, MapState, ReducingState, and AggregatingState.",
+  "back": "ValueState<T> holds a single value per key — great for tracking last-seen event, running flag, or current count. ListState<T> holds an appendable list per key — useful for collecting events before triggering. MapState<K,V> holds a key-value map per key — ideal for lookups or caching per-key dictionaries. ReducingState<T> applies a ReduceFunction on each update and stores only the combined result, saving memory by not keeping full history. AggregatingState<IN,OUT> is like ReducingState but input/output types can differ (e.g., accumulate longs, emit average). All state types are defined via StateDescriptor and accessed via RuntimeContext.getState(). In production, prefer ReducingState/AggregatingState over ListState when you only need the aggregated result — it keeps state size bounded.",
+  "tags": ["flink", "state", "valuestate", "liststate", "mapstate", "reducingstate"],
+  "difficulty": "medium"
+}

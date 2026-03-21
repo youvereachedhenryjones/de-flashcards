@@ -1,0 +1,8 @@
+{
+  "id": "flink-013",
+  "deck": "flink-cards",
+  "front": "Explain the Flink job graph: what are JobManager, TaskManager, task slots, and parallelism?",
+  "back": "The JobManager is the coordinator — it accepts job submissions, schedules tasks, coordinates checkpoints, and manages recovery. It runs on a single node (or with standby HA replicas). TaskManagers are the workers that execute the actual computation. Each TaskManager offers a fixed number of task slots, which represent isolated CPU/memory units. A task slot runs one parallel slice of the pipeline. Parallelism is the number of parallel instances of each operator — setting parallelism=4 on a filter operator means 4 TaskSlots each run that filter on a partition of the data. Total slots needed = max parallelism across all operators. The job graph is a DAG of operators; Flink chains compatible operators (same parallelism, no shuffle) into a single task for efficiency. Rule of thumb: set parallelism = number of Kafka partitions for source operators to maximize throughput.",
+  "tags": ["flink", "jobmanager", "taskmanager", "parallelism", "architecture", "task-slots"],
+  "difficulty": "medium"
+}

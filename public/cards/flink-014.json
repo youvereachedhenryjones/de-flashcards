@@ -1,0 +1,8 @@
+{
+  "id": "flink-014",
+  "deck": "flink-cards",
+  "front": "What is backpressure in Flink, how do you detect it, and how do you handle it?",
+  "back": "Backpressure occurs when a downstream operator can't keep up with the rate of incoming data, causing upstream operators to slow down. In Flink, this propagates upstream naturally via blocked network buffers — unlike Spark, Flink doesn't drop data, it slows the source. Detection: the Flink Web UI shows a backpressure indicator (OK/LOW/HIGH) per operator, updated every 50ms by sampling task thread states. A HIGH backpressure rating on operator X means X is the bottleneck. Handling strategies: (1) increase parallelism of the slow operator, (2) optimize the operator's logic (reduce external calls, cache lookups), (3) use Async I/O for blocking external calls, (4) tune state backend (RocksDB for large state to avoid JVM GC pressure), (5) increase Kafka partitions to allow higher source parallelism. Sustained backpressure also delays checkpoints, risking recovery lag.",
+  "tags": ["flink", "backpressure", "performance", "monitoring", "tuning"],
+  "difficulty": "medium"
+}

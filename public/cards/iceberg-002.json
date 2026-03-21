@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Describe Iceberg's metadata hierarchy: catalog, metadata.json, manifest list, manifest files, and data files.",
-  "answer": "Iceberg uses a five-layer hierarchy. The catalog (Glue, Hive Metastore, Nessie, etc.) stores a pointer to the current metadata.json file for each table. The metadata.json file records table schema, partition spec, and a list of snapshots. Each snapshot points to a manifest list, which is a file listing all manifest files for that snapshot. Each manifest file lists individual data files along with their column-level statistics (min/max, null counts). The data files themselves are Parquet, ORC, or Avro on object storage. This indirection lets Iceberg perform atomic commits and efficient file pruning without listing the storage bucket."
+  "id": "iceberg-002",
+  "deck": "iceberg-cards",
+  "front": "Describe the Iceberg table spec metadata layer: metadata files, manifest lists, manifests, and data files.",
+  "back": "Iceberg uses a four-level metadata hierarchy. Data files are the actual Parquet/ORC/Avro files on S3/HDFS containing the rows. Manifest files (Avro) track a subset of data files with statistics (min/max per column, null counts, row counts) used for query pruning. Manifest lists (also called snapshot files) list all manifests that make up one snapshot, along with summary statistics. Metadata files (JSON) are the root — they point to the current snapshot's manifest list and record all snapshots, schema history, and partition spec history. A query engine reads: metadata.json → manifest list → manifests → data files. This tree structure enables: (1) skip reading irrelevant manifests via partition pruning, (2) atomic snapshot creation by writing a new metadata.json atomically, (3) time travel by pointing to an older snapshot. The key insight: all state changes are immutable appends — no in-place mutation, enabling ACID transactions on object storage.",
+  "tags": ["iceberg", "metadata", "architecture", "manifest", "snapshots"],
+  "difficulty": "hard"
 }

@@ -1,0 +1,8 @@
+{
+  "id": "flink-011",
+  "deck": "flink-cards",
+  "front": "How does Flink's checkpointing mechanism work, and what happens during recovery?",
+  "back": "Flink checkpointing periodically snapshots the entire distributed state of the running job to durable storage (S3, HDFS, etc.). The JobManager triggers a checkpoint by injecting barrier records into all sources simultaneously. These barriers flow through the DAG, and each operator snapshots its state when all input barriers have arrived (barrier alignment). On failure, Flink restarts affected TaskManagers, reloads state from the last successful checkpoint, and resets Kafka consumer offsets to their checkpointed positions. All events processed after that checkpoint are replayed from the source. Recovery time depends on checkpoint frequency (lower interval = less replay) and state size (larger state = longer restore). Key config: execution.checkpointing.interval (e.g., 60s), state.backend (hashmap or rocksdb), state.checkpoints.dir (S3 path).",
+  "tags": ["flink", "checkpointing", "recovery", "fault-tolerance", "state-backend"],
+  "difficulty": "medium"
+}

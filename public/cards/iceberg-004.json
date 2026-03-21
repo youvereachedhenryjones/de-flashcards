@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Partition evolution in Iceberg: how does Iceberg handle changing partition schemes without breaking queries?",
-  "answer": "Iceberg supports partition evolution, meaning you can change the partitioning of a table (e.g., from partitioned by month to partitioned by day) without rewriting existing data files. Each snapshot records which partition spec was active when it was written, so old data files retain their original partition layout while new writes use the updated spec. At query time, Iceberg reads both specs and prunes files correctly for each. This contrasts with Hive, where changing partitioning requires either rewriting all data or maintaining two separate physical table structures."
+  "id": "iceberg-004",
+  "deck": "iceberg-cards",
+  "front": "How does Iceberg achieve ACID transactions on object storage?",
+  "back": "Iceberg achieves ACID by using optimistic concurrency control at the metadata level. Writers create new data files and a new snapshot, then attempt to atomically swap the current metadata pointer (metadata.json) to reference the new snapshot. On S3, this atomic swap uses: (1) the Hadoop catalog uses HDFS atomic rename, (2) the Hive Metastore catalog uses a conditional update, (3) REST catalogs use Compare-And-Swap operations. If two writers race, only one wins — the loser retries with a fresh snapshot. Isolation is snapshot-based: readers always see a consistent snapshot and are never blocked by writers (MVCC semantics). Atomicity: either the entire write is committed (new snapshot) or nothing changes. Durability: all data files are written to object storage before the metadata swap. The limitation: no row-level locking — high-concurrency write workloads with many conflicting writers will experience retry overhead. Design for append-heavy or partitioned writes to minimize conflicts.",
+  "tags": ["iceberg", "acid", "transactions", "concurrency", "object-storage"],
+  "difficulty": "hard"
 }

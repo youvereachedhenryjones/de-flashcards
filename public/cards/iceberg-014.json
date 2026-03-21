@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "VACUUM in Delta Lake: what does it do, what is the default retention period, and what is the data recovery risk?",
-  "answer": "VACUUM permanently deletes data files from object storage that are no longer referenced by the current table version and are older than the retention threshold. The default retention period is 7 days (168 hours), configurable via 'delta.deletedFileRetentionDuration'. Running VACUUM removes the ability to time-travel to any version that depended on the deleted files. The main risk is running VACUUM with a retention period shorter than 7 days: if concurrent readers are using older snapshots (e.g., long-running queries or streaming jobs with old checkpoints), those readers may fail with 'FileNotFoundException' because their referenced files have been deleted. Always confirm no active readers depend on old snapshots before lowering the retention period."
+  "id": "iceberg-014",
+  "deck": "iceberg-cards",
+  "front": "What are Iceberg Tables in Snowflake, and how does Snowflake's Iceberg integration work?",
+  "back": "Snowflake Iceberg Tables allow you to store data in your own S3/GCS/Azure Blob bucket in Iceberg format while querying it with Snowflake's compute engine — you own the data, not Snowflake. There are two modes: (1) Snowflake-managed: Snowflake writes data in Iceberg format to your object storage, managing the metadata. You get Snowflake's full DML support. (2) External Iceberg tables: Snowflake reads existing Iceberg tables written by other engines (Flink, Spark) — read-only by default, with periodic catalog refresh (`REFRESH` command or auto-refresh via event notifications). The integration uses Snowflake's external volume (pointing to your S3 bucket) and integrates with REST catalogs (Snowflake acts as an Iceberg catalog consumer). Key benefit: compute portability — write with Flink/Spark, query with Snowflake, Trino, or Spark without data duplication. Key limitation: Snowflake-managed Iceberg tables currently don't support all Snowflake features (clustering, search optimization). This is the architecture enabling 'bring your own compute' to the lakehouse.",
+  "tags": ["iceberg", "snowflake", "integration", "data-lakehouse", "cloud"],
+  "difficulty": "medium"
 }

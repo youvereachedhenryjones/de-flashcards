@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Hidden partitioning vs Hive-style partitioning: what are the key differences?",
-  "answer": "In Hive-style partitioning, the partition column (e.g., dt=2024-01-01) must exist as a physical directory and queries must include explicit partition filters or they will scan everything. Iceberg's hidden partitioning stores partition transforms in the table metadata rather than in directory names, so the partition column does not need to appear in the data file path or even in the query. Iceberg applies transforms like bucket(16, user_id) or truncate(event_date, 'month') internally, and the engine prunes files automatically based on those transforms. This means changing a partition scheme does not break existing queries or require rewriting data."
+  "id": "iceberg-003",
+  "deck": "iceberg-cards",
+  "front": "How does Iceberg's snapshot-based versioning enable time travel?",
+  "back": "Every write to an Iceberg table (INSERT, UPDATE, DELETE, compaction) creates a new snapshot — an immutable record of the table's state at that moment. Each snapshot has a unique ID and timestamp. The metadata.json tracks all snapshots (up to a configurable retention period). Time travel queries work by asking Iceberg to use a specific snapshot instead of the current one. In Spark SQL: `SELECT * FROM catalog.db.my_table TIMESTAMP AS OF '2024-01-15 10:00:00'` or `SELECT * FROM catalog.db.my_table VERSION AS OF 12345` (snapshot ID). This works because old data files are never deleted when new snapshots are created — they're simply no longer referenced by the current snapshot. Old snapshots are only cleaned up by the `expireSnapshots` maintenance procedure. Time travel is invaluable for: debugging data quality issues ('what did this table look like before the bad batch ran?'), auditing ('what data did this report see?'), and rollback ('restore to the last known good state').",
+  "tags": ["iceberg", "time-travel", "snapshots", "versioning", "audit"],
+  "difficulty": "medium"
 }

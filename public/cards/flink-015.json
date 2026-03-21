@@ -1,0 +1,8 @@
+{
+  "id": "flink-015",
+  "deck": "flink-cards",
+  "front": "What is Flink CDC, and how does it use the Debezium connector for Change Data Capture?",
+  "back": "Flink CDC (Change Data Capture) is a set of source connectors that read database change logs (insert/update/delete events) directly into Flink as a stream. The Debezium connector reads MySQL/PostgreSQL/Oracle binlogs or WAL logs, emitting RowData events with before/after states for each DML operation. In Flink SQL, you define a CDC table with a connector like 'mysql-cdc' and query it as if it's a streaming table — Flink handles the upsert semantics automatically. A key feature is the initial snapshot phase: on first run, Flink CDC performs a consistent full snapshot of existing data before switching to streaming mode, ensuring no data is missed. Use cases: real-time materialized views, syncing databases to data lakes (e.g., MySQL → Iceberg), invalidating caches on DB changes, and event-driven microservice patterns.",
+  "tags": ["flink", "cdc", "debezium", "change-data-capture", "streaming-ingestion"],
+  "difficulty": "medium"
+}

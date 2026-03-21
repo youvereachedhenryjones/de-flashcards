@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Copy-on-Write (CoW) vs Merge-on-Read (MoR) in Iceberg: what are the tradeoffs?",
-  "answer": "Copy-on-Write rewrites entire data files when any row changes, so reads are always fast (no merge overhead) but writes are expensive because large files must be rewritten for small updates. Merge-on-Read writes lightweight delete files or position delete files alongside the original data files, making writes fast but requiring readers to apply the delete files at query time, adding latency. CoW is best for read-heavy tables with infrequent updates, such as slowly changing dimensions. MoR is best for write-heavy or streaming tables where updates arrive constantly, such as CDC pipelines or event deduplication. Compaction (OPTIMIZE) converts MoR tables back to clean CoW state on a schedule."
+  "id": "iceberg-008",
+  "deck": "iceberg-cards",
+  "front": "How does Iceberg support row-level deletes and updates — MERGE INTO and DELETE FROM?",
+  "back": "Iceberg supports row-level DML operations that are not possible on plain Parquet files on S3. DELETE FROM removes specific rows; UPDATE changes column values; MERGE INTO is the upsert operation (insert new rows, update existing ones by key). Since Parquet files are immutable, Iceberg implements row-level changes using one of two strategies: Copy-on-Write (CoW) or Merge-on-Read (MoR). In CoW mode, DELETE rewrites the entire affected data file without the deleted rows — expensive at write time but fast reads. In MoR mode, DELETE writes a small delete file (either positional — listing file+row positions — or equality — listing key values) without touching the original data file. At read time, the engine merges data files with delete files on the fly. MERGE INTO is the most powerful for CDC ingestion: `MERGE INTO target t USING source s ON t.id = s.id WHEN MATCHED THEN UPDATE SET * WHEN NOT MATCHED THEN INSERT *;` This is table stakes for streaming lakehouse pipelines.",
+  "tags": ["iceberg", "row-level-deletes", "merge-into", "dml", "upsert"],
+  "difficulty": "medium"
 }

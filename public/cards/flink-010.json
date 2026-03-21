@@ -1,0 +1,8 @@
+{
+  "id": "flink-010",
+  "deck": "flink-cards",
+  "front": "How does Flink achieve exactly-once semantics end-to-end?",
+  "back": "Flink achieves exactly-once processing guarantees through a combination of distributed snapshots (Chandy-Lamport algorithm) and two-phase commit (2PC) for sinks. Internally, Flink uses Asahi barriers injected into the data stream — when all operators acknowledge a barrier, a consistent snapshot is committed atomically. For end-to-end exactly-once (source to sink), both source and sink must participate: Kafka sources reset to committed offsets on failure; transactional Kafka sinks use 2PC via the TwoPhaseCommitSinkFunction, which pre-commits data to Kafka but only finalizes the transaction when Flink confirms the checkpoint succeeded. If a failure occurs before checkpoint completion, Flink rolls back to the last successful checkpoint and reprocesses — idempotent sinks (like Iceberg with UPSERT) simplify this. Without transactional sinks, you get at-least-once at best.",
+  "tags": ["flink", "exactly-once", "checkpointing", "two-phase-commit", "fault-tolerance"],
+  "difficulty": "hard"
+}

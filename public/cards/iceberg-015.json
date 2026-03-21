@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Z-order clustering in Delta Lake: what does it do and when should you prefer it over partitioning?",
-  "answer": "Z-order (also called Z-curve or space-filling curve ordering) reorders rows within Parquet files so that multiple columns are co-located spatially, improving data skipping when queries filter on any combination of those columns. The syntax is 'OPTIMIZE table ZORDER BY (col1, col2)'. Prefer Z-order over partitioning when columns have high cardinality (e.g., user_id, device_id) where partitioning would create millions of tiny directories. Partitioning works best for low-cardinality time-based columns (year, month) where each partition has a large number of rows. Z-order can be combined with a coarse partition (e.g., partition by date, Z-order by user_id within each partition) for maximum pruning efficiency."
+  "id": "iceberg-015",
+  "deck": "iceberg-cards",
+  "front": "How does the AWS Glue Data Catalog work as an Iceberg catalog?",
+  "back": "AWS Glue Data Catalog is a managed metadata store that Iceberg can use as its catalog via the GlueCatalog implementation. Tables registered in Glue are discoverable by Athena, Glue ETL jobs, EMR, and other AWS services. Configuration for Spark on EMR: set `spark.sql.catalog.glue_catalog = org.apache.iceberg.spark.SparkCatalog`, `spark.sql.catalog.glue_catalog.catalog-impl = org.apache.iceberg.aws.glue.GlueCatalog`, and `spark.sql.catalog.glue_catalog.warehouse = s3://my-bucket/warehouse`. Iceberg uses Glue's table properties to store the current metadata location pointer, with optimistic locking via Glue's conditional update API to prevent concurrent writer conflicts. Athena v3 supports Iceberg natively — you can query Glue-registered Iceberg tables directly in the Athena console without additional configuration. This stack (Flink/Spark → Iceberg → S3 → Glue catalog → Athena) is the canonical AWS open lakehouse architecture and increasingly the default for teams building new data platforms on AWS.",
+  "tags": ["iceberg", "aws", "glue", "athena", "catalog", "cloud"],
+  "difficulty": "medium"
 }

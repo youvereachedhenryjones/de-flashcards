@@ -1,0 +1,8 @@
+{
+  "id": "flink-022",
+  "deck": "flink-cards",
+  "front": "How do you monitor a Flink job? What does the Web UI show, and how do you integrate Prometheus?",
+  "back": "The Flink Web UI (port 8081 by default) provides a real-time view of job topology, operator throughput (records/sec), backpressure indicators, checkpoint history/duration/size, TaskManager resource usage, and logs. It's the first place to look when diagnosing issues. For production monitoring, Flink exports metrics via pluggable reporters — the Prometheus reporter is most common. Add to flink-conf.yaml: `metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter` and `metrics.reporter.prom.port: 9249`. Flink exposes hundreds of metrics including numRecordsIn/Out per operator, checkpoint duration, restartCount, taskSlotsAvailable, and JVM GC time. In practice, create a Grafana dashboard importing Flink's community dashboard (ID 10615) and alert on: checkpoint failure count > 0, restart rate increasing, backpressure ratio > 0.5, and numRecordsIn drop to 0 (source lag).",
+  "tags": ["flink", "monitoring", "prometheus", "grafana", "web-ui", "metrics"],
+  "difficulty": "medium"
+}

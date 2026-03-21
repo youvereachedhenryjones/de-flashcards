@@ -1,0 +1,8 @@
+{
+  "id": "flink-009",
+  "deck": "flink-cards",
+  "front": "When do you use ProcessWindowFunction vs ReduceFunction vs AggregateFunction in Flink windowing?",
+  "back": "ReduceFunction is the simplest: it incrementally combines two elements of the same type into one (e.g., summing integers). No state accumulation — the result is always the same type as input. Use for simple aggregations where you just need the combined value. AggregateFunction is more flexible: separate accumulator type (e.g., accumulate a (sum, count) tuple, emit a Double average). Also incremental — each event updates the accumulator immediately rather than buffering all events. Use when input/output types differ. ProcessWindowFunction receives all events in the window at once with full context (window metadata, side outputs, timers). Most powerful but most expensive — buffers all events. In practice, combine AggregateFunction + ProcessWindowFunction using aggregate(aggFunc, windowFunc) to get incremental efficiency plus access to window metadata.",
+  "tags": ["flink", "windows", "processwindowfunction", "reducefunction", "aggregatefunction"],
+  "difficulty": "hard"
+}

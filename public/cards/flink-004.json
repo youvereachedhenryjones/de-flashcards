@@ -1,0 +1,8 @@
+{
+  "id": "flink-004",
+  "deck": "flink-cards",
+  "front": "What is a keyed stream in Flink, and why is it fundamental to stateful processing?",
+  "back": "A keyed stream is created by calling keyBy() on a DataStream, which partitions the stream by a logical key (e.g., user_id, order_id). All events with the same key are routed to the same operator instance, ensuring that state operations (e.g., counting per user) are always co-located with the data. This partitioning enables Flink to scale stateful computations: state is sharded across TaskManagers by key, and no cross-network coordination is needed for per-key operations. KeyedState (ValueState, ListState, etc.) is only accessible inside keyed operators. Without keyBy(), you can only use OperatorState, which is scoped to an operator instance rather than a logical key — useful for Kafka partition offsets but less common.",
+  "tags": ["flink", "keyed-stream", "keyby", "state", "partitioning"],
+  "difficulty": "medium"
+}

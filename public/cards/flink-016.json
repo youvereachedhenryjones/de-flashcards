@@ -1,0 +1,8 @@
+{
+  "id": "flink-016",
+  "deck": "flink-cards",
+  "front": "How does Flink SQL work for streaming? Show an example of CREATE TABLE and a streaming SELECT.",
+  "back": "Flink SQL lets you define streaming sources/sinks as tables and query them with SQL extended for streaming semantics. A streaming SELECT runs continuously, emitting results as new events arrive. Example: `CREATE TABLE clicks (user_id STRING, url STRING, event_time TIMESTAMP(3), WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND) WITH ('connector' = 'kafka', 'topic' = 'user-clicks', 'properties.bootstrap.servers' = 'localhost:9092', 'format' = 'json');` Then query: `SELECT user_id, COUNT(*) as clicks, TUMBLE_START(event_time, INTERVAL '1' MINUTE) as window_start FROM clicks GROUP BY user_id, TUMBLE(event_time, INTERVAL '1' MINUTE);` The TUMBLE() function is a Flink SQL extension for time windows. Results write to a sink table defined similarly. This is the fastest path to production streaming analytics without writing Java/Scala.",
+  "tags": ["flink", "sql", "streaming-sql", "create-table", "windowing"],
+  "difficulty": "medium"
+}

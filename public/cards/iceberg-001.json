@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "What is Apache Iceberg and what problem does it solve vs Hive tables?",
-  "answer": "Apache Iceberg is an open table format for huge analytic datasets on object storage, designed to bring database-like reliability to data lakes. Hive tables suffer from the 'small files problem', lack atomic writes, and have no snapshot isolation, meaning concurrent readers can see partial writes. Iceberg solves this with ACID transactions, hidden partitioning, schema evolution, and a metadata-driven design that tracks exactly which files belong to a table at any point in time. It also decouples the table format from the compute engine, so Spark, Trino, Flink, and others can all read the same table."
+  "id": "iceberg-001",
+  "deck": "iceberg-cards",
+  "front": "What is Apache Iceberg, and why was it created as an alternative to Hive tables?",
+  "back": "Apache Iceberg is an open table format for huge analytic datasets, designed to bring database-like reliability to data lakes. It was created at Netflix (open-sourced 2018) to solve critical Hive table limitations: Hive stores metadata in a central Metastore that becomes a bottleneck at scale, its partition scheme is baked into the directory structure making it impossible to change, and it lacks ACID guarantees (concurrent writers corrupt data). Iceberg replaces Hive's directory-listing-based table tracking with a metadata layer — a tree of JSON/Avro files tracking exactly which data files belong to each table snapshot. This enables ACID transactions, partition evolution without data rewrites, schema evolution without side effects, time travel, and efficient query planning that doesn't require listing millions of S3 objects. The result: reliable, scalable tables on object storage that behave like a proper database.",
+  "tags": ["iceberg", "fundamentals", "hive", "history", "motivation"],
+  "difficulty": "easy"
 }

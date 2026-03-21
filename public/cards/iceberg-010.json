@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Iceberg table format v1 vs v2: what does v2 add?",
-  "answer": "Format v1 (the original Iceberg spec) supports snapshot-based reads, hidden partitioning, schema evolution, and Copy-on-Write deletes by rewriting data files. Format v2 adds first-class support for row-level deletes via two new file types: position delete files (which record the file path and row position of deleted rows) and equality delete files (which record the values of one or more columns that identify deleted rows). V2 also adds sequence numbers to manifests, enabling more efficient incremental reads and compaction decisions. V2 is required for true Merge-on-Read behavior and is the format needed for CDC and streaming upsert workloads. Most modern engines (Spark 3.x, Trino, Flink) default to or support v2."
+  "id": "iceberg-010",
+  "deck": "iceberg-cards",
+  "front": "Compare Apache Iceberg, Delta Lake, and Apache Hudi — what are the key differences?",
+  "back": "All three are open table formats for data lakehouses providing ACID transactions, schema evolution, and time travel on object storage. Delta Lake (Databricks-originated, open-sourced 2019): deeply integrated with Spark, uses a transaction log (_delta_log directory of JSON/Parquet files), excellent Databricks tooling (auto-optimize, liquid clustering). Strongest for Spark-only shops on Databricks. Iceberg (Netflix-originated, Apache 2018): engine-agnostic (Spark, Flink, Trino, Presto, Snowflake all support it natively), richest partitioning capabilities (partition evolution, hidden partitioning), REST catalog becoming universal standard. Best for multi-engine architectures. Apache Hudi (Uber-originated): specializes in streaming upserts and incremental processing, native MoR support, built-in incremental query API for downstream consumers. Best for CDC-heavy pipelines with frequent updates. Market trajectory: Iceberg is winning as the multi-engine standard (AWS, Azure, Snowflake, Google all adopted it). Delta Lake dominates Databricks. Hudi still used at Uber, Amazon internally but losing mindshare. For new greenfield: Iceberg unless you're Databricks-only.",
+  "tags": ["iceberg", "delta-lake", "hudi", "comparison", "table-formats"],
+  "difficulty": "hard"
 }

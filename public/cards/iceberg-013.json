@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Delta Lake OPTIMIZE command: what does it do and when should you run it?",
-  "answer": "OPTIMIZE rewrites small Parquet files in a Delta table into fewer, larger files (targeting 128 MB by default), reducing the number of file handles readers must open and improving scan performance. It also consolidates the transaction log by creating a new checkpoint. You should run OPTIMIZE after heavy insert or streaming workloads that produce many small files, or on a regular schedule (e.g., nightly) for tables that receive continuous micro-batch writes. OPTIMIZE can be combined with ZORDER BY to co-locate related data within files for better column pruning. The command is safe to run concurrently with reads and most writes because Delta's MVCC isolation means in-flight queries see the pre-OPTIMIZE snapshot."
+  "id": "iceberg-013",
+  "deck": "iceberg-cards",
+  "front": "What is the current state of Iceberg support in dbt?",
+  "back": "dbt supports Iceberg as a materialization target through its adapter ecosystem, with varying maturity depending on the compute engine. dbt-spark (using SparkSQL or Databricks) supports Iceberg tables via the `iceberg` table format configuration in dbt model configs. dbt-trino and dbt-athena also support Iceberg natively. In your dbt model config: `{{ config(materialized='table', table_format='iceberg', external_location='s3://bucket/warehouse/') }}`. Key patterns: use `incremental` materializations with Iceberg's MERGE INTO for efficient upserts — dbt generates the MERGE statement using your defined unique_key. dbt's snapshot feature (SCD Type 2) can write to Iceberg tables for audit history. Limitations: dbt doesn't manage Iceberg table maintenance (compaction, snapshot expiration) — you need separate Spark jobs or Iceberg's maintenance procedures. The ecosystem is rapidly maturing; as of 2025, dbt + Iceberg + Trino is a common analytics stack for teams building open lakehouses without Databricks lock-in.",
+  "tags": ["iceberg", "dbt", "integration", "materialization", "lakehouse"],
+  "difficulty": "medium"
 }

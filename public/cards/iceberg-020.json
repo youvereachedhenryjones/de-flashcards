@@ -1,5 +1,8 @@
 {
-  "category": "Lakehouse Architecture",
-  "question": "Medallion Architecture: what belongs in Bronze, Silver, and Gold layers?",
-  "answer": "Bronze is the raw ingestion layer: data lands here exactly as received from source systems, with no transformations, in append-only tables. It serves as the source of truth for reprocessing and audit. Silver is the cleansed and conformed layer: Bronze data is deduplicated, type-cast, validated against schemas, and joined across sources to produce reliable, queryable datasets. Gold is the serving layer: Silver data is aggregated, modeled as business-specific entities (e.g., daily active users, revenue by product), and optimized for consumption by BI dashboards, data science, and APIs. Each layer adds trust and query performance at the cost of some flexibility. Streaming pipelines often write to Bronze and Silver continuously, while Gold tables may be batch-refreshed on a schedule."
+  "id": "iceberg-020",
+  "deck": "iceberg-cards",
+  "front": "What are Iceberg branches and tags, and how do you use them for audit and rollback?",
+  "back": "Iceberg branches and tags (introduced in Iceberg 1.1) bring git-like version control to tables. Tags are named, immutable references to a specific snapshot — useful for marking significant points: `ALTER TABLE db.table CREATE TAG v_20240101 AS OF VERSION 12345`. Branches are named, mutable references to a snapshot that advance as new commits are made to them — enable writing to an isolated branch without affecting the main table. Pattern: audit isolation — before running a risky backfill, create a branch, write to it, validate results, then fast-forward the main branch to the audit branch if correct. Rollback pattern: create a tag at the current snapshot before running a batch, run it, if results are wrong roll back: `ALTER TABLE db.table EXECUTE ROLLBACK(snapshot_id)` or set the current snapshot: `ALTER TABLE db.table SET TBLPROPERTIES ('current-snapshot-id'='12345')`. Write isolation: write to a branch in dev, merge to main in production — enables blue/green data deployments. This is a next-generation feature that sets Iceberg apart from simpler table formats.",
+  "tags": ["iceberg", "branches", "tags", "versioning", "audit", "rollback"],
+  "difficulty": "hard"
 }

@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Delta Lake transaction log (_delta_log): how does it provide ACID transactions on object storage?",
-  "answer": "The _delta_log directory at the root of every Delta table contains a sequential series of JSON files (000...00.json, 000...01.json, etc.), each representing one atomic commit. Each commit records which files were added and which were removed, along with the operation type and metadata. Atomicity is achieved by using the atomic 'put-if-absent' semantics of cloud object storage: only one writer can successfully create a given log file number, and losers must retry. Reads always start from the latest checkpoint (a Parquet snapshot of the log created every 10 commits) and replay subsequent JSON files to reconstruct current table state. This log-based approach provides serializability without a lock server, making it possible to get ACID guarantees on S3, GCS, or ADLS."
+  "id": "iceberg-012",
+  "deck": "iceberg-cards",
+  "front": "How does Flink write streaming data to Iceberg tables, and what guarantees does it provide?",
+  "back": "Flink writes to Iceberg using the flink-iceberg connector, which implements exactly-once semantics via a two-phase commit protocol synchronized with Flink checkpoints. Flink writers buffer data in memory and flush to staging files during each checkpoint. The IcebergFilesCommitter (a Flink operator) collects the staged file info and, upon checkpoint completion, atomically commits a new Iceberg snapshot containing all files from that checkpoint interval. If a failure occurs before checkpoint completion, the staged files are abandoned and Flink replays from the last successful checkpoint — the Iceberg snapshot is never committed, so no duplicate data appears in reads. Configuration in Flink SQL: `CREATE TABLE iceberg_sink WITH ('connector'='iceberg', 'catalog-name'='my_catalog', 'catalog-type'='rest', 'uri'='http://catalog:8181', 'warehouse'='s3://my-bucket/warehouse', 'database-name'='db', 'table-name'='events')`. The write interval is determined by checkpoint interval — smaller checkpoints = lower latency to visible data but more Iceberg snapshot overhead. Typical production setting: 60-300 second checkpoint intervals.",
+  "tags": ["iceberg", "flink", "streaming-writes", "exactly-once", "checkpointing"],
+  "difficulty": "hard"
 }

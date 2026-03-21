@@ -1,5 +1,8 @@
 {
-  "category": "Lakehouse Architecture",
-  "question": "Apache Hudi: what does it specialize in compared to Iceberg and Delta Lake?",
-  "answer": "Apache Hudi specializes in fast record-level upserts on large tables by maintaining an index (Bloom filter, HBase index, or bucket index) that maps record keys to the specific file that contains them, so update operations can locate and rewrite only the affected file without scanning all partitions. This makes Hudi particularly well-suited for CDC (change data capture) pipelines where source systems stream row-level changes at high volume. Hudi also has native support for incremental queries ('SELECT * FROM table WHERE _hoodie_commit_time > X'), which let downstream consumers efficiently pull only changed records since their last read. Compared to Iceberg and Delta Lake, Hudi has a steeper operational complexity but superior upsert performance at scale."
+  "id": "iceberg-023",
+  "deck": "iceberg-cards",
+  "front": "How do Trino and Presto query Iceberg tables, and what are the typical query patterns?",
+  "back": "Trino (the open-source fork of PrestoSQL) has first-class Iceberg support via its Iceberg connector. Configure in Trino: create a catalog properties file `iceberg.properties` with `connector.name=iceberg`, `iceberg.catalog.type=rest` (or hive, glue), and the catalog URI. Trino then uses Iceberg's Java API to read table metadata, push down predicate filters (leveraging column statistics from manifests for file pruning), and read Parquet/ORC data files in parallel. Query patterns: standard SQL reads work identically to Hive tables from the user perspective. Time travel: `SELECT * FROM catalog.db.table FOR VERSION AS OF 12345` or `FOR TIMESTAMP AS OF TIMESTAMP '2024-01-15 10:00:00'`. DML: Trino supports INSERT, DELETE, UPDATE, and MERGE INTO on Iceberg tables (using CoW mode). Use Trino for interactive analytics on Iceberg (ad-hoc queries, BI tool connections) and Flink/Spark for batch/streaming writes. The Trino + Iceberg + Glue + S3 stack is the canonical 'open analytics engine' for teams wanting Snowflake-like SQL performance without the Snowflake cost model.",
+  "tags": ["iceberg", "trino", "presto", "query", "integration"],
+  "difficulty": "medium"
 }

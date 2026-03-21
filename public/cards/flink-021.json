@@ -1,0 +1,8 @@
+{
+  "id": "flink-021",
+  "deck": "flink-cards",
+  "front": "How do you write streaming data from Flink to Apache Iceberg?",
+  "back": "Flink integrates with Iceberg via the flink-iceberg connector (part of the Apache Iceberg project). You configure an Iceberg catalog (Hive, Hadoop, REST, Glue) and write to Iceberg tables using either the DataStream API or Flink SQL. In Flink SQL: `CREATE CATALOG iceberg_catalog WITH ('type'='iceberg', 'catalog-type'='rest', 'uri'='http://catalog-server:8181');` then `INSERT INTO iceberg_catalog.db.my_table SELECT * FROM kafka_source_table;` The Flink Iceberg sink uses two-phase commit to align file commits with Flink checkpoints, achieving exactly-once semantics. Each checkpoint interval, Flink writers flush files and the committer atomically creates a new Iceberg snapshot. You can choose between Copy-on-Write and Merge-on-Read write modes. This pattern (Kafka → Flink → Iceberg) is the canonical streaming lakehouse ingestion pipeline at companies like Netflix, Apple, and LinkedIn.",
+  "tags": ["flink", "iceberg", "integration", "streaming-lakehouse", "exactly-once"],
+  "difficulty": "hard"
+}

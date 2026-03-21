@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Time travel in Iceberg: how do snapshots work, what is snapshot isolation, and how do you roll back?",
-  "answer": "Every write to an Iceberg table creates an immutable snapshot, which is a complete, consistent view of the table at that moment in time. Snapshot isolation means readers always see a consistent snapshot even while writers are committing new ones, with no locking required. You can query historical data with 'SELECT * FROM table FOR VERSION AS OF snapshot_id' or 'FOR TIMESTAMP AS OF timestamp'. To undo a bad write, use 'CALL catalog.system.rollback_to_snapshot(table, snapshot_id)', which atomically repoints the table's current snapshot pointer without deleting any files. Snapshots are retained according to the table's expiration policy and can be removed with the expire_snapshots procedure."
+  "id": "iceberg-006",
+  "deck": "iceberg-cards",
+  "front": "What is partition evolution in Iceberg, and why is it impossible with Hive-style partitioning?",
+  "back": "Partition evolution lets you change how a table is partitioned without rewriting existing data. In Iceberg, partitioning is stored in table metadata (the partition spec), not in the directory structure. When you change the partition spec (e.g., switching from monthly to daily partitioning), Iceberg simply uses the new spec for new data files while old data files retain the old spec — both coexist. Queries work correctly across both because Iceberg tracks which spec each data file was written with. With Hive-style partitioning, the partition values are baked into the directory path (e.g., /year=2024/month=01/). Changing partitioning requires rewriting all data files to new directories — a massive, expensive operation. In practice, Hive tables are never re-partitioned; teams live with poor initial partition choices forever. Iceberg partition evolution enables teams to start with month-level partitioning and migrate to day-level as data volume grows, with zero downtime and zero data rewrite.",
+  "tags": ["iceberg", "partition-evolution", "partitioning", "hive-comparison"],
+  "difficulty": "medium"
 }

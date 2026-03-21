@@ -1,0 +1,8 @@
+{
+  "id": "flink-019",
+  "deck": "flink-cards",
+  "front": "What is Flink's Async I/O, and why is it critical for external lookups in streaming pipelines?",
+  "back": "Async I/O is a Flink operator that enables non-blocking external calls (e.g., database lookups, HTTP requests) without stalling the entire pipeline. Without it, each event must wait for the external call to complete before the next event is processed — with a 10ms lookup latency and 1000 events/sec, you'd bottleneck at 100 events/sec per thread. With Async I/O, Flink sends multiple requests concurrently and collects results asynchronously, using a queue of in-flight requests. You implement AsyncFunction with two modes: ordered (results emitted in arrival order, adds latency) or unordered (results emitted as they complete, lower latency but changes event order). The capacity parameter limits concurrent in-flight requests. Best practice: use Async I/O for any blocking external call in streaming; cache frequent lookups in a local guava Cache to reduce external call volume further.",
+  "tags": ["flink", "async-io", "performance", "external-lookups", "throughput"],
+  "difficulty": "hard"
+}

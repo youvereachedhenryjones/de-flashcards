@@ -1,0 +1,8 @@
+{
+  "id": "flink-029",
+  "deck": "flink-cards",
+  "front": "How does Flink run on AWS — what is Amazon Managed Service for Apache Flink (formerly Kinesis Data Analytics)?",
+  "back": "Amazon Managed Service for Apache Flink (MSF, formerly Kinesis Data Analytics for Apache Flink) is a fully managed service that runs Flink applications on AWS without managing clusters. You upload your Flink JAR, configure scaling (min/max KPUs — Kinesis Processing Units, each 1 vCPU + 4GB), and AWS handles JobManager HA, automatic scaling, and checkpoint storage in S3. Key integrations: native Kinesis Data Streams source/sink connectors, MSK (Managed Streaming for Kafka), S3, DynamoDB, and OpenSearch. Checkpoints are automatically stored in S3. Limitations vs self-managed Flink: fewer configuration knobs, max 64 KPUs per application (configurable), and Flink version lags behind open source by 6-12 months. Pricing: ~$0.11/KPU-hour. For teams on AWS already using Kinesis, MSF reduces operational burden. For teams needing latest Flink features or fine-grained tuning, self-managed on EKS is better. The Flink Kubernetes Operator on EKS is increasingly preferred for production AWS deployments.",
+  "tags": ["flink", "aws", "managed-flink", "kinesis", "cloud", "production"],
+  "difficulty": "medium"
+}

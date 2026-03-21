@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Delta Lake vs Apache Iceberg vs Apache Hudi: one key differentiator for each.",
-  "answer": "Delta Lake's key differentiator is its tight Databricks integration and the transaction log (_delta_log) design, which uses simple JSON commit files that are easy to inspect and recover manually. Apache Iceberg's key differentiator is engine-agnostic openness: its spec is maintained by the Apache Software Foundation and it has the broadest support across Spark, Trino, Flink, Presto, BigQuery, and Snowflake without vendor lock-in. Apache Hudi's key differentiator is its record-level indexing, which enables very fast upserts on large tables because it can locate exactly which file contains a given record key without scanning all files. All three support ACID transactions and time travel, but their design priorities differ."
+  "id": "iceberg-011",
+  "deck": "iceberg-cards",
+  "front": "How do you read and write Iceberg tables with Apache Spark — what catalog configuration is needed?",
+  "back": "Iceberg integrates with Spark via the iceberg-spark-runtime JAR and catalog configuration in SparkSession. Configure a catalog: `spark.sql.catalog.my_catalog = org.apache.iceberg.spark.SparkCatalog` and `spark.sql.catalog.my_catalog.type = hadoop` (for S3/HDFS) or `rest` for REST catalog. Writing: `df.writeTo('my_catalog.db.my_table').using('iceberg').createOrReplace()` or via SQL `INSERT INTO my_catalog.db.my_table SELECT ...`. Reading: `spark.table('my_catalog.db.my_table')` or `spark.read.format('iceberg').load('s3://bucket/warehouse/db/my_table')`. Upserts: `df.createOrReplaceTempView('updates'); spark.sql('MERGE INTO my_catalog.db.target t USING updates u ON t.id = u.id WHEN MATCHED THEN UPDATE SET * WHEN NOT MATCHED THEN INSERT *')`. Time travel: `spark.read.option('snapshot-id', '12345').format('iceberg').load(...)`. The Hadoop catalog is file-system based (no external service); production systems should use Hive Metastore or REST catalog for concurrent writes and catalog management.",
+  "tags": ["iceberg", "spark", "catalog", "read-write", "integration"],
+  "difficulty": "medium"
 }

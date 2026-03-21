@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Delta Lake Auto Loader: what does it do and how does it handle schema evolution?",
-  "answer": "Auto Loader (cloudFiles format in Databricks) is a Spark Structured Streaming source that incrementally and efficiently ingests new files from cloud object storage (S3, GCS, ADLS) as they arrive, without needing to list the entire bucket on each run. It uses cloud notification services (SNS/SQS on AWS, Pub/Sub on GCP) or directory listing mode to detect new files with low latency. For schema evolution, Auto Loader can infer schema from the first batch and write it to a schema location, then detect schema changes in subsequent batches. With 'cloudFiles.schemaEvolutionMode' set to 'addNewColumns', it automatically adds new columns to the target Delta table. This makes it ideal for landing zone ingestion where upstream producers may add fields over time."
+  "id": "iceberg-018",
+  "deck": "iceberg-cards",
+  "front": "What are the best practices for running Iceberg on S3?",
+  "back": "S3 is strongly consistent since December 2020 (read-after-write and list-after-write consistency for all regions), which is a prerequisite for safe Iceberg operations. Key best practices: (1) Use path-style access (`s3://bucket/warehouse/db/table/`) — avoid virtual-hosted-style for compatibility. (2) Enable S3 versioning on the warehouse bucket for additional protection against accidental metadata corruption. (3) Use S3 object tagging or lifecycle rules to manage storage classes — compacted data to S3 Standard, old snapshots to S3 Infrequent Access. (4) Set appropriate S3 request retry settings in the Hadoop S3A client to handle transient errors. (5) Use S3 multi-part upload for large files (automatically used by the Hadoop S3A connector for files >100MB). (6) IAM permissions: writers need s3:PutObject, s3:DeleteObject, s3:GetObject; readers need s3:GetObject, s3:ListBucket. (7) Enable S3 Server-Side Encryption (SSE-S3 or SSE-KMS) for data at rest. (8) For write-heavy workloads, consider S3 Express One Zone for lower-latency metadata operations at higher cost.",
+  "tags": ["iceberg", "s3", "aws", "best-practices", "production", "storage"],
+  "difficulty": "medium"
 }

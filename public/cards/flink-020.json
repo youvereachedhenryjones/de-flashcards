@@ -1,0 +1,8 @@
+{
+  "id": "flink-020",
+  "deck": "flink-cards",
+  "front": "How does Flink run natively on Kubernetes, and what are the deployment modes?",
+  "back": "Flink offers native Kubernetes integration where Flink itself creates and manages Kubernetes pods — no Helm charts or operator required for basic usage. There are three deployment modes: Application mode (recommended for production) runs one Flink application per cluster, with the JobManager as a K8s Deployment and TaskManagers launched on demand. Session mode runs a long-lived cluster where multiple jobs can be submitted, sharing resources — useful for dev/test. Per-job mode (deprecated in Flink 1.15+) launched a cluster per job via YARN-style submission. For production K8s: use the Flink Kubernetes Operator (via Helm) which manages FlinkDeployment CRDs and supports auto-scaling, rolling upgrades, and savepoint management declaratively. Key configs: kubernetes.container.image, kubernetes.taskmanager.replicas, kubernetes.jobmanager.cpu. Flink + K8s + Iceberg is a common production stack for streaming lakehouses.",
+  "tags": ["flink", "kubernetes", "deployment", "k8s", "production", "infrastructure"],
+  "difficulty": "medium"
+}

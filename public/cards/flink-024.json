@@ -1,0 +1,8 @@
+{
+  "id": "flink-024",
+  "deck": "flink-cards",
+  "front": "Flink vs Kafka Streams: how do they compare on statefulness and when does each win?",
+  "back": "Both support stateful streaming, but their architecture and operational models differ fundamentally. Kafka Streams stores state in local RocksDB instances backed by Kafka changelog topics for fault tolerance — no external state backend required. This makes it self-contained and operationally simple. Flink uses pluggable state backends (heap or RocksDB) backed by distributed checkpoints to HDFS/S3, requiring separate storage infrastructure. Kafka Streams wins for: simplicity (it's a library, no cluster to manage), Kafka-native deployments, microservice architectures, and moderate throughput. Flink wins for: complex event processing across multiple streams, very large state (terabytes), SQL/Table API analytics, exactly-once with non-Kafka sinks, advanced windowing with custom triggers, and when you need sub-second latency at very high scale. Key limitation of Kafka Streams: it only reads from/writes to Kafka — Flink can integrate with virtually any source/sink.",
+  "tags": ["flink", "kafka-streams", "comparison", "statefulness", "architecture"],
+  "difficulty": "hard"
+}

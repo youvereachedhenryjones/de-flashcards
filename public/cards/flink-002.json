@@ -1,0 +1,8 @@
+{
+  "id": "flink-002",
+  "deck": "flink-cards",
+  "front": "What are the differences between Flink's DataStream API, Table API, and SQL API — and when do you use each?",
+  "back": "The DataStream API is the low-level programmatic API offering full control over state, time, and operators; use it for complex custom logic or when you need fine-grained control. The Table API is a relational, declarative API for Python/Java/Scala that expresses transformations as table operations — good for analysts comfortable with relational logic. The SQL API is pure SQL on top of the Table API, enabling streaming queries via standard SQL syntax with Flink-specific extensions (e.g., tumble windows in SQL). All three compile down to the same Flink runtime DAG, so you can mix them. For greenfield projects, SQL/Table API reduces boilerplate; for stateful event-driven logic, DataStream is still king.",
+  "tags": ["flink", "datastream-api", "table-api", "sql-api", "apis"],
+  "difficulty": "medium"
+}

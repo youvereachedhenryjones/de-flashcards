@@ -1,0 +1,8 @@
+{
+  "id": "flink-025",
+  "deck": "flink-cards",
+  "front": "How does Flink SQL compare to Spark Structured Streaming SQL for stream processing?",
+  "back": "Both support SQL for streaming, but they reflect fundamentally different execution models. Spark Structured Streaming SQL uses micro-batching (configurable trigger interval, minimum ~100ms), so even with SQL it's processing mini-batches — simpler fault tolerance but higher latency. Flink SQL runs true event-by-event streaming with watermark-based event-time semantics built directly into SQL syntax (TUMBLE(), HOP(), SESSION() functions). Flink SQL also natively supports changelog streams (INSERT/UPDATE/DELETE semantics) from CDC sources, which Spark requires Delta Lake or special connectors to handle. Spark SQL wins on: ecosystem maturity, unified batch/stream syntax (same query for batch and streaming), and broader Python/PySpark community. Flink SQL wins on: lower latency, richer time semantics, native CDC table support, and better exactly-once with transactional sinks. For $180K+ DE roles, knowing both is expected; Flink SQL is the differentiator for real-time analytics roles.",
+  "tags": ["flink", "spark", "sql", "structured-streaming", "comparison"],
+  "difficulty": "hard"
+}

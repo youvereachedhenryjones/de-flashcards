@@ -1,0 +1,8 @@
+{
+  "id": "flink-001",
+  "deck": "flink-cards",
+  "front": "How does Apache Flink differ from Spark Streaming and Kafka Streams architecturally, and when should you choose each?",
+  "back": "Flink is a true streaming engine with a dataflow model — events are processed one at a time with low latency (milliseconds). Spark Streaming uses micro-batching (processes tiny batches every few seconds), which adds latency but simplifies batch/stream unification. Kafka Streams is a lightweight library (no separate cluster) that runs inside your application, best for simple stateful transformations directly on Kafka topics. Choose Flink for complex stateful streaming with exactly-once guarantees and sub-second latency. Choose Spark Streaming when you already have Spark infrastructure and need batch/stream parity. Choose Kafka Streams for microservice-style stream processing without cluster overhead.",
+  "tags": ["flink", "spark", "kafka-streams", "architecture", "comparison"],
+  "difficulty": "hard"
+}

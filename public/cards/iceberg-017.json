@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Delta Live Tables (DLT): what is it and how does it differ from standard Delta pipelines?",
-  "answer": "Delta Live Tables is a Databricks-managed ETL framework where you declare tables using SQL or Python with the @dlt.table decorator, and the framework handles orchestration, dependency resolution, error recovery, and data quality enforcement automatically. Unlike standard Delta pipelines where you manually write Spark jobs and manage job scheduling, DLT infers the DAG from table dependencies, runs tables in the correct order, and retries failed stages. DLT introduces 'expectations' for inline data quality rules (e.g., CONSTRAINT valid_date EXPECT (date IS NOT NULL)), and tables can be declared as streaming or batch. The tradeoff is that DLT is fully managed by Databricks and has less flexibility than custom Spark code, but significantly reduces operational overhead for pipeline maintenance."
+  "id": "iceberg-017",
+  "deck": "iceberg-cards",
+  "front": "What is the small file problem in Iceberg, and how does compaction solve it?",
+  "back": "Streaming writes to Iceberg (e.g., from Flink every 60 seconds) produce many small files — one set per checkpoint interval per partition. Small files hurt read performance because query engines must open thousands of files, incurring per-file overhead (S3 GET requests, Parquet footer reads, JVM overhead). A table receiving 1000 events/minute partitioned by day across 10 Flink tasks writes 10 × 1440 = 14,400 files per day if checkpointing every minute — almost all tiny. Compaction (rewriting) merges small files into larger ones (target: 128MB-512MB per file). In Spark: `SparkActions.get().rewriteDataFiles(table).option('target-file-size-bytes', str(256 * 1024 * 1024)).execute()`. Also rewrite manifests: `SparkActions.get().rewriteManifests(table).execute()` — reduces manifest scanning overhead. Schedule compaction regularly (e.g., hourly for streaming tables, daily for batch). The flink-iceberg connector's auto-compaction feature can trigger compaction within the streaming job itself, though external Spark compaction jobs give more control.",
+  "tags": ["iceberg", "compaction", "small-files", "performance", "maintenance"],
+  "difficulty": "medium"
 }

@@ -1,0 +1,8 @@
+{
+  "id": "flink-028",
+  "deck": "flink-cards",
+  "front": "What are the key Flink performance tuning levers: parallelism, memory, state backend, and GC?",
+  "back": "Parallelism: set source parallelism = Kafka partition count. For compute-heavy operators, increase parallelism until CPU/network is the bottleneck, not the logic. Memory: Flink divides TaskManager JVM heap into managed memory (for state/sorting), network buffers, and user code heap. Tune taskmanager.memory.process.size and allocation fractions. Network buffer size affects throughput — increase for high-throughput pipelines. State backend: HashMapStateBackend (in JVM heap) is fastest for small state but causes GC pressure at scale. EmbeddedRocksDBStateBackend stores state on disk, handles terabyte-scale state, and reduces GC pressure significantly — the right choice for large production jobs. GC tuning: use G1GC with -XX:+UseG1GC, tune -XX:MaxGCPauseMillis=200. Large heap + long GC pauses can cause checkpoint timeouts. With RocksDB, you can run smaller JVM heaps (less GC) while storing state on disk. Operator chaining: disable chaining for bottleneck operators to give them dedicated threads. Use the Web UI's task metrics to identify the slowest operator before tuning.",
+  "tags": ["flink", "performance", "tuning", "rocksdb", "memory", "parallelism", "gc"],
+  "difficulty": "hard"
+}

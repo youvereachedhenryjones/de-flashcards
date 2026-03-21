@@ -1,0 +1,8 @@
+{
+  "id": "flink-008",
+  "deck": "flink-cards",
+  "front": "Describe Flink's four window types: tumbling, sliding, session, and global windows.",
+  "back": "Tumbling windows divide time into non-overlapping fixed-size buckets (e.g., 5-minute windows). Each event belongs to exactly one window. Use for periodic reporting like 'clicks per minute.' Sliding windows also have fixed size but overlap — a 10-minute window sliding every 2 minutes means each event appears in multiple windows. Use for moving averages. Session windows group events by inactivity gaps: a new window starts after a configurable gap of no activity (e.g., 30 minutes). Perfect for user session analysis where you don't know session length upfront. Global windows have no built-in trigger — all events go into one window forever, requiring a custom trigger (e.g., count-based). Real-world tip: session windows are the most powerful but also most state-heavy since Flink must merge overlapping sessions dynamically.",
+  "tags": ["flink", "windows", "tumbling", "sliding", "session", "windowing"],
+  "difficulty": "medium"
+}

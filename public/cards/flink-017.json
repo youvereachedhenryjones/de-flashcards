@@ -1,0 +1,8 @@
+{
+  "id": "flink-017",
+  "deck": "flink-cards",
+  "front": "How do you connect Flink to Kafka as a source and sink?",
+  "back": "Flink provides the flink-connector-kafka library for both reading and writing Kafka. For a Kafka source via DataStream API: `KafkaSource<String> source = KafkaSource.<String>builder().setBootstrapServers(brokers).setTopics('my-topic').setGroupId('flink-group').setStartingOffsets(OffsetsInitializer.earliest()).setValueOnlyDeserializer(new SimpleStringSchema()).build();` Then: `env.fromSource(source, WatermarkStrategy.noWatermarks(), 'Kafka Source')`. For a Kafka sink: `KafkaSink<String> sink = KafkaSink.<String>builder().setBootstrapServers(brokers).setRecordSerializer(KafkaRecordSerializationSchema.builder().setTopic('output-topic').setValueSerializationSchema(new SimpleStringSchema()).build()).setDeliveryGuarantee(DeliveryGuarantee.EXACTLY_ONCE).build();` The EXACTLY_ONCE delivery guarantee requires Kafka transactions. In Flink SQL, simply use `'connector' = 'kafka'` in CREATE TABLE DDL. Kafka offset commits are tied to Flink checkpoints for fault tolerance.",
+  "tags": ["flink", "kafka", "source", "sink", "connectors", "integration"],
+  "difficulty": "medium"
+}

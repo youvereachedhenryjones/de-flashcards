@@ -1,0 +1,8 @@
+{
+  "id": "flink-023",
+  "deck": "flink-cards",
+  "front": "Interview question: What happens when a TaskManager fails in Flink?",
+  "back": "When a TaskManager fails, the JobManager detects the loss via heartbeat timeout. Flink then cancels all tasks running on that TaskManager (and any tasks waiting on its output). Depending on the restart strategy configured, Flink restarts the affected tasks (or the entire job). With RestartAllStrategy, all tasks restart; with RestartIndividualStrategy (rare), only affected tasks restart. On restart, tasks reload their state from the last successful checkpoint stored in durable storage (S3, HDFS). Kafka sources reset their read offsets to the checkpointed position and replay events from there — this is why exactly-once requires both checkpoint state AND offset reset. The job resumes from the checkpoint, reprocessing events since the last checkpoint (at-least-once delivery unless sinks are transactional). Total downtime = time-to-detect (heartbeat interval) + checkpoint-restore-time + state-load-time. To minimize recovery time: increase checkpoint frequency, use RocksDB incremental checkpoints for large state, and keep state size reasonable.",
+  "tags": ["flink", "fault-tolerance", "taskmanager", "recovery", "interview"],
+  "difficulty": "hard"
+}

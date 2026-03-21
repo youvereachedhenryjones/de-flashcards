@@ -1,0 +1,8 @@
+{
+  "id": "flink-012",
+  "deck": "flink-cards",
+  "front": "What is the difference between Flink savepoints and checkpoints?",
+  "back": "Checkpoints are automatic, periodic snapshots created by Flink for fault tolerance — they're managed by Flink, may be deleted after newer checkpoints succeed, and are optimized for speed. Savepoints are manually triggered, user-managed snapshots that persist indefinitely until explicitly deleted. Savepoints are designed for planned operations: upgrading Flink versions, changing job parallelism, modifying operator logic, or A/B testing. Technically, savepoints use the same snapshot format as checkpoints but include additional metadata (operator UIDs) that enable restoring after code changes. Best practice: assign stable operator UIDs (uid('my-operator')) to all operators — without them, savepoints break on topology changes because Flink can't map old state to new operators. Savepoints are your 'git checkpoint' for production streaming jobs.",
+  "tags": ["flink", "savepoints", "checkpoints", "operations", "upgrades"],
+  "difficulty": "medium"
+}

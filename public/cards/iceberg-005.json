@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Schema evolution in Iceberg: which changes are safe (add, rename, drop, reorder columns)?",
-  "answer": "Iceberg tracks columns by unique integer IDs rather than by name, which makes all four common schema changes safe. Adding a column appends a new ID and existing files simply return null for that column. Renaming a column updates the metadata name but the column ID stays the same, so old files are still readable. Dropping a column marks the ID as deleted in metadata; no data rewrite is needed. Reordering columns only changes the schema position, not the physical file layout. This ID-based approach prevents the common 'column swap bug' where renaming two columns in sequence causes data corruption in positional-column formats."
+  "id": "iceberg-005",
+  "deck": "iceberg-cards",
+  "front": "How does Iceberg handle schema evolution — why is it safer than Hive schema changes?",
+  "back": "Iceberg tracks schema changes in its metadata with each column assigned a stable integer ID (not just a name). This means renaming a column from 'user_id' to 'userId' just updates the name mapping — existing data files don't change, and the column ID remains the same, so Iceberg correctly reads old files using the old name and new files using the new name. Supported schema operations without data rewrites: ADD COLUMN (adds nullable column; old files return null for that column), DROP COLUMN (column removed from reads; old data still physically present but hidden), RENAME COLUMN (name-only change), REORDER COLUMNS, PROMOTE COLUMN TYPE (e.g., int → long). Unsafe operations that Iceberg rejects: narrowing types (long → int), changing column semantics. In Hive, renaming a column in a text-format table would break reads of old files since mapping was positional. Iceberg's ID-based schema tracking is why it's the foundation of modern data lakehouses requiring safe, frequent schema changes.",
+  "tags": ["iceberg", "schema-evolution", "metadata", "hive-comparison"],
+  "difficulty": "medium"
 }

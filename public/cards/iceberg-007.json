@@ -1,5 +1,8 @@
 {
-  "category": "Apache Iceberg",
-  "question": "Row-level operations in Iceberg: how do DELETE, UPDATE, and MERGE INTO work?",
-  "answer": "Iceberg supports row-level DELETE, UPDATE, and MERGE INTO, but the physical implementation depends on the write mode (Copy-on-Write or Merge-on-Read). In Copy-on-Write mode, affected data files are rewritten entirely with the changes applied, producing new clean files immediately. In Merge-on-Read mode, Iceberg writes small 'delete files' or 'equality delete files' that record which rows are deleted or changed, and the actual data files are not rewritten. MERGE INTO lets you upsert: rows matching the join condition can be updated or deleted, and non-matching rows can be inserted in a single atomic statement. MoR is faster for write-heavy workloads, but CoW reads are faster because there is no merge step at query time."
+  "id": "iceberg-007",
+  "deck": "iceberg-cards",
+  "front": "What is Iceberg hidden partitioning, and what problem does it solve?",
+  "back": "Hidden partitioning means query engines don't need to know how a table is partitioned — Iceberg automatically applies partition pruning based on column values without requiring users to manually filter on partition columns. In Hive, you must write `WHERE year=2024 AND month=01` for partition pruning to work; if you write `WHERE event_time BETWEEN '2024-01-01' AND '2024-01-31'`, Hive does a full scan. With Iceberg hidden partitioning, you define a transform on a column: `PARTITIONED BY (days(event_time))` — Iceberg stores the partition value (the day bucket) internally. When a query filters on `event_time`, Iceberg automatically translates it to the partition predicate and prunes irrelevant files. Supported transforms: identity, year(), month(), day(), hour(), bucket(N, col) (hash-based), truncate(L, col) (string prefix). This eliminates a whole class of accidental full table scans caused by users forgetting partition columns, and enables changing partition granularity without breaking queries.",
+  "tags": ["iceberg", "hidden-partitioning", "partition-pruning", "transforms"],
+  "difficulty": "medium"
 }

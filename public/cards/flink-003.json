@@ -1,0 +1,8 @@
+{
+  "id": "flink-003",
+  "deck": "flink-cards",
+  "front": "What is the difference between stateful and stateless operations in Flink?",
+  "back": "Stateless operations process each event independently without memory of past events — examples include map(), filter(), and flatMap(). They're simple, horizontally scalable, and fault-tolerant by default. Stateful operations maintain state across events, enabling computations like running totals, session tracking, deduplication, and joins against historical data. Flink stores state in a configurable state backend (heap, RocksDB) and includes it in checkpoints for fault tolerance. The critical insight is that state in Flink is local to a task (co-located with computation), avoiding expensive remote lookups — this is what enables high-throughput stateful streaming at scale.",
+  "tags": ["flink", "state", "stateless", "stateful", "fundamentals"],
+  "difficulty": "easy"
+}

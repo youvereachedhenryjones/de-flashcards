@@ -1,0 +1,8 @@
+{
+  "id": "flink-027",
+  "deck": "flink-cards",
+  "front": "What is Flink ML (FlinkML), and how does it fit into the streaming ML ecosystem?",
+  "back": "Flink ML is Apache Flink's machine learning library, providing a unified API for both batch and streaming ML workflows. It follows the scikit-learn Pipeline API (Estimator/Transformer/Pipeline pattern) but executes on the Flink runtime, enabling ML models to be trained and applied as part of a streaming pipeline. FlinkML supports online learning algorithms (those that update incrementally with each record), making it suitable for continuously retrained models on live data streams — unlike Spark MLlib which is primarily batch-oriented. Key components include: feature engineering transformers (StandardScaler, Bucketizer), online learning algorithms (OnlineKMeans), and evaluation utilities. In practice, most production streaming ML uses the 'train offline, predict online' pattern: train in Spark/PyTorch, export the model, and load it in Flink for real-time inference. FlinkML is more often used in research contexts or for online algorithms that truly need streaming training. Know what it is for interviews, but Flink's real ML strength is serving pre-trained models.",
+  "tags": ["flink", "machine-learning", "flink-ml", "online-learning", "streaming-ml"],
+  "difficulty": "easy"
+}

@@ -1,5 +1,8 @@
 {
-  "category": "Delta Lake",
-  "question": "Delta Lake time travel syntax: VERSION AS OF vs TIMESTAMP AS OF.",
-  "answer": "Delta Lake time travel lets you query historical snapshots of a table using two syntaxes. 'SELECT * FROM table VERSION AS OF 42' queries the table at commit version 42 in the transaction log. 'SELECT * FROM table TIMESTAMP AS OF '2024-06-01'' queries the latest version as of that timestamp. Both can also be used in DataFrame readers: 'spark.read.format(\"delta\").option(\"versionAsOf\", 42).load(path)' or '.option(\"timestampAsOf\", \"2024-06-01\")'. Time travel is limited by how long old data files are retained (controlled by VACUUM), so versions older than the VACUUM retention window are not available. This is commonly used for audit queries, debugging pipelines, and reproducing historical model training sets."
+  "id": "iceberg-016",
+  "deck": "iceberg-cards",
+  "front": "What is the Iceberg REST Catalog specification, and why is it becoming the standard?",
+  "back": "The Iceberg REST Catalog is an HTTP-based API specification (defined in the Iceberg open-source project) for catalog operations: list namespaces, list tables, load table metadata, create tables, commit transactions. Any service implementing this spec can serve as an Iceberg catalog. It decouples Iceberg clients from specific catalog implementations — your compute (Spark, Flink, Trino) only needs to speak the REST API, and the catalog backend can be anything: Project Nessie, Polaris, Tabular, Unity Catalog, AWS S3Tables, or a custom implementation. This is the 'ODBC moment' for table formats: a standard interface that enables multi-engine, multi-catalog interoperability. Major implementations: Project Nessie (git-like branching for data), Apache Polaris (Snowflake-donated, open-source), Tabular (now part of Databricks Unity Catalog), AWS S3Tables (GA 2024). Production recommendation: deploy a REST catalog for any multi-engine lakehouse — avoids vendor lock-in and enables mixing compute engines without reconfiguration.",
+  "tags": ["iceberg", "rest-catalog", "catalog", "interoperability", "standard"],
+  "difficulty": "medium"
 }

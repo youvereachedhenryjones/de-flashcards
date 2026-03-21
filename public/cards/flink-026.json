@@ -1,0 +1,8 @@
+{
+  "id": "flink-026",
+  "deck": "flink-cards",
+  "front": "How does Flink handle aggregations — what is the difference between incremental and full aggregations?",
+  "back": "Incremental aggregations update a running result with each incoming event and store only the current aggregate value — no buffering of raw events. ReduceFunction and AggregateFunction implement this pattern: each event immediately updates the accumulator (e.g., running sum, count, min/max). This is memory-efficient since state size is O(1) per key regardless of event volume. Full aggregations (via ProcessWindowFunction) buffer ALL events in the window until the window closes, then compute the result. This is necessary when the aggregation requires the complete dataset (e.g., median, percentile, complex event correlations). Memory usage is O(n) where n = events in window. Best practice: use the aggregate() combinator to chain an incremental AggregateFunction with a ProcessWindowFunction — you get incremental efficiency (only the accumulator is checkpointed, not all events) plus access to window metadata at emission time. This hybrid approach is optimal for most production use cases.",
+  "tags": ["flink", "aggregations", "incremental", "performance", "windows"],
+  "difficulty": "medium"
+}

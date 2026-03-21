@@ -1,0 +1,8 @@
+{
+  "id": "flink-007",
+  "deck": "flink-cards",
+  "front": "What are watermarks in Flink, why do they matter, and how do you configure them?",
+  "back": "Watermarks are special records injected into the stream that signal 'all events with timestamp ≤ T have arrived.' Flink uses watermarks to know when to close event-time windows and emit results — without them, it would never know when a window is 'complete.' Watermarks handle out-of-order data by defining how long to wait for late arrivals. You configure them via WatermarkStrategy: use WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(5)) to tolerate up to 5 seconds of out-of-order data. For monotonically increasing timestamps, use forMonotonousTimestamps(). In practice, the watermark lag is a tradeoff: larger lag = more complete results but higher latency. Watermarks propagate through the DAG, and the minimum watermark across all partitions advances the global watermark.",
+  "tags": ["flink", "watermarks", "event-time", "out-of-order", "windowing"],
+  "difficulty": "hard"
+}

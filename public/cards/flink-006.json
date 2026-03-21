@@ -1,0 +1,8 @@
+{
+  "id": "flink-006",
+  "deck": "flink-cards",
+  "front": "What are the three time semantics in Flink — event time, processing time, and ingestion time — and which should you use?",
+  "back": "Event time is the timestamp embedded in the event itself (e.g., when a click actually happened). It produces deterministic, reproducible results regardless of when data arrives or how fast Flink processes it — essential for correct business analytics. Processing time is the wall-clock time when Flink processes the event. It's the simplest and lowest-latency option but produces non-deterministic results since results change based on system speed. Ingestion time is when the event enters Flink's source operator — a middle ground, but rarely used in practice. Best practice: always use event time for business-critical pipelines. Use processing time only for approximate, latency-sensitive use cases where correctness is secondary (e.g., real-time dashboards with best-effort accuracy).",
+  "tags": ["flink", "event-time", "processing-time", "ingestion-time", "time-semantics"],
+  "difficulty": "medium"
+}

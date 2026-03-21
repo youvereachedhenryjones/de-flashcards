@@ -1,0 +1,8 @@
+{
+  "id": "flink-030",
+  "deck": "flink-cards",
+  "front": "What are the most common Flink production pitfalls: out-of-order events, state backend choice, and serialization issues?",
+  "back": "Out-of-order events: setting watermark lag too small drops legitimate late data; too large increases latency. Always profile your actual data delay (p99 latency between event_time and processing_time) and set watermark lag to p99 + safety margin. State backend choice: teams default to HashMapStateBackend and then discover GC pauses cause checkpoint timeouts when state grows beyond ~10GB per TaskManager. Migrate to RocksDB before this becomes a crisis — it's an operational burden to migrate under pressure. Serialization: Flink uses Kryo as a fallback serializer for unknown types, which is slow and produces large snapshots. Register custom types with env.registerTypeWithKryoSerializer() or, better, use Flink's own TypeInformation system (POJO or Avro). Large serialized state dramatically slows checkpointing. Other pitfalls: forgetting operator UIDs (breaks savepoints), not setting parallelism equal to Kafka partitions (leaves partitions unread), ignoring backpressure until it causes checkpoint failures, and running without HA for JobManager in production (single point of failure). Finally: test recovery by actually triggering failures in staging — don't discover recovery bugs in production.",
+  "tags": ["flink", "pitfalls", "production", "serialization", "state-backend", "out-of-order"],
+  "difficulty": "hard"
+}
